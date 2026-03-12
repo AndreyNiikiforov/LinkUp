@@ -22,6 +22,9 @@
                     <input type="password" class="password-input" id="loginPassword" placeholder="Пароль">
                 </div>
                 <button class="auth-button" id="loginButton">Войти</button>
+                <div class="auth-links">
+                    <a href="#" id="forgotPasswordLink">Забыли пароль?</a>
+                </div>
             </div>
 
             <div class="auth-divider">или</div>
@@ -32,6 +35,10 @@
                 <div class="phone-input-container">
                     <span class="phone-prefix">+7</span>
                     <input type="tel" class="phone-input" id="registerPhone" placeholder="925 XXX XX XX" maxlength="10">
+                </div>
+                <div class="username-input-container">
+                    <input type="text" class="username-input" id="registerUsername" placeholder="Username (a-z, 0-9, _)" maxlength="20">
+                    <div class="username-hint">Только англ. буквы, цифры и _</div>
                 </div>
                 <div class="password-input-container">
                     <input type="password" class="password-input" id="registerPassword" placeholder="Придумайте пароль">
@@ -56,13 +63,26 @@
                 <div class="user-info">
                     <span class="user-name" id="currentUserName">Загрузка...</span>
                     <span class="user-phone" id="currentUserPhone"></span>
+                    <span class="user-username" id="currentUserUsername"></span>
                 </div>
-                <div class="profile-edit-icon">✏️</div>
+                <div class="profile-edit-icon">⚙️</div>
             </div>
 
             <div class="search-container">
-                <input type="text" class="search-input" id="searchInput" placeholder="Поиск по номеру...">
+                <input type="text" class="search-input" id="searchInput" placeholder="Поиск по номеру или username...">
                 <button class="search-button" id="searchButton">🔍</button>
+            </div>
+
+            <div class="search-filters">
+                <label class="filter-option">
+                    <input type="radio" name="searchType" value="all" checked> Все
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="searchType" value="phone"> По номеру
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="searchType" value="username"> По username
+                </label>
             </div>
 
             <div class="search-results" id="searchResults" style="display: none;">
@@ -88,6 +108,9 @@
             <!-- Кнопка создания группы -->
             <button class="create-group-btn" id="createGroupBtn">➕ Создать группу</button>
 
+            <!-- Кнопка BotMaker -->
+            <button class="bot-maker-btn" id="openBotMakerBtn">🤖 BotMaker</button>
+
             <!-- Кнопка админ-панели -->
             <button class="admin-button" id="adminButton" style="display: none;">👑 Админ-панель</button>
         </div>
@@ -98,6 +121,7 @@
                 <div class="chat-header-info">
                     <span class="chat-header-name" id="currentChatName">Выберите чат</span>
                     <span class="chat-header-phone" id="currentChatPhone"></span>
+                    <span class="chat-header-username" id="currentChatUsername"></span>
                 </div>
                 <div class="chat-header-menu" id="chatMenuBtn">⋮</div>
             </div>
@@ -123,162 +147,119 @@
     </div>
 
     <!-- МОДАЛКА НАСТРОЕК ПРОФИЛЯ -->
-    <div class="profile-modal" id="profileModal" style="display: none;">
-        <div class="profile-modal-content">
-            <div class="profile-modal-header">
-                <h2>⚙️ Настройки профиля</h2>
-                <button class="close-profile" id="closeProfileModal">✕</button>
+    <!-- МОДАЛКА НАСТРОЕК ПРОФИЛЯ -->
+<div class="profile-modal" id="profileModal" style="display: none;">
+    <div class="profile-modal-content">
+        <div class="profile-modal-header">
+            <h2>⚙️ Настройки профиля</h2>
+            <button class="close-profile" id="closeProfileModal">✕</button>
+        </div>
+        
+        <div class="profile-tabs">
+            <button class="profile-tab active" data-profile-tab="general">👤 Основное</button>
+            <button class="profile-tab" data-profile-tab="privacy">🔒 Приватность</button>
+            <button class="profile-tab" data-profile-tab="devices">📱 Устройства</button>
+            <button class="profile-tab" data-profile-tab="linked">🔗 Привязки</button>
+        </div>
+        
+        <!-- Вкладка Основное -->
+        <div class="profile-tab-content active" id="profileGeneralTab">
+            <div class="avatar-upload">
+                <div class="current-avatar" id="profileAvatar">👤</div>
+                <button class="change-avatar-btn" id="changeAvatarBtn">🖼️ Изменить аватар</button>
             </div>
-            <div class="profile-modal-body">
-                <div class="avatar-upload">
-                    <div class="current-avatar" id="profileAvatar">👤</div>
-                    <button class="change-avatar-btn" id="changeAvatarBtn">🖼️ Изменить аватар</button>
-                </div>
-                <div class="profile-field">
-                    <label>📝 Как вас видят:</label>
-                    <input type="text" id="profileDisplayName" placeholder="Ваше отображаемое имя">
-                </div>
-                <div class="profile-field">
-                    <label>📱 Номер телефона:</label>
-                    <input type="text" id="profilePhone" readonly disabled>
-                </div>
-                <button class="save-profile-btn" id="saveProfileBtn">💾 Сохранить</button>
+            <div class="profile-field">
+                <label>📝 Отображаемое имя:</label>
+                <input type="text" id="profileDisplayName" placeholder="Как вас видят">
             </div>
+            <div class="profile-field">
+                <label>🔤 Username:</label>
+                <input type="text" id="profileUsername" placeholder="a-z, 0-9, _" maxlength="20">
+                <div class="field-hint">Только англ. буквы, цифры и _</div>
+            </div>
+            <div class="profile-field">
+                <label>📱 Номер телефона:</label>
+                <input type="text" id="profilePhone" readonly disabled>
+            </div>
+            <button class="save-profile-btn" id="saveProfileBtn">💾 Сохранить</button>
+        </div>
+        
+        <!-- Вкладка Приватность -->
+        <div class="profile-tab-content" id="profilePrivacyTab">
+            <h3>Кто видит мой номер</h3>
+            <div class="privacy-option">
+                <label>
+                    <input type="radio" name="showPhone" value="everyone"> Все
+                </label>
+                <label>
+                    <input type="radio" name="showPhone" value="contacts"> Мои контакты
+                </label>
+                <label>
+                    <input type="radio" name="showPhone" value="nobody"> Никто
+                </label>
+            </div>
+            
+            <h3>Кто может писать мне</h3>
+            <div class="privacy-option">
+                <label>
+                    <input type="radio" name="whoCanWrite" value="everyone"> Все
+                </label>
+                <label>
+                    <input type="radio" name="whoCanWrite" value="contacts"> Только контакты
+                </label>
+            </div>
+            
+            <h3>Кто видит мой последний визит</h3>
+            <div class="privacy-option">
+                <label>
+                    <input type="radio" name="lastSeen" value="everyone"> Все
+                </label>
+                <label>
+                    <input type="radio" name="lastSeen" value="contacts"> Мои контакты
+                </label>
+                <label>
+                    <input type="radio" name="lastSeen" value="nobody"> Никто
+                </label>
+            </div>
+            
+            <button class="save-privacy-btn" id="savePrivacyBtn">💾 Сохранить настройки</button>
+        </div>
+        
+        <!-- Вкладка Устройства -->
+        <div class="profile-tab-content" id="profileDevicesTab">
+            <div class="devices-list" id="devicesList">
+                <!-- Сюда будет загружаться список устройств -->
+                <p class="no-data">Загрузка устройств...</p>
+            </div>
+            <button class="danger-btn" id="terminateAllSessions">🚪 Выйти со всех устройств</button>
+        </div>
+        
+        <!-- Вкладка Привязки -->
+        <div class="profile-tab-content" id="profileLinkedTab">
+            <div class="linked-accounts">
+                <div class="linked-item">
+                    <span>🔐 Google</span>
+                    <button class="link-btn" id="linkGoogle">Привязать</button>
+                </div>
+                <div class="linked-item">
+                    <span>📧 Почта</span>
+                    <button class="link-btn" id="linkEmail">Привязать</button>
+                </div>
+                <div class="linked-item">
+                    <span>💬 MAX</span>
+                    <button class="link-btn" id="linkMax">Привязать</button>
+                </div>
+            </div>
+            <p class="linked-hint">Привяжите аккаунты для восстановления пароля и двухфакторной аутентификации</p>
         </div>
     </div>
-
-    <!-- МОДАЛКА НАСТРОЕК ГРУППЫ -->
-    <div class="group-settings-modal" id="groupSettingsModal" style="display: none;">
-        <div class="group-settings-content">
-            <div class="group-settings-header">
-                <h2 id="groupSettingsTitle">⚙️ Настройки группы</h2>
-                <button class="close-group-settings" id="closeGroupSettings">✕</button>
-            </div>
-            <div class="group-settings-body">
-                <div class="group-info">
-                    <div class="group-avatar" id="groupSettingsAvatar">👥</div>
-                    <div class="group-name" id="groupSettingsName"></div>
-                </div>
-                
-                <div class="group-tabs">
-                    <button class="group-tab active" data-group-tab="info">ℹ️ Информация</button>
-                    <button class="group-tab" data-group-tab="members">👥 Участники</button>
-                    <button class="group-tab" data-group-tab="admin">⚙️ Управление</button>
-                </div>
-                
-                <div class="group-tab-content active" id="groupInfoTab">
-                    <div class="group-field">
-                        <label>📝 Название группы:</label>
-                        <input type="text" id="groupSettingsNameInput" placeholder="Название">
-                    </div>
-                    <div class="group-field">
-                        <label>📋 Описание:</label>
-                        <textarea id="groupSettingsDescription" placeholder="Описание группы" rows="3"></textarea>
-                    </div>
-                    <button class="save-group-info" id="saveGroupInfoBtn">💾 Сохранить</button>
-                </div>
-                
-                <div class="group-tab-content" id="groupMembersTab">
-                    <div class="members-list" id="groupMembersList"></div>
-                </div>
-                
-                <div class="group-tab-content" id="groupAdminTab">
-                    <button class="danger-btn" id="leaveGroupBtn">🚪 Покинуть группу</button>
-                    <button class="danger-btn" id="deleteGroupBtn" style="display: none;">🗑️ Удалить группу</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- МОДАЛКА СОЗДАНИЯ ГРУППЫ -->
-    <div class="group-modal" id="groupModal" style="display: none;">
-        <div class="group-modal-content">
-            <div class="group-modal-header">
-                <h2>➕ Создать группу</h2>
-                <button class="close-group" id="closeGroupModal">✕</button>
-            </div>
-            <div class="group-modal-body">
-                <input type="text" id="groupName" placeholder="📝 Название группы" class="group-input">
-                <textarea id="groupDescription" placeholder="📋 Описание группы" class="group-input" rows="2"></textarea>
-                <div class="group-members-list">
-                    <p>👥 Выберите участников:</p>
-                    <div id="availableUsers"></div>
-                </div>
-                <button class="create-group-final" id="createGroupFinal">✅ Создать</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- МЕНЮ СООБЩЕНИЯ -->
-    <div class="message-menu" id="messageMenu" style="display: none;">
-        <button id="deleteMessageBtn">🗑️ Удалить</button>
-        <button id="pinMessageBtn">📌 Закрепить</button>
-    </div>
-
-    <!-- ПАНЕЛЬ ЭМОДЗИ -->
-    <div class="emoji-panel" id="emojiPanel" style="display: none;">
-        <button onclick="insertEmoji('😊')">😊</button>
-        <button onclick="insertEmoji('😂')">😂</button>
-        <button onclick="insertEmoji('❤️')">❤️</button>
-        <button onclick="insertEmoji('👍')">👍</button>
-        <button onclick="insertEmoji('🔥')">🔥</button>
-        <button onclick="insertEmoji('🎉')">🎉</button>
-        <button onclick="insertEmoji('😢')">😢</button>
-        <button onclick="insertEmoji('😎')">😎</button>
-        <button onclick="insertEmoji('🤔')">🤔</button>
-        <button onclick="insertEmoji('👋')">👋</button>
-        <button onclick="insertEmoji('✅')">✅</button>
-        <button onclick="insertEmoji('❌')">❌</button>
-    </div>
-
-    <!-- АДМИН-ПАНЕЛЬ -->
-    <div class="admin-modal" id="adminModal" style="display: none;">
-        <div class="admin-modal-content">
-            <div class="admin-modal-header">
-                <h2>👑 Админ-панель</h2>
-                <button class="close-admin" id="closeAdmin">✕</button>
-            </div>
-            
-            <div class="admin-tabs">
-                <button class="admin-tab active" data-tab="users">👥 Пользователи</button>
-                <button class="admin-tab" data-tab="support">❓ Поддержка</button>
-                <button class="admin-tab" data-tab="reports">⚠️ Жалобы</button>
-                <button class="admin-tab" data-tab="channels">📢 Каналы</button>
-                <button class="admin-tab" data-tab="admins" id="adminsTab">👑 Админы</button>
-            </div>
-            
-            <!-- Вкладка Пользователи -->
-            <div class="admin-tab-content active" id="adminUsers">
-                <div class="admin-search">
-                    <input type="text" id="adminUserSearch" placeholder="🔍 Поиск пользователя...">
-                </div>
-                <div class="admin-users-list" id="adminUsersList"></div>
-            </div>
-            
-            <!-- Вкладка Поддержка -->
-            <div class="admin-tab-content" id="adminSupport">
-                <div class="support-list" id="supportList"></div>
-            </div>
-            
-            <!-- Вкладка Жалобы -->
-            <div class="admin-tab-content" id="adminReports">
-                <div class="reports-list" id="reportsList"></div>
-            </div>
-            
-            <!-- Вкладка Каналы -->
-            <div class="admin-tab-content" id="adminChannels">
-                <div class="channels-list" id="channelsList"></div>
-                <button class="admin-action" id="createChannelBtn">➕ Создать канал</button>
-            </div>
-            
-            <!-- Вкладка Админы (только для владельца) -->
-            <div class="admin-tab-content" id="adminAdmins">
-                <div class="admins-list" id="adminsList"></div>
-                <div class="add-admin">
-                    <input type="text" id="newAdminPhone" placeholder="📱 Номер нового админа">
-                    <button class="admin-action" id="addAdminBtn">👑 Назначить</button>
-                </div>
-            </div>
+</div>
+    <!-- МОДАЛКА ПРИВЯЗКИ MAX (будет на этапе 4) -->
+    <div class="max-banner" id="maxBanner" style="display: none;">
+        <div class="max-banner-content">
+            <span>🔒 Рекомендуем привязать MAX для безопасности</span>
+            <button id="showMaxBind">Привязать</button>
+            <button id="closeMaxBanner">✕</button>
         </div>
     </div>
 
