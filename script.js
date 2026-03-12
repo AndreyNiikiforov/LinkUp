@@ -586,3 +586,183 @@ adminUserSearch?.addEventListener('input', e => {
 });
 
 console.log('✅ LinkUp (финальная версия с группами)');
+// ==================== НАСТРОЙКИ ПРОФИЛЯ ====================
+const profileModal = document.getElementById('profileModal');
+const closeProfileModal = document.getElementById('closeProfileModal');
+const profileDisplayName = document.getElementById('profileDisplayName');
+const profilePhone = document.getElementById('profilePhone');
+const saveProfileBtn = document.getElementById('saveProfileBtn');
+const userProfile = document.getElementById('userProfile');
+
+userProfile?.addEventListener('click', () => {
+    profileModal.style.display = 'flex';
+    profileDisplayName.value = CURRENT_USER.display_name || CURRENT_USER.username || CURRENT_USER.phone;
+    profilePhone.value = CURRENT_USER.phone;
+});
+
+closeProfileModal?.addEventListener('click', () => {
+    profileModal.style.display = 'none';
+});
+
+saveProfileBtn?.addEventListener('click', async () => {
+    const newName = profileDisplayName.value.trim();
+    if (!newName) return;
+    
+    try {
+        const { error } = await supabaseClient
+            .from('profiles')
+            .update({ display_name: newName })
+            .eq('phone', CURRENT_USER.phone);
+        
+        if (error) throw error;
+        
+        CURRENT_USER.display_name = newName;
+        currentUserName.textContent = newName;
+        profileModal.style.display = 'none';
+        alert('✅ Имя сохранено');
+    } catch (e) {
+        alert('❌ Ошибка: ' + e.message);
+    }
+});
+
+// ==================== НАСТРОЙКИ ГРУППЫ ====================
+const groupSettingsModal = document.getElementById('groupSettingsModal');
+const closeGroupSettings = document.getElementById('closeGroupSettings');
+const groupSettingsName = document.getElementById('groupSettingsName');
+const groupSettingsNameInput = document.getElementById('groupSettingsNameInput');
+const groupSettingsDescription = document.getElementById('groupSettingsDescription');
+const saveGroupInfoBtn = document.getElementById('saveGroupInfoBtn');
+const groupMembersList = document.getElementById('groupMembersList');
+const leaveGroupBtn = document.getElementById('leaveGroupBtn');
+const deleteGroupBtn = document.getElementById('deleteGroupBtn');
+const groupTabs = document.querySelectorAll('.group-tab');
+const chatMenuBtn = document.getElementById('chatMenuBtn');
+
+let currentGroupSettings = null;
+let currentUserRole = null;
+
+chatMenuBtn?.addEventListener('click', () => {
+    if (CURRENT_GROUP) {
+        openGroupSettings(CURRENT_GROUP.id);
+    }
+});
+
+async function openGroupSettings(groupId) {
+    currentGroupSettings = GROUPS.find(g => g.id === groupId);
+    groupSettingsModal.style.display = 'flex';
+    
+    // Загружаем информацию о группе
+    groupSettingsName.textContent = currentGroupSettings.name;
+    groupSettingsNameInput.value = currentGroupSettings.name;
+    groupSettingsDescription.value = currentGroupSettings.description || '';
+    
+    // Проверяем роль пользователя
+    const { data: members } = await supabaseClient
+        .from('group_members')
+        .select('role')
+        .eq('group_id', groupId)
+        .eq('user_phone', CURRENT_USER.phone)
+        .single();
+    
+    currentUserRole = members?.role;
+    
+    // Показываем/скрываем кнопку удаления
+    deleteGroupBtn.style.display = (currentUserRole === 'creator' || isOwner()) ? 'block' : 'none';
+    
+    // Загружаем участников
+    loadGroupMembers(groupId);
+}
+
+closeGroupSettings?.addEventListener('click', () => {
+    groupSettingsModal.style.display = 'none';
+});
+
+groupTabs.forEach(tab => tab.addEventListener('click', () => {
+    groupTabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    
+    document.querySelectorAll('.group-tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(`group${tab.dataset.groupTab.charAt(0).toUpperCase() + tab.dataset.groupTab.slice(1)}Tab`).classList.add('active');
+}));
+
+async function loadGroupMembers(groupId) {
+    try {
+        const { data: members } = await supabaseClient
+            .from('group_members')
+            .select('*')
+            .eq('group_id', groupId);
+        
+        groupMembersList.innerHTML = members?.map(m => `
+            <div class="member-item">
+                <span>${m.user_phone}</span>
+                <span class="member-role ${m.role}">${m.role}</span>
+            </div>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+
+saveGroupInfoBtn?.addEventListener('click', async () => {
+    const newName = groupSettingsNameInput.value.trim();
+    const newDesc = groupSettingsDescription.value.trim();
+    
+    try {
+        const { error } = await supabaseClient
+            .from('groups')
+            .update({ name: newName, description: newDesc })
+            .eq('id', currentGroupSettings.id);
+        
+        if (error) throw error;
+        
+        currentGroupSettings.name = newName;
+        currentGroupSettings.description = newDesc;
+        groupSettingsName.textContent = newName;
+        document.getElementById('currentChatName').textContent = newName;
+        alert('✅ Информация сохранена');
+    } catch (e) {
+        alert('❌ Ошибка: ' + e.message);
+    }
+});
+
+leaveGroupBtn?.addEventListener('click', async () => {
+    if (!confirm('Покинуть группу?')) return;
+    
+    try {
+        await supabaseClient
+            .from('group_members')
+            .delete()
+            .eq('group_id', currentGroupSettings.id)
+            .eq('user_phone', CURRENT_USER.phone);
+        
+        alert('✅ Вы покинули группу');
+        groupSettingsModal.style.display = 'none';
+        welcomeScreen.style.display = 'flex';
+        chatWindow.style.display = 'none';
+        loadGroups();
+    } catch (e) {
+        alert('❌ Ошибка: ' + e.message);
+    }
+});
+
+deleteGroupBtn?.addEventListener('click', async () => {
+    if (!confirm('Удалить группу навсегда?')) return;
+    
+    try {
+        await supabaseClient
+            .from('groups')
+            .delete()
+            .eq('id', currentGroupSettings.id);
+        
+        alert('✅ Группа удалена');
+        groupSettingsModal.style.display = 'none';
+        welcomeScreen.style.display = 'flex';
+        chatWindow.style.display = 'none';
+        loadGroups();
+    } catch (e) {
+        alert('❌ Ошибка: ' + e.message);
+    }
+});
+
+// Обновляем отображение имени в чатах
+function updateUserDisplay() {
+    currentUserName.textContent = CURRENT_USER.display_name || CURRENT_USER.username || CURRENT_USER.phone;
+}
