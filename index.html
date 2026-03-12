@@ -137,23 +137,19 @@
 
         <!-- Правая панель -->
         <div class="chat-window" id="chatWindow" style="display: none;">
-    <div class="chat-header" id="currentChat">
-    <div class="chat-header-info">
-        <span class="chat-header-name" id="currentChatName">Выберите чат</span>
-        <span class="chat-header-phone" id="currentChatPhone"></span>
-        <span class="chat-header-username" id="currentChatUsername"></span>
-    </div>
-    <div class="chat-header-actions">
-        <button class="call-btn audio-call" id="audioCallBtn" title="Аудиозвонок">📞</button>
-        <button class="call-btn video-call" id="videoCallBtn" title="Видеозвонок">📹</button>
-        <div class="chat-header-menu" id="chatMenuBtn">⋮</div>
-    </div>
-</div>
+            <div class="chat-header" id="currentChat">
+                <div class="chat-header-info">
                     <span class="chat-header-name" id="currentChatName">Выберите чат</span>
                     <span class="chat-header-phone" id="currentChatPhone"></span>
                     <span class="chat-header-username" id="currentChatUsername"></span>
                 </div>
-                <div class="chat-header-menu" id="chatMenuBtn">⋮</div>
+                <div class="chat-header-actions">
+                    <button class="call-btn audio-call" id="audioCallBtn" title="Аудиозвонок">📞</button>
+                    <button class="call-btn video-call" id="videoCallBtn" title="Видеозвонок">📹</button>
+                    <button class="call-btn voice-msg" id="voiceMsgBtn" title="Голосовое сообщение">🎤</button>
+                    <button class="call-btn video-circle" id="videoCircleBtn" title="Кружочек">⭕</button>
+                    <div class="chat-header-menu" id="chatMenuBtn">⋮</div>
+                </div>
             </div>
             
             <!-- Закреплённые сообщения -->
@@ -310,30 +306,143 @@
         </div>
     </div>
 
-    <!-- МОДАЛКА СКАНИРОВАНИЯ QR -->
-    <div class="qr-scan-modal" id="qrScanModal" style="display: none;">
-        <div class="qr-scan-content">
-            <div class="qr-scan-header">
-                <h2>📷 Сканировать QR-код</h2>
-                <button class="close-qr-scan" id="closeQrScan">✕</button>
+    <!-- МОДАЛКА ЗВОНКА -->
+    <div class="call-modal" id="callModal" style="display: none;">
+        <div class="call-modal-content">
+            <div class="call-header">
+                <div class="call-avatar" id="callAvatar">👤</div>
+                <div class="call-info">
+                    <div class="call-name" id="callName">Собеседник</div>
+                    <div class="call-status" id="callStatus">Звонок...</div>
+                </div>
             </div>
-            <div class="qr-scan-body">
-                <video id="qrVideo" style="width: 100%; border-radius: 10px;"></video>
-                <p class="qr-scan-hint">Наведите камеру на QR-код на другом устройстве</p>
-                <button class="auth-button secondary" id="stopQrScan">Отмена</button>
+            
+            <div class="call-video" id="callVideoContainer" style="display: none;">
+                <video id="remoteVideo" autoplay playsinline></video>
+                <video id="localVideo" autoplay playsinline muted></video>
+            </div>
+            
+            <div class="call-controls">
+                <button class="call-control-btn mute" id="muteAudioBtn" title="Выключить микрофон">🎤</button>
+                <button class="call-control-btn video" id="toggleVideoBtn" title="Выключить камеру">📹</button>
+                <button class="call-control-btn end-call" id="endCallBtn" title="Завершить звонок">🔴</button>
+                <button class="call-control-btn speaker" id="speakerBtn" title="Динамик">🔊</button>
+            </div>
+            
+            <div class="call-timer" id="callTimer">00:00</div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ВХОДЯЩЕГО ЗВОНКА -->
+    <div class="incoming-call-modal" id="incomingCallModal" style="display: none;">
+        <div class="incoming-call-content">
+            <div class="incoming-call-header">
+                <div class="incoming-call-avatar" id="incomingCallAvatar">👤</div>
+                <div class="incoming-call-info">
+                    <div class="incoming-call-name" id="incomingCallName">Неизвестный</div>
+                    <div class="incoming-call-type" id="incomingCallType">Входящий видеозвонок</div>
+                </div>
+            </div>
+            
+            <div class="incoming-call-controls">
+                <button class="incoming-call-btn accept" id="acceptCallBtn">✅ Принять</button>
+                <button class="incoming-call-btn decline" id="declineCallBtn">❌ Отклонить</button>
             </div>
         </div>
     </div>
 
-    <!-- МОДАЛКА ПОДТВЕРЖДЕНИЯ ВХОДА -->
-    <div class="qr-confirm-modal" id="qrConfirmModal" style="display: none;">
-        <div class="qr-confirm-content">
-            <h2>🔐 Подтверждение входа</h2>
-            <p id="qrConfirmDevice"></p>
-            <p id="qrConfirmLocation"></p>
-            <div class="qr-confirm-actions">
-                <button class="auth-button" id="qrConfirmYes">✅ Да, это я</button>
-                <button class="auth-button secondary" id="qrConfirmNo">❌ Нет, заблокировать</button>
+    <!-- МОДАЛКА ЗАПИСИ ГОЛОСА -->
+    <div class="voice-recorder-modal" id="voiceRecorderModal" style="display: none;">
+        <div class="voice-recorder-content">
+            <div class="voice-recorder-header">
+                <h2>🎤 Запись голосового сообщения</h2>
+                <button class="close-voice-recorder" id="closeVoiceRecorder">✕</button>
+            </div>
+            <div class="voice-recorder-body">
+                <div class="voice-wave" id="voiceWave"></div>
+                <div class="voice-timer" id="voiceTimer">00:00</div>
+                <div class="voice-controls">
+                    <button class="voice-control-btn" id="startRecordingBtn">⏺️ Начать запись</button>
+                    <button class="voice-control-btn" id="stopRecordingBtn" style="display: none;">⏹️ Остановить</button>
+                    <button class="voice-control-btn" id="playRecordingBtn" style="display: none;">▶️ Прослушать</button>
+                    <button class="voice-control-btn" id="sendRecordingBtn" style="display: none;">📤 Отправить</button>
+                    <button class="voice-control-btn" id="cancelRecordingBtn">❌ Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ЗАПИСИ КРУЖОЧКА -->
+    <div class="video-circle-modal" id="videoCircleModal" style="display: none;">
+        <div class="video-circle-content">
+            <div class="video-circle-header">
+                <h2>⭕ Запись кружочка</h2>
+                <button class="close-video-circle" id="closeVideoCircle">✕</button>
+            </div>
+            <div class="video-circle-body">
+                <video id="circleVideo" autoplay playsinline muted></video>
+                <div class="circle-timer" id="circleTimer">00:00</div>
+                <div class="circle-controls">
+                    <button class="circle-control-btn" id="startCircleBtn">⏺️ Начать запись</button>
+                    <button class="circle-control-btn" id="stopCircleBtn" style="display: none;">⏹️ Остановить</button>
+                    <button class="circle-control-btn" id="playCircleBtn" style="display: none;">▶️ Просмотреть</button>
+                    <button class="circle-control-btn" id="sendCircleBtn" style="display: none;">📤 Отправить</button>
+                    <button class="circle-control-btn" id="cancelCircleBtn">❌ Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА НАЗНАЧЕНИЯ РАНГА -->
+    <div class="rank-modal" id="rankModal" style="display: none;">
+        <div class="rank-modal-content">
+            <div class="rank-modal-header">
+                <h2>👑 Выберите ранг</h2>
+                <button class="close-rank" id="closeRankModal">✕</button>
+            </div>
+            <div class="rank-modal-body">
+                <p id="rankUserPhone" class="rank-user-phone"></p>
+                <div class="rank-options">
+                    <div class="rank-option" data-rank="1" onclick="selectRank(1)">
+                        <div class="rank-badge rank-1">1</div>
+                        <div class="rank-info">
+                            <span class="rank-name">Младший модератор</span>
+                            <span class="rank-desc">Мут и варны</span>
+                        </div>
+                    </div>
+                    <div class="rank-option" data-rank="2" onclick="selectRank(2)">
+                        <div class="rank-badge rank-2">2</div>
+                        <div class="rank-info">
+                            <span class="rank-name">Старший модератор</span>
+                            <span class="rank-desc">Кик, чистка чата</span>
+                        </div>
+                    </div>
+                    <div class="rank-option" data-rank="3" onclick="selectRank(3)">
+                        <div class="rank-badge rank-3">3</div>
+                        <div class="rank-info">
+                            <span class="rank-name">Младший администратор</span>
+                            <span class="rank-desc">Настройки чата, фильтры</span>
+                        </div>
+                    </div>
+                    <div class="rank-option" data-rank="4" onclick="selectRank(4)">
+                        <div class="rank-badge rank-4">4</div>
+                        <div class="rank-info">
+                            <span class="rank-name">Старший администратор</span>
+                            <span class="rank-desc">Назначение модераторов</span>
+                        </div>
+                    </div>
+                    <div class="rank-option" data-rank="5" onclick="selectRank(5)">
+                        <div class="rank-badge rank-5">5</div>
+                        <div class="rank-info">
+                            <span class="rank-name">Создатель</span>
+                            <span class="rank-desc">Полный доступ</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="rank-modal-actions">
+                    <button class="auth-button" id="confirmRankBtn">✅ Назначить</button>
+                    <button class="auth-button secondary" id="cancelRankBtn">❌ Отмена</button>
+                </div>
             </div>
         </div>
     </div>
@@ -348,6 +457,7 @@
             
             <div class="admin-tabs">
                 <button class="admin-tab active" data-tab="users">👥 Пользователи</button>
+                <button class="admin-tab" data-tab="chats">💬 Чаты</button>
                 <button class="admin-tab" data-tab="support">❓ Поддержка</button>
                 <button class="admin-tab" data-tab="reports">⚠️ Жалобы</button>
                 <button class="admin-tab" data-tab="channels">📢 Каналы</button>
@@ -361,20 +471,39 @@
                 </div>
                 <div class="admin-users-list" id="adminUsersList"></div>
             </div>
+
+            <!-- Вкладка Чаты -->
+            <div class="admin-tab-content" id="adminChats">
+                <div class="admin-chats-controls">
+                    <button class="admin-action" id="refreshChatsBtn">🔄 Обновить чаты</button>
+                    <div class="admin-search">
+                        <input type="text" id="adminChatSearch" placeholder="🔍 Поиск по номеру или названию...">
+                    </div>
+                </div>
+                <div class="admin-chats-list" id="adminChatsList">
+                    <p class="no-data">Загрузка чатов...</p>
+                </div>
+            </div>
             
             <!-- Вкладка Поддержка -->
             <div class="admin-tab-content" id="adminSupport">
-                <div class="support-list" id="supportList"></div>
+                <div class="support-list" id="supportList">
+                    <p class="no-data">Функция в разработке</p>
+                </div>
             </div>
             
             <!-- Вкладка Жалобы -->
             <div class="admin-tab-content" id="adminReports">
-                <div class="reports-list" id="reportsList"></div>
+                <div class="reports-list" id="reportsList">
+                    <p class="no-data">Функция в разработке</p>
+                </div>
             </div>
             
             <!-- Вкладка Каналы -->
             <div class="admin-tab-content" id="adminChannels">
-                <div class="channels-list" id="channelsList"></div>
+                <div class="channels-list" id="channelsList">
+                    <p class="no-data">Функция в разработке</p>
+                </div>
                 <button class="admin-action" id="createChannelBtn">➕ Создать канал</button>
             </div>
             
@@ -393,49 +522,5 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="script.js"></script>
-    <!-- МОДАЛКА ЗВОНКА -->
-<div class="call-modal" id="callModal" style="display: none;">
-    <div class="call-modal-content">
-        <div class="call-header">
-            <div class="call-avatar" id="callAvatar">👤</div>
-            <div class="call-info">
-                <div class="call-name" id="callName">Собеседник</div>
-                <div class="call-status" id="callStatus">Звонок...</div>
-            </div>
-        </div>
-        
-        <div class="call-video" id="callVideoContainer" style="display: none;">
-            <video id="remoteVideo" autoplay playsinline></video>
-            <video id="localVideo" autoplay playsinline muted></video>
-        </div>
-        
-        <div class="call-controls">
-            <button class="call-control-btn mute" id="muteAudioBtn" title="Выключить микрофон">🎤</button>
-            <button class="call-control-btn video" id="toggleVideoBtn" title="Выключить камеру">📹</button>
-            <button class="call-control-btn end-call" id="endCallBtn" title="Завершить звонок">🔴</button>
-            <button class="call-control-btn speaker" id="speakerBtn" title="Динамик">🔊</button>
-        </div>
-        
-        <div class="call-timer" id="callTimer">00:00</div>
-    </div>
-</div>
-
-<!-- МОДАЛКА ВХОДЯЩЕГО ЗВОНКА -->
-<div class="incoming-call-modal" id="incomingCallModal" style="display: none;">
-    <div class="incoming-call-content">
-        <div class="incoming-call-header">
-            <div class="incoming-call-avatar" id="incomingCallAvatar">👤</div>
-            <div class="incoming-call-info">
-                <div class="incoming-call-name" id="incomingCallName">Неизвестный</div>
-                <div class="incoming-call-type" id="incomingCallType">Входящий видеозвонок</div>
-            </div>
-        </div>
-        
-        <div class="incoming-call-controls">
-            <button class="incoming-call-btn accept" id="acceptCallBtn">✅ Принять</button>
-            <button class="incoming-call-btn decline" id="declineCallBtn">❌ Отклонить</button>
-        </div>
-    </div>
-</div>
 </body>
 </html>
