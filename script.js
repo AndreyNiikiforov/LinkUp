@@ -111,10 +111,40 @@ const linkGoogle = document.getElementById('linkGoogle');
 const linkEmail = document.getElementById('linkEmail');
 const linkMax = document.getElementById('linkMax');
 
-// MAX баннер
+// MAX баннер и модалки
 const maxBanner = document.getElementById('maxBanner');
 const showMaxBind = document.getElementById('showMaxBind');
 const closeMaxBanner = document.getElementById('closeMaxBanner');
+const bindMaxModal = document.getElementById('bindMaxModal');
+const closeBindMax = document.getElementById('closeBindMax');
+const bindMaxPhone = document.getElementById('bindMaxPhone');
+const sendMaxCode = document.getElementById('sendMaxCode');
+const bindStep1 = document.getElementById('bindStep1');
+const bindStep2 = document.getElementById('bindStep2');
+const bindMaxCode = document.getElementById('bindMaxCode');
+const verifyMaxCode = document.getElementById('verifyMaxCode');
+const backToStep1 = document.getElementById('backToStep1');
+const bindMessage = document.getElementById('bindMessage');
+const maxLoginModal = document.getElementById('maxLoginModal');
+const maxLoginCode = document.getElementById('maxLoginCode');
+const verifyLoginCode = document.getElementById('verifyLoginCode');
+const cancelMaxLogin = document.getElementById('cancelMaxLogin');
+const maxLoginMessage = document.getElementById('maxLoginMessage');
+
+// Админка
+const adminModal = document.getElementById('adminModal');
+const closeAdmin = document.getElementById('closeAdmin');
+const adminTabs = document.querySelectorAll('.admin-tab');
+const adminsTab = document.getElementById('adminsTab');
+const adminUsersList = document.getElementById('adminUsersList');
+const adminUserSearch = document.getElementById('adminUserSearch');
+const supportList = document.getElementById('supportList');
+const reportsList = document.getElementById('reportsList');
+const channelsList = document.getElementById('channelsList');
+const createChannelBtn = document.getElementById('createChannelBtn');
+const adminsList = document.getElementById('adminsList');
+const addAdminBtn = document.getElementById('addAdminBtn');
+const newAdminPhone = document.getElementById('newAdminPhone');
 
 // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
 function formatPhone(number) {
@@ -137,6 +167,10 @@ function generateSessionToken() {
 
 function generateQrCode() {
     return 'qr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+}
+
+function generateMaxCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 function saveSession(user) {
@@ -223,24 +257,20 @@ let currentQrCode = null;
 let currentQrToken = null;
 
 async function startQrLogin() {
-    // Показываем плейсхолдер
     qrPlaceholder.style.display = 'flex';
     qrCanvas.style.display = 'none';
     
-    // Генерируем новый QR-код
     currentQrToken = generateQrCode();
     currentQrCode = currentQrToken;
     
-    // Сохраняем в БД
     await supabaseClient
         .from('qr_codes')
         .insert([{
             code: currentQrToken,
-            expires_at: new Date(Date.now() + 5 * 60 * 1000), // 5 минут
+            expires_at: new Date(Date.now() + 5 * 60 * 1000),
             used: false
         }]);
     
-    // Генерируем QR-код
     QRCode.toCanvas(qrCanvas, currentQrToken, {
         width: 250,
         margin: 2,
@@ -257,7 +287,6 @@ async function startQrLogin() {
         qrCanvas.style.display = 'block';
     });
     
-    // Опрашиваем статус
     if (QR_POLLING_INTERVAL) clearInterval(QR_POLLING_INTERVAL);
     
     QR_POLLING_INTERVAL = setInterval(async () => {
@@ -269,7 +298,6 @@ async function startQrLogin() {
             .single();
         
         if (data) {
-            // QR-код отсканирован, получаем пользователя
             const { data: session } = await supabaseClient
                 .from('sessions')
                 .select('*')
@@ -277,7 +305,6 @@ async function startQrLogin() {
                 .single();
             
             if (session) {
-                // Входим в аккаунт
                 const { data: user } = await supabaseClient
                     .from('profiles')
                     .select('*')
@@ -315,13 +342,6 @@ function stopQrLogin() {
 let scanning = false;
 let videoStream = null;
 
-// Добавляем кнопку сканирования в меню (можно добавить позже)
-document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.key === 'q') {
-        startQrScanning();
-    }
-});
-
 async function startQrScanning() {
     qrScanModal.style.display = 'flex';
     
@@ -355,7 +375,6 @@ function scanQrFrame() {
         const code = jsQR(imageData.data, canvas.width, canvas.height);
         
         if (code) {
-            // Нашли QR-код
             processScannedQr(code.data);
         }
     }
@@ -366,14 +385,12 @@ function scanQrFrame() {
 async function processScannedQr(qrData) {
     if (!qrData.startsWith('qr_')) return;
     
-    // Останавливаем сканирование
     scanning = false;
     if (videoStream) {
         videoStream.getTracks().forEach(track => track.stop());
     }
     qrScanModal.style.display = 'none';
     
-    // Проверяем QR в БД
     const { data: qr } = await supabaseClient
         .from('qr_codes')
         .select('*')
@@ -391,16 +408,13 @@ async function processScannedQr(qrData) {
         return;
     }
     
-    // Показываем подтверждение
     const deviceInfo = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? '📱 Мобильное' : '💻 Компьютер';
     qrConfirmDevice.textContent = `Устройство: ${deviceInfo}`;
     qrConfirmLocation.textContent = `IP: 0.0.0.0 • ${new Date().toLocaleString()}`;
     
     qrConfirmModal.style.display = 'flex';
     
-    // Обработчики подтверждения
     qrConfirmYes.onclick = async () => {
-        // Создаём сессию для нового устройства
         const newToken = generateSessionToken();
         await supabaseClient
             .from('sessions')
@@ -414,7 +428,6 @@ async function processScannedQr(qrData) {
                 qr_code: qrData
             }]);
         
-        // Отмечаем QR как использованный
         await supabaseClient
             .from('qr_codes')
             .update({ used: true, user_phone: CURRENT_USER.phone })
@@ -446,6 +459,150 @@ stopQrScan?.addEventListener('click', () => {
     qrScanModal.style.display = 'none';
 });
 
+// ==================== MAX ПРИВЯЗКА ====================
+let currentMaxCode = null;
+let pendingMaxPhone = null;
+
+// Открытие модалки привязки MAX
+function openMaxBindModal() {
+    bindMaxModal.style.display = 'flex';
+    bindStep1.style.display = 'block';
+    bindStep2.style.display = 'none';
+    bindMessage.textContent = '';
+    bindMaxPhone.value = '';
+    bindMaxCode.value = '';
+}
+
+// Закрытие модалки
+closeBindMax?.addEventListener('click', () => {
+    bindMaxModal.style.display = 'none';
+});
+
+// Отправка кода в MAX
+sendMaxCode?.addEventListener('click', async () => {
+    const phone = formatPhone(bindMaxPhone.value);
+    if (!phone) {
+        bindMessage.textContent = '❌ Введите номер телефона';
+        return;
+    }
+    
+    // Генерируем код подтверждения
+    currentMaxCode = generateMaxCode();
+    pendingMaxPhone = phone;
+    
+    // В реальном проекте здесь будет отправка через MAX API
+    console.log(`📱 Отправка кода ${currentMaxCode} в MAX на номер ${phone}`);
+    
+    // Показываем второй шаг
+    bindStep1.style.display = 'none';
+    bindStep2.style.display = 'block';
+    bindMessage.textContent = `✅ Код отправлен в MAX на номер ${phone}`;
+});
+
+// Возврат к первому шагу
+backToStep1?.addEventListener('click', () => {
+    bindStep1.style.display = 'block';
+    bindStep2.style.display = 'none';
+    bindMessage.textContent = '';
+});
+
+// Подтверждение кода
+verifyMaxCode?.addEventListener('click', async () => {
+    const code = bindMaxCode.value.trim();
+    if (!code) {
+        bindMessage.textContent = '❌ Введите код';
+        return;
+    }
+    
+    if (code !== currentMaxCode) {
+        bindMessage.textContent = '❌ Неверный код';
+        return;
+    }
+    
+    // Сохраняем привязку в БД
+    await supabaseClient
+        .from('linked_accounts')
+        .insert([{
+            user_phone: CURRENT_USER.phone,
+            provider: 'max',
+            provider_user_id: pendingMaxPhone,
+            verified: true
+        }]);
+    
+    // Включаем двухфакторную аутентификацию
+    await supabaseClient
+        .from('profiles')
+        .update({ two_factor: 'max' })
+        .eq('phone', CURRENT_USER.phone);
+    
+    bindMessage.textContent = '✅ MAX успешно привязан!';
+    bindMessage.style.color = '#4caf50';
+    
+    setTimeout(() => {
+        bindMaxModal.style.display = 'none';
+        maxBanner.style.display = 'none';
+    }, 2000);
+});
+
+// ==================== ВХОД С MAX КОДОМ ====================
+let pendingLoginPhone = null;
+
+async function requestMaxLogin(phone) {
+    pendingLoginPhone = phone;
+    currentMaxCode = generateMaxCode();
+    
+    // В реальном проекте здесь отправка через MAX API
+    console.log(`📱 Код для входа ${currentMaxCode} отправлен в MAX на номер ${phone}`);
+    
+    maxLoginModal.style.display = 'flex';
+    maxLoginMessage.textContent = '';
+    maxLoginCode.value = '';
+}
+
+verifyLoginCode?.addEventListener('click', async () => {
+    const code = maxLoginCode.value.trim();
+    if (!code) {
+        maxLoginMessage.textContent = '❌ Введите код';
+        return;
+    }
+    
+    if (code !== currentMaxCode) {
+        maxLoginMessage.textContent = '❌ Неверный код';
+        return;
+    }
+    
+    // Получаем пользователя
+    const { data: users } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('phone', pendingLoginPhone);
+    
+    if (!users?.length) {
+        maxLoginMessage.textContent = '❌ Пользователь не найден';
+        return;
+    }
+    
+    CURRENT_USER = users[0];
+    CURRENT_SESSION_TOKEN = generateSessionToken();
+    saveSession(CURRENT_USER);
+    await saveSessionToDB();
+    await loadUserSettings();
+    
+    maxLoginModal.style.display = 'none';
+    authScreen.style.display = 'none';
+    app.style.display = 'flex';
+    currentUserPhone.textContent = CURRENT_USER.phone;
+    
+    loadChats();
+    loadGroups();
+});
+
+cancelMaxLogin?.addEventListener('click', () => {
+    maxLoginModal.style.display = 'none';
+    pendingLoginPhone = null;
+    currentMaxCode = null;
+});
+
 // ==================== ЗАГРУЗКА НАСТРОЕК ПОЛЬЗОВАТЕЛЯ ====================
 async function loadUserSettings() {
     const { data } = await supabaseClient
@@ -456,6 +613,7 @@ async function loadUserSettings() {
     
     if (data) {
         CURRENT_USER.username = data.username;
+        CURRENT_USER.two_factor = data.two_factor || 'none';
         CURRENT_USER.privacy_settings = data.privacy_settings || {
             show_phone: 'everyone',
             who_can_write: 'everyone',
@@ -484,13 +642,11 @@ async function saveSessionToDB() {
     const deviceInfo = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? '📱 Мобильное' : '💻 Компьютер';
     
     try {
-        // Сначала сбрасываем флаг is_current у всех сессий
         await supabaseClient
             .from('sessions')
             .update({ is_current: false })
             .eq('user_phone', CURRENT_USER.phone);
         
-        // Сохраняем новую сессию
         await supabaseClient
             .from('sessions')
             .insert([{
@@ -579,22 +735,28 @@ loginButton?.addEventListener('click', async () => {
     const phone = formatPhone(loginPhone.value);
     const pass = loginPassword.value;
     if (!phone || !pass) { authMessage.textContent = '❌ Введите номер и пароль'; return; }
+    
     try {
         const { data: users, error } = await supabaseClient.from('profiles').select('*').eq('phone', phone).eq('password', pass);
         if (error) throw error;
         if (!users?.length) { authMessage.textContent = '❌ Неверный номер или пароль'; return; }
         
-        CURRENT_USER = users[0];
+        const user = users[0];
+        
+        // Проверяем, включена ли двухфакторка через MAX
+        if (user.two_factor === 'max') {
+            // Запрашиваем код из MAX
+            await requestMaxLogin(phone);
+            return;
+        }
+        
+        CURRENT_USER = user;
         CURRENT_SESSION_TOKEN = generateSessionToken();
         saveSession(CURRENT_USER);
         
-        // Сохраняем сессию в БД
         await saveSessionToDB();
-        
-        // Загружаем настройки
         await loadUserSettings();
         
-        // Загружаем права админа
         ADMIN_RIGHTS = await loadAdminRights(CURRENT_USER.phone);
         
         authScreen.style.display = 'none';
@@ -605,9 +767,10 @@ loginButton?.addEventListener('click', async () => {
             adminButton.style.display = 'block';
         }
         
-        // Показываем баннер MAX (если не привязан)
         setTimeout(() => {
-            maxBanner.style.display = 'block';
+            if (user.two_factor === 'none') {
+                maxBanner.style.display = 'block';
+            }
         }, 5000);
         
         loadChats();
@@ -643,7 +806,6 @@ registerButton?.addEventListener('click', async () => {
     }
     
     try {
-        // Проверяем номер
         const { data: existingPhone } = await supabaseClient
             .from('profiles')
             .select('*')
@@ -654,7 +816,6 @@ registerButton?.addEventListener('click', async () => {
             return;
         }
         
-        // Проверяем username
         const { data: existingUsername } = await supabaseClient
             .from('profiles')
             .select('*')
@@ -665,11 +826,11 @@ registerButton?.addEventListener('click', async () => {
             return;
         }
         
-        // Создаём пользователя
         await supabaseClient.from('profiles').insert([{ 
             phone, 
             username,
             password: pass,
+            two_factor: 'none',
             privacy_settings: {
                 show_phone: 'everyone',
                 who_can_write: 'everyone',
@@ -724,7 +885,6 @@ async function searchUsers() {
         } else if (searchType === 'username') {
             dbQuery = dbQuery.ilike('username', `%${query}%`);
         } else {
-            // Поиск по всему
             const formattedQuery = formatPhone(query);
             dbQuery = dbQuery.or(
                 `phone.ilike.%${formattedQuery.slice(-10)}%,username.ilike.%${query}%`
@@ -1110,7 +1270,6 @@ profileTabs.forEach(tab => {
         const tabName = tab.dataset.profileTab;
         document.getElementById(`profile${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab`).classList.add('active');
         
-        // Загружаем данные при переключении
         if (tabName === 'devices') {
             loadSessions();
         } else if (tabName === 'privacy') {
@@ -1127,7 +1286,6 @@ function loadPrivacySettings() {
         last_seen: 'everyone'
     };
     
-    // Устанавливаем радиокнопки
     showPhoneRadios.forEach(r => {
         if (r.value === settings.show_phone) r.checked = true;
     });
@@ -1192,7 +1350,6 @@ saveProfileBtn?.addEventListener('click', async () => {
     }
     
     try {
-        // Проверяем, не занят ли username
         const { data: existing } = await supabaseClient
             .from('profiles')
             .select('*')
@@ -1204,7 +1361,6 @@ saveProfileBtn?.addEventListener('click', async () => {
             return;
         }
         
-        // Обновляем username
         await supabaseClient
             .from('profiles')
             .update({ username: newUsername })
@@ -1221,7 +1377,7 @@ saveProfileBtn?.addEventListener('click', async () => {
     }
 });
 
-// ==================== ПРИВЯЗКИ (ЗАГОТОВКИ) ====================
+// ==================== ПРИВЯЗКИ ====================
 linkGoogle?.addEventListener('click', () => {
     alert('🔐 Привязка Google будет доступна в следующем обновлении!');
 });
@@ -1230,9 +1386,7 @@ linkEmail?.addEventListener('click', () => {
     alert('📧 Привязка почты будет доступна в следующем обновлении!');
 });
 
-linkMax?.addEventListener('click', () => {
-    alert('💬 Привязка MAX будет доступна в следующем обновлении!');
-});
+linkMax?.addEventListener('click', openMaxBindModal);
 
 // ==================== MAX БАННЕР ====================
 closeMaxBanner?.addEventListener('click', () => {
@@ -1240,12 +1394,122 @@ closeMaxBanner?.addEventListener('click', () => {
 });
 
 showMaxBind?.addEventListener('click', () => {
-    alert('🔒 Функция привязки MAX будет доступна в следующем обновлении!');
+    openMaxBindModal();
     maxBanner.style.display = 'none';
 });
 
+// ==================== АДМИН-ПАНЕЛЬ ====================
+adminButton?.addEventListener('click', () => {
+    adminModal.style.display = 'flex';
+    loadAdminUsers();
+    if (isOwner()) loadAdminsList();
+});
+
+closeAdmin?.addEventListener('click', () => adminModal.style.display = 'none');
+
+adminTabs.forEach(tab => tab.addEventListener('click', () => {
+    adminTabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(`admin${tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)}`).classList.add('active');
+    
+    if (tab.dataset.tab === 'users') loadAdminUsers();
+    if (tab.dataset.tab === 'support') loadSupportRequests();
+    if (tab.dataset.tab === 'reports') loadReports();
+    if (tab.dataset.tab === 'channels') loadChannels();
+    if (tab.dataset.tab === 'admins' && isOwner()) loadAdminsList();
+}));
+
+async function loadAdminUsers() {
+    try {
+        const { data: users } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
+        
+        const { data: admins } = await supabaseClient.from('admins').select('phone');
+        const adminPhones = admins?.map(a => a.phone) || [];
+        
+        adminUsersList.innerHTML = users?.map(u => `
+            <div class="admin-user-item">
+                <div>
+                    <strong>${u.username || u.phone}</strong>
+                    <div style="color:#888;font-size:12px;">${u.phone}</div>
+                    ${u.two_factor === 'max' ? '<span style="color:#00bfff;">🔒 MAX</span>' : ''}
+                </div>
+                <div class="admin-user-actions">
+                    ${isOwner() && u.phone !== OWNER_PHONE ? `
+                        <button class="admin-user-btn make-admin" onclick="toggleAdmin('${u.phone}')">
+                            ${adminPhones.includes(u.phone) ? '👑 Убрать из админов' : '👑 Сделать админом'}
+                        </button>
+                    ` : ''}
+                    ${u.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
+                    ${adminPhones.includes(u.phone) && u.phone !== OWNER_PHONE ? '<span style="color:#00bfff;">👤 Админ</span>' : ''}
+                </div>
+            </div>`).join('') || '<p class="no-data">Нет пользователей</p>';
+    } catch (e) { console.error(e); }
+}
+
+window.toggleAdmin = async function(phone) {
+    if (!isOwner()) return;
+    
+    try {
+        const { data: existing } = await supabaseClient
+            .from('admins')
+            .select('*')
+            .eq('phone', phone);
+        
+        if (existing?.length) {
+            await supabaseClient.from('admins').delete().eq('phone', phone);
+            alert(`✅ ${phone} больше не админ`);
+        } else {
+            await supabaseClient.from('admins').insert([{ phone }]);
+            alert(`✅ ${phone} назначен админом`);
+        }
+        
+        loadAdminUsers();
+        if (isOwner()) loadAdminsList();
+    } catch (e) {
+        console.error('Ошибка:', e);
+        alert('❌ Ошибка: ' + e.message);
+    }
+};
+
+async function loadSupportRequests() {
+    supportList.innerHTML = '<p class="no-data">Функция поддержки в разработке</p>';
+}
+
+async function loadReports() {
+    reportsList.innerHTML = '<p class="no-data">Функция жалоб в разработке</p>';
+}
+
+async function loadChannels() {
+    channelsList.innerHTML = '<p class="no-data">Функция каналов в разработке</p>';
+}
+
+async function loadAdminsList() {
+    const { data: admins } = await supabaseClient.from('admins').select('*');
+    adminsList.innerHTML = admins?.map(a => `
+        <div class="admin-user-item">
+            <div>${a.phone}</div>
+            ${a.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
+        </div>
+    `).join('');
+}
+
+addAdminBtn?.addEventListener('click', async () => {
+    let p = formatPhone(newAdminPhone.value);
+    if (!p) return;
+    
+    let { data: u } = await supabaseClient.from('profiles').select('*').eq('phone', p);
+    if (!u?.length) { 
+        alert('❌ Пользователь не найден'); 
+        return; 
+    }
+    
+    await toggleAdmin(p);
+    newAdminPhone.value = '';
+});
+
 // ==================== ФОРМАТИРОВАНИЕ НОМЕРОВ ====================
-[loginPhone, registerPhone].forEach(i => i?.addEventListener('input', e => {
+[loginPhone, registerPhone, bindMaxPhone].forEach(i => i?.addEventListener('input', e => {
     let v = e.target.value.replace(/\D/g, '').slice(0, 10);
     e.target.value = v;
 }));
@@ -1261,7 +1525,6 @@ if (savedUser) {
         app.style.display = 'flex';
         currentUserPhone.textContent = CURRENT_USER.phone;
         
-        // Обновляем активность сессии
         if (CURRENT_SESSION_TOKEN) {
             await supabaseClient
                 .from('sessions')
@@ -1278,9 +1541,10 @@ if (savedUser) {
         loadChats();
         loadGroups();
         
-        // Показываем баннер MAX
         setTimeout(() => {
-            maxBanner.style.display = 'block';
+            if (CURRENT_USER.two_factor === 'none') {
+                maxBanner.style.display = 'block';
+            }
         }, 5000);
     })();
 }
@@ -1298,4 +1562,4 @@ document.addEventListener('click', function(e) {
     }
 });
 
-console.log('✅ LinkUp — Этап 3: QR-код и вход');
+console.log('✅ LinkUp — с MAX привязкой и двухфакторной аутентификацией');
