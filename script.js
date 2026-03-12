@@ -8,7 +8,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const OWNER_PHONE = '+79224030705';
 let CURRENT_USER = null;
 let CURRENT_CHAT = null;
-let ADMINS = [OWNER_PHONE]; // Ты админ по умолчанию
+let ADMINS = [OWNER_PHONE];
 
 // Элементы DOM
 const authScreen = document.getElementById('authScreen');
@@ -168,11 +168,6 @@ loginButton.addEventListener('click', async () => {
             return;
         }
 
-        if (users[0].banned) {
-            authMessage.textContent = '❌ Пользователь заблокирован';
-            return;
-        }
-
         CURRENT_USER = users[0];
         saveSession(CURRENT_USER);
         
@@ -233,8 +228,7 @@ registerButton.addEventListener('click', async () => {
             .insert([{ 
                 phone: phone,
                 password: password,
-                username: phone,
-                banned: false
+                username: phone
             }]);
 
         if (error) throw error;
@@ -275,7 +269,6 @@ async function searchUsers() {
             .from('profiles')
             .select('*')
             .neq('phone', CURRENT_USER.phone)
-            .eq('banned', false)
             .ilike('phone', `%${searchPhone.slice(-10)}%`);
         
         if (error) throw error;
@@ -389,7 +382,7 @@ async function sendMessage() {
         
         input.value = '';
         loadMessages(CURRENT_CHAT.phone);
-        loadChats(); // Обновляем список чатов
+        loadChats();
         
     } catch (error) {
         console.error('Ошибка отправки:', error);
@@ -489,19 +482,11 @@ async function loadAdminUsers() {
                 <div>
                     <div><strong>${user.username || user.phone}</strong></div>
                     <div style="color: #888; font-size: 12px;">${user.phone}</div>
-                    ${user.banned ? '<span style="color: #ff4444;">(Заблокирован)</span>' : ''}
                 </div>
                 <div class="admin-user-actions">
                     ${isOwner() && user.phone !== OWNER_PHONE ? `
                         <button class="admin-user-btn make-admin" onclick="makeAdmin('${user.phone}')">
                             ${ADMINS.includes(user.phone) ? 'Убрать из админов' : 'Сделать админом'}
-                        </button>
-                    ` : ''}
-                    
-                    ${isAdmin() && user.phone !== CURRENT_USER.phone ? `
-                        <button class="admin-user-btn ${user.banned ? 'unban' : 'ban'}" 
-                                onclick="${user.banned ? 'unbanUser' : 'banUser'}('${user.phone}')">
-                            ${user.banned ? 'Разблокировать' : 'Заблокировать'}
                         </button>
                     ` : ''}
                     
@@ -513,40 +498,6 @@ async function loadAdminUsers() {
         
     } catch (error) {
         console.error('Ошибка загрузки пользователей:', error);
-    }
-}
-
-window.banUser = async function(phone) {
-    if (confirm(`Заблокировать ${phone}?`)) {
-        try {
-            const { error } = await supabaseClient
-                .from('profiles')
-                .update({ banned: true })
-                .eq('phone', phone);
-            
-            if (error) throw error;
-            
-            loadAdminUsers();
-        } catch (error) {
-            console.error('Ошибка блокировки:', error);
-        }
-    }
-}
-
-window.unbanUser = async function(phone) {
-    if (confirm(`Разблокировать ${phone}?`)) {
-        try {
-            const { error } = await supabaseClient
-                .from('profiles')
-                .update({ banned: false })
-                .eq('phone', phone);
-            
-            if (error) throw error;
-            
-            loadAdminUsers();
-        } catch (error) {
-            console.error('Ошибка разблокировки:', error);
-        }
     }
 }
 
@@ -673,21 +624,6 @@ async function loadReports() {
 
 window.resolveReport = async function(reportId, action) {
     try {
-        if (action === 'ban') {
-            const { data: report } = await supabaseClient
-                .from('reports')
-                .select('*')
-                .eq('id', reportId)
-                .single();
-            
-            if (report) {
-                await supabaseClient
-                    .from('profiles')
-                    .update({ banned: true })
-                    .eq('phone', report.reported_phone);
-            }
-        }
-        
         const { error } = await supabaseClient
             .from('reports')
             .update({ 
@@ -868,4 +804,4 @@ if (adminUserSearch) {
     });
 }
 
-console.log('🚀 LinkUp с полной админ-панелью загружен!');
+console.log('🚀 LinkUp загружен (версия без banned)');
