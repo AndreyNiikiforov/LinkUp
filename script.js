@@ -8,7 +8,7 @@ let CURRENT_USER = null;
 let CURRENT_CHAT = null;
 let ADMINS = [OWNER_PHONE];
 
-// DOM элементы
+// ==================== DOM ЭЛЕМЕНТЫ ====================
 const authScreen = document.getElementById('authScreen');
 const app = document.getElementById('app');
 const authMessage = document.getElementById('authMessage');
@@ -47,7 +47,7 @@ const adminsList = document.getElementById('adminsList');
 const addAdminBtn = document.getElementById('addAdminBtn');
 const newAdminPhone = document.getElementById('newAdminPhone');
 
-// Вспомогательные функции
+// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
 function formatPhone(number) {
     let cleaned = number.replace(/\D/g, '');
     if (!cleaned) return '';
@@ -60,6 +60,7 @@ function formatPhone(number) {
 function saveSession(user) {
     localStorage.setItem('linkup_session', JSON.stringify({ user, timestamp: Date.now() }));
 }
+
 function loadSession() {
     const s = localStorage.getItem('linkup_session');
     if (s) try {
@@ -68,10 +69,11 @@ function loadSession() {
     } catch (e) {}
     return null;
 }
+
 function isOwner() { return CURRENT_USER?.phone === OWNER_PHONE; }
 function isAdmin() { return CURRENT_USER && (ADMINS.includes(CURRENT_USER.phone) || isOwner()); }
 
-// Глазки
+// ==================== ГЛАЗКИ ДЛЯ ПАРОЛЯ ====================
 function addPasswordToggle(input) {
     const container = input.parentElement;
     const btn = document.createElement('span');
@@ -87,13 +89,14 @@ function addPasswordToggle(input) {
 }
 [loginPassword, registerPassword, registerPasswordConfirm].forEach(i => i && addPasswordToggle(i));
 
-// Переключение форм
+// ==================== ПЕРЕКЛЮЧЕНИЕ ФОРМ ====================
 showRegisterButton?.addEventListener('click', () => {
     loginForm.style.display = 'none';
     showRegisterButton.style.display = 'none';
     registerForm.style.display = 'block';
     authMessage.textContent = '';
 });
+
 backToLoginButton?.addEventListener('click', () => {
     loginForm.style.display = 'block';
     showRegisterButton.style.display = 'block';
@@ -101,7 +104,7 @@ backToLoginButton?.addEventListener('click', () => {
     authMessage.textContent = '';
 });
 
-// Вход
+// ==================== ВХОД ====================
 loginButton?.addEventListener('click', async () => {
     const phone = formatPhone(loginPhone.value);
     const pass = loginPassword.value;
@@ -124,7 +127,7 @@ loginButton?.addEventListener('click', async () => {
     } catch (e) { authMessage.textContent = '❌ Ошибка входа: ' + e.message; }
 });
 
-// Регистрация
+// ==================== РЕГИСТРАЦИЯ ====================
 registerButton?.addEventListener('click', async () => {
     const phone = formatPhone(registerPhone.value);
     const pass = registerPassword.value;
@@ -143,9 +146,10 @@ registerButton?.addEventListener('click', async () => {
     } catch (e) { authMessage.textContent = '❌ Ошибка: ' + e.message; }
 });
 
-// Поиск
+// ==================== ПОИСК ====================
 searchButton?.addEventListener('click', searchUsers);
 searchInput?.addEventListener('keypress', e => e.key === 'Enter' && searchUsers());
+
 async function searchUsers() {
     const q = searchInput.value.trim();
     if (!q) return;
@@ -165,9 +169,10 @@ async function searchUsers() {
         searchResults.style.display = 'block';
     } catch (e) { console.error(e); }
 }
+
 closeSearch?.addEventListener('click', () => searchResults.style.display = 'none');
 
-// Чат
+// ==================== ЧАТЫ ====================
 window.startChat = async function(phone) {
     searchResults.style.display = 'none';
     searchInput.value = '';
@@ -204,16 +209,26 @@ async function loadMessages(chatPhone) {
 
 document.getElementById('sendButton')?.addEventListener('click', sendMessage);
 document.getElementById('messageInput')?.addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
+
 async function sendMessage() {
     const input = document.getElementById('messageInput');
     const content = input.value.trim();
     if (!content || !CURRENT_CHAT) return;
     try {
-        await supabaseClient.from('messages').insert([{ sender: CURRENT_USER.phone, receiver: CURRENT_CHAT.phone, content }]);
+        const { error } = await supabaseClient.from('messages').insert([{
+            sender: CURRENT_USER.phone,
+            receiver: CURRENT_CHAT.phone,
+            content: content,
+            created_at: new Date()
+        }]);
+        if (error) throw error;
         input.value = '';
-        loadMessages(CURRENT_CHAT.phone);
-        loadChats();
-    } catch (e) { console.error(e); }
+        await loadMessages(CURRENT_CHAT.phone);
+        await loadChats();
+    } catch (e) {
+        console.error('Ошибка отправки:', e);
+        alert('❌ Ошибка: ' + e.message);
+    }
 }
 
 async function loadChats() {
@@ -232,7 +247,7 @@ async function loadChats() {
     } catch (e) { console.error(e); }
 }
 
-// Админка
+// ==================== АДМИНКА ====================
 adminButton?.addEventListener('click', () => {
     adminModal.style.display = 'flex';
     loadAdminUsers();
@@ -241,7 +256,9 @@ adminButton?.addEventListener('click', () => {
     loadChannels();
     if (isOwner()) loadAdminsList();
 });
+
 closeAdmin?.addEventListener('click', () => adminModal.style.display = 'none');
+
 adminTabs.forEach(tab => tab.addEventListener('click', () => {
     adminTabs.forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
@@ -261,17 +278,27 @@ async function loadAdminUsers() {
             <div class="admin-user-item">
                 <div><strong>${u.username || u.phone}</strong><div style="color:#888;font-size:12px;">${u.phone}</div></div>
                 <div class="admin-user-actions">
-                    ${isOwner() && u.phone !== OWNER_PHONE ? `<button class="admin-user-btn make-admin" onclick="makeAdmin('${u.phone}')">${ADMINS.includes(u.phone) ? 'Убрать из админов' : 'Сделать админом'}</button>` : ''}
+                    ${isOwner() && u.phone !== OWNER_PHONE ? `
+                        <button class="admin-user-btn make-admin" onclick="makeAdmin('${u.phone}')">
+                            ${ADMINS.includes(u.phone) ? 'Убрать из админов' : 'Сделать админом'}
+                        </button>
+                    ` : ''}
                     ${u.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
                     ${ADMINS.includes(u.phone) && u.phone !== OWNER_PHONE ? '<span style="color:#00bfff;">👤 Админ</span>' : ''}
                 </div>
             </div>`).join('') || '<p class="no-data">Нет пользователей</p>';
     } catch (e) { console.error(e); }
 }
+
 window.makeAdmin = function(phone) {
     if (!isOwner()) return;
-    if (ADMINS.includes(phone)) ADMINS = ADMINS.filter(p => p !== phone);
-    else ADMINS.push(phone);
+    if (ADMINS.includes(phone)) {
+        ADMINS = ADMINS.filter(p => p !== phone);
+        alert(`✅ ${phone} больше не админ`);
+    } else {
+        ADMINS.push(phone);
+        alert(`✅ ${phone} назначен админом`);
+    }
     loadAdminUsers();
     if (isOwner()) loadAdminsList();
 };
@@ -287,6 +314,7 @@ async function loadSupportRequests() {
             </div>`).join('') : '<p class="no-data">Нет вопросов</p>';
     } catch (e) { console.error(e); }
 }
+
 window.answerSupport = async function(id) {
     const a = document.getElementById(`answer_${id}`)?.value.trim();
     if (!a) return;
@@ -305,6 +333,7 @@ async function loadReports() {
             </div>`).join('') : '<p class="no-data">Нет жалоб</p>';
     } catch (e) { console.error(e); }
 }
+
 window.resolveReport = async function(id, action) {
     await supabaseClient.from('reports').update({ resolved: true, resolved_by: CURRENT_USER.phone, resolved_action: action, resolved_at: new Date() }).eq('id', id);
     loadReports();
@@ -320,8 +349,10 @@ async function loadChannels() {
             </div>`).join('') : '<p class="no-data">Нет каналов</p>';
     } catch (e) { console.error(e); }
 }
+
 window.editChannel = id => { let n = prompt('Новое название:'); if (n) console.log('edit', id, n); };
 window.deleteChannel = async id => { if (confirm('Удалить канал?')) { await supabaseClient.from('channels').delete().eq('id', id); loadChannels(); } };
+
 createChannelBtn?.addEventListener('click', async () => {
     let n = prompt('Название канала:'); if (!n) return;
     await supabaseClient.from('channels').insert([{ name: n, created_by: CURRENT_USER.phone, members_count: 0 }]);
@@ -331,6 +362,7 @@ createChannelBtn?.addEventListener('click', async () => {
 async function loadAdminsList() {
     adminsList.innerHTML = ADMINS.map(a => `<div class="admin-user-item"><div>${a}</div>${a === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}</div>`).join('');
 }
+
 addAdminBtn?.addEventListener('click', async () => {
     let p = formatPhone(newAdminPhone.value);
     if (!p) return;
@@ -340,12 +372,13 @@ addAdminBtn?.addEventListener('click', async () => {
     newAdminPhone.value = '';
 });
 
+// ==================== ФОРМАТИРОВАНИЕ НОМЕРОВ ====================
 [loginPhone, registerPhone, newAdminPhone].forEach(i => i?.addEventListener('input', e => {
     let v = e.target.value.replace(/\D/g, '').slice(0, 10);
     e.target.value = v;
 }));
 
-// Сессия
+// ==================== СЕССИЯ ====================
 const savedUser = loadSession();
 if (savedUser) {
     CURRENT_USER = savedUser;
@@ -367,4 +400,4 @@ adminUserSearch?.addEventListener('input', e => {
     });
 });
 
-console.log('✅ LinkUp (финальная версия)');
+console.log('✅ LinkUp (финальная версия с сообщениями и разжалованием)');
