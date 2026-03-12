@@ -13,6 +13,7 @@ let GROUPS = [];
 let selectedMembers = [];
 let selectedMessageId = null;
 let selectedMessageType = null;
+let CURRENT_USER_ADMIN_DATA = null; // Данные о правах админа
 
 // ==================== DOM ЭЛЕМЕНТЫ ====================
 const authScreen = document.getElementById('authScreen');
@@ -116,13 +117,20 @@ function loadSession() {
     return null;
 }
 
-// Проверка на админа (через БД)
-async function isAdmin(phone) {
+// Получение данных админа из БД
+async function getAdminData(phone) {
     const { data } = await supabaseClient
         .from('admins')
         .select('*')
-        .eq('phone', phone);
-    return data?.length > 0;
+        .eq('phone', phone)
+        .single();
+    return data;
+}
+
+// Проверка прав админа
+async function isAdmin(phone) {
+    const data = await getAdminData(phone);
+    return !!data;
 }
 
 function isOwner() {
@@ -212,15 +220,21 @@ loginButton?.addEventListener('click', async () => {
         // Загружаем настройки
         await loadUserSettings();
         
+        // Загружаем данные админа если есть
+        CURRENT_USER_ADMIN_DATA = await getAdminData(CURRENT_USER.phone);
+        
         authScreen.style.display = 'none';
         app.style.display = 'flex';
         if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
         
-        // Проверяем, админ ли пользователь
-        const admin = await isAdmin(CURRENT_USER.phone);
-        if (admin) {
+        // Показываем админ-кнопку если пользователь админ
+        if (CURRENT_USER_ADMIN_DATA) {
             adminButton.style.display = 'block';
-            if (isOwner()) adminsTab.style.display = 'block';
+        }
+        
+        // Показываем вкладку админов только владельцу
+        if (isOwner()) {
+            adminsTab.style.display = 'block';
         }
         
         updateLastSeen();
@@ -243,6 +257,10 @@ registerButton?.addEventListener('click', async () => {
         const { data: existing } = await supabaseClient.from('profiles').select('*').eq('phone', phone);
         if (existing?.length) { authMessage.textContent = '❌ Номер уже зарегистрирован'; return; }
         await supabaseClient.from('profiles').insert([{ phone, password: pass, username: phone }]);
+        
+        // Создаём настройки по умолчанию
+        await supabaseClient.from('user_settings').insert([{ phone, display_name: phone }]);
+        
         authMessage.textContent = '✅ Регистрация успешна! Войдите.';
         authMessage.style.color = '#4caf50';
         registerPhone.value = registerPassword.value = registerPasswordConfirm.value = '';
@@ -851,7 +869,24 @@ deleteGroupBtn?.addEventListener('click', async () => {
 adminButton?.addEventListener('click', () => {
     adminModal.style.display = 'flex';
     loadAdminUsers();
-    if (isOwner()) loadAdminsList();
+    
+    // Показываем вкладки в зависимости от прав
+    if (isOwner()) {
+        // У владельца все вкладки
+        adminsTab.style.display = 'block';
+        document.querySelector('[data-tab="reports"]').style.display = 'block';
+        document.querySelector('[data-tab="channels"]').style.display = 'block';
+    } else if (CURRENT_USER_ADMIN_DATA) {
+        // У обычного админа показываем только доступные вкладки
+        if (CURRENT_USER_ADMIN_DATA.can_view_reports) {
+            document.querySelector('[data-tab="reports"]').style.display = 'block';
+        }
+        if (CURRENT_USER_ADMIN_DATA.can_manage_groups) {
+            document.querySelector('[data-tab="channels"]').style.display = 'block';
+        }
+        // Вкладка админов скрыта
+        adminsTab.style.display = 'none';
+    }
 });
 
 closeAdmin?.addEventListener('click', () => adminModal.style.display = 'none');
@@ -861,7 +896,11 @@ adminTabs.forEach(tab => tab.addEventListener('click', () => {
     tab.classList.add('active');
     document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(`admin${tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)}`).classList.add('active');
+    
+    // Загружаем данные в зависимости от вкладки
     if (tab.dataset.tab === 'users') loadAdminUsers();
+    if (tab.dataset.tab === 'reports' && (isOwner() || CURRENT_USER_ADMIN_DATA?.can_view_reports)) loadReports();
+    if (tab.dataset.tab === 'channels' && (isOwner() || CURRENT_USER_ADMIN_DATA?.can_manage_groups)) loadChannels();
     if (tab.dataset.tab === 'admins' && isOwner()) loadAdminsList();
 }));
 
@@ -870,16 +909,19 @@ async function loadAdminUsers() {
         const { data: users } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
         
         // Получаем список админов из БД
-        const { data: adminsList } = await supabaseClient.from('admins').select('phone');
+        const { data: adminsList } = await supabaseClient.from('admins').select('*');
         const adminPhones = adminsList?.map(a => a.phone) || [];
         
         adminUsersList.innerHTML = users?.map(u => {
             const isUserAdmin = adminPhones.includes(u.phone);
+            const adminData = adminsList?.find(a => a.phone === u.phone);
+            
             return `
             <div class="admin-user-item">
                 <div>
                     <strong>${u.display_name || u.username || u.phone}</strong>
                     <div style="color:#888;font-size:12px;">${u.phone}</div>
+                    ${isUserAdmin ? '<span style="color:#00bfff;">Админ</span>' : ''}
                 </div>
                 <div class="admin-user-actions">
                     ${isOwner() && u.phone !== OWNER_PHONE ? `
@@ -888,7 +930,6 @@ async function loadAdminUsers() {
                         </button>
                     ` : ''}
                     ${u.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
-                    ${isUserAdmin && u.phone !== OWNER_PHONE ? '<span style="color:#00bfff;">👤 Админ</span>' : ''}
                 </div>
             </div>`;
         }).join('') || '<p class="no-data">Нет пользователей</p>';
@@ -912,12 +953,16 @@ window.toggleAdmin = async function(phone) {
                 .eq('phone', phone);
             alert(`✅ ${phone} больше не админ`);
         } else {
-            // Назначаем админом
+            // Назначаем админом (с базовыми правами)
             await supabaseClient
                 .from('admins')
                 .insert([{ 
                     phone: phone, 
-                    appointed_by: CURRENT_USER.phone 
+                    appointed_by: CURRENT_USER.phone,
+                    can_ban_users: true,
+                    can_manage_groups: true,
+                    can_view_reports: true,
+                    can_manage_admins: false
                 }]);
             alert(`✅ ${phone} назначен админом`);
         }
@@ -938,7 +983,14 @@ async function loadAdminsList() {
     adminsList.innerHTML = admins?.map(a => `
         <div class="admin-user-item">
             <div>${a.phone}</div>
-            ${a.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
+            <div class="admin-user-actions">
+                ${a.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
+                ${isOwner() && a.phone !== OWNER_PHONE ? `
+                    <button class="admin-user-btn make-admin" onclick="toggleAdmin('${a.phone}')">
+                        Убрать из админов
+                    </button>
+                ` : ''}
+            </div>
         </div>
     `).join('');
 }
@@ -959,6 +1011,15 @@ addAdminBtn?.addEventListener('click', async () => {
     newAdminPhone.value = '';
 });
 
+// Заглушки для функций (добавь свои)
+async function loadReports() {
+    reportsList.innerHTML = '<p class="no-data">Функция в разработке</p>';
+}
+
+async function loadChannels() {
+    channelsList.innerHTML = '<p class="no-data">Функция в разработке</p>';
+}
+
 // ==================== ФОРМАТИРОВАНИЕ НОМЕРОВ ====================
 [loginPhone, registerPhone, newAdminPhone].forEach(i => i?.addEventListener('input', e => {
     let v = e.target.value.replace(/\D/g, '').slice(0, 10);
@@ -972,15 +1033,21 @@ if (savedUser) {
     (async () => {
         await loadUserSettings();
         
+        // Загружаем данные админа если есть
+        CURRENT_USER_ADMIN_DATA = await getAdminData(CURRENT_USER.phone);
+        
         authScreen.style.display = 'none';
         app.style.display = 'flex';
         if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
         
-        // Проверяем, админ ли пользователь
-        const admin = await isAdmin(CURRENT_USER.phone);
-        if (admin) {
+        // Показываем админ-кнопку если пользователь админ
+        if (CURRENT_USER_ADMIN_DATA) {
             adminButton.style.display = 'block';
-            if (isOwner()) adminsTab.style.display = 'block';
+        }
+        
+        // Показываем вкладку админов только владельцу
+        if (isOwner()) {
+            adminsTab.style.display = 'block';
         }
         
         updateLastSeen();
@@ -1009,4 +1076,4 @@ document.addEventListener('click', function(e) {
     }
 });
 
-console.log('✅ LinkUp (полная версия с админкой, синхронизацией и дизайном как в Telegram)');
+console.log('✅ LinkUp (полная версия с правильной админкой и синхронизацией)');
