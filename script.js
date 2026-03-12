@@ -2080,4 +2080,210 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-console.log('✅ Звонки добавлены! Нажми Ctrl+C для теста входящего звонка');
+console.log('✅ Звонки добавлены! Нажми Ctrl+C для теста входящего звонка
+    // ==================== ЗВОНКИ ====================
+let peerConnection = null;
+let localStream = null;
+let remoteStream = null;
+let callTimer = null;
+let callSeconds = 0;
+let currentCall = null;
+let incomingCallTimeout = null;
+
+// Проверяем существование элементов перед использованием
+const audioCallBtn = document.getElementById('audioCallBtn');
+const videoCallBtn = document.getElementById('videoCallBtn');
+const callModal = document.getElementById('callModal');
+const callAvatar = document.getElementById('callAvatar');
+const callName = document.getElementById('callName');
+const callStatus = document.getElementById('callStatus');
+const callVideoContainer = document.getElementById('callVideoContainer');
+const remoteVideo = document.getElementById('remoteVideo');
+const localVideo = document.getElementById('localVideo');
+const muteAudioBtn = document.getElementById('muteAudioBtn');
+const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+const endCallBtn = document.getElementById('endCallBtn');
+const speakerBtn = document.getElementById('speakerBtn');
+const callTimerDisplay = document.getElementById('callTimer');
+const incomingCallModal = document.getElementById('incomingCallModal');
+const incomingCallAvatar = document.getElementById('incomingCallAvatar');
+const incomingCallName = document.getElementById('incomingCallName');
+const incomingCallType = document.getElementById('incomingCallType');
+const acceptCallBtn = document.getElementById('acceptCallBtn');
+const declineCallBtn = document.getElementById('declineCallBtn');
+
+// Аудиозвонок
+if (audioCallBtn) {
+    audioCallBtn.addEventListener('click', async () => {
+        if (!CURRENT_CHAT) {
+            alert('Сначала выберите чат');
+            return;
+        }
+        await startCall('audio');
+    });
+}
+
+// Видеозвонок
+if (videoCallBtn) {
+    videoCallBtn.addEventListener('click', async () => {
+        if (!CURRENT_CHAT) {
+            alert('Сначала выберите чат');
+            return;
+        }
+        await startCall('video');
+    });
+}
+
+// Начать звонок
+async function startCall(type) {
+    try {
+        const constraints = {
+            audio: true,
+            video: type === 'video'
+        };
+        
+        localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        if (callAvatar) callAvatar.textContent = CURRENT_CHAT?.username?.charAt(0) || '👤';
+        if (callName) callName.textContent = CURRENT_CHAT?.username || CURRENT_CHAT?.phone || 'Собеседник';
+        if (callStatus) callStatus.textContent = 'Соединение...';
+        
+        if (type === 'video' && callVideoContainer) {
+            callVideoContainer.style.display = 'block';
+            if (localVideo) localVideo.srcObject = localStream;
+        } else if (callVideoContainer) {
+            callVideoContainer.style.display = 'none';
+        }
+        
+        if (callModal) callModal.style.display = 'flex';
+        
+        callSeconds = 0;
+        updateCallTimer();
+        if (callTimer) clearInterval(callTimer);
+        callTimer = setInterval(updateCallTimer, 1000);
+        
+        // Имитация ответа через 2 секунды
+        setTimeout(() => {
+            if (callStatus) callStatus.textContent = 'Соединено';
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Ошибка звонка:', error);
+        alert('❌ Не удалось начать звонок: ' + error.message);
+    }
+}
+
+function updateCallTimer() {
+    callSeconds++;
+    const minutes = Math.floor(callSeconds / 60);
+    const seconds = callSeconds % 60;
+    if (callTimerDisplay) {
+        callTimerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+}
+
+function endCall() {
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+    }
+    if (callTimer) {
+        clearInterval(callTimer);
+        callTimer = null;
+    }
+    if (callModal) callModal.style.display = 'none';
+    if (incomingCallModal) incomingCallModal.style.display = 'none';
+    if (incomingCallTimeout) {
+        clearTimeout(incomingCallTimeout);
+        incomingCallTimeout = null;
+    }
+}
+
+if (endCallBtn) {
+    endCallBtn.addEventListener('click', endCall);
+}
+
+if (muteAudioBtn) {
+    muteAudioBtn.addEventListener('click', () => {
+        if (localStream) {
+            const audioTrack = localStream.getAudioTracks()[0];
+            if (audioTrack) {
+                audioTrack.enabled = !audioTrack.enabled;
+                muteAudioBtn.classList.toggle('active');
+                muteAudioBtn.title = audioTrack.enabled ? 'Выключить микрофон' : 'Включить микрофон';
+            }
+        }
+    });
+}
+
+if (toggleVideoBtn) {
+    toggleVideoBtn.addEventListener('click', () => {
+        if (localStream) {
+            const videoTrack = localStream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = !videoTrack.enabled;
+                toggleVideoBtn.classList.toggle('active');
+                toggleVideoBtn.title = videoTrack.enabled ? 'Выключить камеру' : 'Включить камеру';
+            }
+        }
+    });
+}
+
+if (speakerBtn) {
+    speakerBtn.addEventListener('click', () => {
+        speakerBtn.classList.toggle('active');
+        speakerBtn.title = speakerBtn.classList.contains('active') ? 'Выключить динамик' : 'Включить динамик';
+    });
+}
+
+// Входящий звонок (для теста)
+window.simulateIncomingCall = function(phone, type = 'video') {
+    if (incomingCallName) incomingCallName.textContent = phone;
+    if (incomingCallType) {
+        incomingCallType.textContent = type === 'video' ? '📹 Входящий видеозвонок' : '📞 Входящий аудиозвонок';
+    }
+    if (incomingCallModal) incomingCallModal.style.display = 'flex';
+    
+    if (incomingCallTimeout) clearTimeout(incomingCallTimeout);
+    incomingCallTimeout = setTimeout(() => {
+        if (incomingCallModal) incomingCallModal.style.display = 'none';
+        alert('❌ Вызов не отвечен');
+    }, 30000);
+};
+
+if (acceptCallBtn) {
+    acceptCallBtn.addEventListener('click', () => {
+        if (incomingCallModal) incomingCallModal.style.display = 'none';
+        if (incomingCallTimeout) {
+            clearTimeout(incomingCallTimeout);
+            incomingCallTimeout = null;
+        }
+        if (callModal) callModal.style.display = 'flex';
+        if (callStatus) callStatus.textContent = 'Соединено';
+    });
+}
+
+if (declineCallBtn) {
+    declineCallBtn.addEventListener('click', () => {
+        if (incomingCallModal) incomingCallModal.style.display = 'none';
+        if (incomingCallTimeout) {
+            clearTimeout(incomingCallTimeout);
+            incomingCallTimeout = null;
+        }
+        alert('❌ Звонок отклонён');
+    });
+}
+
+// Горячие клавиши для теста
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'c') {
+        e.preventDefault();
+        simulateIncomingCall('+79991234567', 'video');
+    }
+    if (e.ctrlKey && e.key === 'a') {
+        e.preventDefault();
+        simulateIncomingCall('+79991234567', 'audio');
+    }
+});
+
+console.log('✅ Звонки работают! Нажми Ctrl+C для теста');

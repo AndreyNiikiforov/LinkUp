@@ -137,11 +137,17 @@
 
         <!-- Правая панель -->
         <div class="chat-window" id="chatWindow" style="display: none;">
-            <div class="chat-header" id="currentChat">
-                <div class="chat-header-info">
-                    <div class="chat-header-calls">
-    <button class="call-btn audio-call" id="audioCallBtn" title="Аудиозвонок">📞</button>
-    <button class="call-btn video-call" id="videoCallBtn" title="Видеозвонок">📹</button>
+    <div class="chat-header" id="currentChat">
+    <div class="chat-header-info">
+        <span class="chat-header-name" id="currentChatName">Выберите чат</span>
+        <span class="chat-header-phone" id="currentChatPhone"></span>
+        <span class="chat-header-username" id="currentChatUsername"></span>
+    </div>
+    <div class="chat-header-actions">
+        <button class="call-btn audio-call" id="audioCallBtn" title="Аудиозвонок">📞</button>
+        <button class="call-btn video-call" id="videoCallBtn" title="Видеозвонок">📹</button>
+        <div class="chat-header-menu" id="chatMenuBtn">⋮</div>
+    </div>
 </div>
                     <span class="chat-header-name" id="currentChatName">Выберите чат</span>
                     <span class="chat-header-phone" id="currentChatPhone"></span>
