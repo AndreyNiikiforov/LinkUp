@@ -567,14 +567,18 @@ if (savedUser) {
     CURRENT_USER = savedUser;
     authScreen.style.display = 'none';
     app.style.display = 'flex';
-    currentUserPhone.textContent = CURRENT_USER.phone;
-    currentUserName.textContent = CURRENT_USER.username || CURRENT_USER.phone;
-    if (isAdmin()) {
-        adminButton.style.display = 'block';
-        if (isOwner()) adminsTab.style.display = 'block';
-    }
-    loadChats();
-    loadGroups();
+// Безопасное обновление интерфейса
+if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
+if (currentUserName) currentUserName.textContent = CURRENT_USER.username || CURRENT_USER.phone;
+
+if (isAdmin()) {
+    if (adminButton) adminButton.style.display = 'block';
+    if (isOwner() && adminsTab) adminsTab.style.display = 'block';
+}
+
+// Загружаем чаты и группы, если функции существуют
+if (typeof loadChats === 'function') loadChats();
+if (typeof loadGroups === 'function') loadGroups();
 }
 
 // Поиск в админке
