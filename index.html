@@ -14,39 +14,31 @@
             
             <div id="loginForm">
                 <p class="auth-subtitle">Вход по номеру телефона</p>
-                
                 <div class="phone-input-container">
                     <span class="phone-prefix">+7</span>
                     <input type="tel" class="phone-input" id="loginPhone" placeholder="925 XXX XX XX" maxlength="10">
                 </div>
-
                 <div class="password-input-container">
                     <input type="password" class="password-input" id="loginPassword" placeholder="Пароль">
                 </div>
-                
                 <button class="auth-button" id="loginButton">Войти</button>
             </div>
 
             <div class="auth-divider">или</div>
-
             <button class="auth-button secondary" id="showRegisterButton">Тут впервые? Зарегистрироваться</button>
 
             <div id="registerForm" style="display: none;">
                 <p class="auth-subtitle">Регистрация</p>
-                
                 <div class="phone-input-container">
                     <span class="phone-prefix">+7</span>
                     <input type="tel" class="phone-input" id="registerPhone" placeholder="925 XXX XX XX" maxlength="10">
                 </div>
-
                 <div class="password-input-container">
                     <input type="password" class="password-input" id="registerPassword" placeholder="Придумайте пароль">
                 </div>
-
                 <div class="password-input-container">
                     <input type="password" class="password-input" id="registerPasswordConfirm" placeholder="Повторите пароль">
                 </div>
-                
                 <button class="auth-button" id="registerButton">Зарегистрироваться</button>
                 <button class="auth-button secondary" id="backToLoginButton">← Назад к входу</button>
             </div>
@@ -59,7 +51,6 @@
     <div class="app" id="app" style="display: none;">
         <!-- Левая панель -->
         <div class="sidebar">
-            <!-- Профиль пользователя -->
             <div class="user-profile" id="userProfile">
                 <div class="avatar" id="currentUserAvatar">👤</div>
                 <div class="user-info">
@@ -68,13 +59,11 @@
                 </div>
             </div>
 
-            <!-- Поиск -->
             <div class="search-container">
                 <input type="text" class="search-input" id="searchInput" placeholder="Поиск по номеру...">
                 <button class="search-button" id="searchButton">🔍</button>
             </div>
 
-            <!-- Результаты поиска -->
             <div class="search-results" id="searchResults" style="display: none;">
                 <div class="search-results-header">
                     <span>Результаты поиска</span>
@@ -83,13 +72,23 @@
                 <div class="search-results-list" id="searchResultsList"></div>
             </div>
 
+            <!-- Вкладки: Чаты / Группы -->
+            <div class="chat-tabs">
+                <button class="chat-tab active" id="chatsTabBtn">💬 Чаты</button>
+                <button class="chat-tab" id="groupsTabBtn">👥 Группы</button>
+            </div>
+
             <!-- Список чатов -->
             <div class="chats-list" id="chatsList"></div>
+            
+            <!-- Список групп -->
+            <div class="groups-list" id="groupsList" style="display: none;"></div>
 
-            <!-- Кнопка админ-панели (для владельца и админов) -->
-            <button class="admin-button" id="adminButton" style="display: none;">
-                👑 Админ-панель
-            </button>
+            <!-- Кнопка создания группы -->
+            <button class="create-group-btn" id="createGroupBtn">➕ Создать группу</button>
+
+            <!-- Кнопка админ-панели -->
+            <button class="admin-button" id="adminButton" style="display: none;">👑 Админ-панель</button>
         </div>
 
         <!-- Правая панель -->
@@ -100,20 +99,35 @@
                     <span class="chat-header-phone" id="currentChatPhone"></span>
                 </div>
             </div>
-            
             <div class="messages-area" id="messagesArea"></div>
-            
             <div class="message-input-area">
                 <input type="text" class="message-input" placeholder="Написать сообщение..." id="messageInput">
                 <button class="send-button" id="sendButton">➤</button>
             </div>
         </div>
 
-        <!-- Приветственный экран -->
         <div class="welcome-screen" id="welcomeScreen">
             <div class="welcome-content">
                 <h1 class="welcome-title">LinkUp</h1>
                 <p class="welcome-text">Выберите чат или начните поиск нового контакта</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА СОЗДАНИЯ ГРУППЫ -->
+    <div class="group-modal" id="groupModal" style="display: none;">
+        <div class="group-modal-content">
+            <div class="group-modal-header">
+                <h2>Создать группу</h2>
+                <button class="close-group" id="closeGroupModal">✕</button>
+            </div>
+            <div class="group-modal-body">
+                <input type="text" id="groupName" placeholder="Название группы" class="group-input">
+                <div class="group-members-list" id="groupMembersList">
+                    <p>Выберите участников:</p>
+                    <div id="availableUsers"></div>
+                </div>
+                <button class="create-group-final" id="createGroupFinal">Создать</button>
             </div>
         </div>
     </div>
@@ -134,31 +148,16 @@
                 <button class="admin-tab" data-tab="admins" id="adminsTab" style="display: none;">Админы</button>
             </div>
             
-            <!-- Вкладка Пользователи -->
             <div class="admin-tab-content active" id="adminUsers">
-                <div class="admin-search">
-                    <input type="text" id="adminUserSearch" placeholder="Поиск пользователя...">
-                </div>
+                <div class="admin-search"><input type="text" id="adminUserSearch" placeholder="Поиск пользователя..."></div>
                 <div class="admin-users-list" id="adminUsersList"></div>
             </div>
-            
-            <!-- Вкладка Поддержка -->
-            <div class="admin-tab-content" id="adminSupport">
-                <div class="support-list" id="supportList"></div>
-            </div>
-            
-            <!-- Вкладка Жалобы -->
-            <div class="admin-tab-content" id="adminReports">
-                <div class="reports-list" id="reportsList"></div>
-            </div>
-            
-            <!-- Вкладка Каналы -->
+            <div class="admin-tab-content" id="adminSupport"><div class="support-list" id="supportList"></div></div>
+            <div class="admin-tab-content" id="adminReports"><div class="reports-list" id="reportsList"></div></div>
             <div class="admin-tab-content" id="adminChannels">
                 <div class="channels-list" id="channelsList"></div>
                 <button class="admin-action" id="createChannelBtn">➕ Создать канал</button>
             </div>
-            
-            <!-- Вкладка Админы (только для владельца) -->
             <div class="admin-tab-content" id="adminAdmins">
                 <div class="admins-list" id="adminsList"></div>
                 <div class="add-admin">

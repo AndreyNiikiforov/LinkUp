@@ -6,9 +6,12 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const OWNER_PHONE = '+79224030705';
 let CURRENT_USER = null;
 let CURRENT_CHAT = null;
+let CURRENT_GROUP = null;
 let ADMINS = [OWNER_PHONE];
+let GROUPS = [];
+let selectedMembers = [];
 
-// ==================== DOM ЭЛЕМЕНТЫ ====================
+// DOM элементы
 const authScreen = document.getElementById('authScreen');
 const app = document.getElementById('app');
 const authMessage = document.getElementById('authMessage');
@@ -33,6 +36,18 @@ const searchButton = document.getElementById('searchButton');
 const searchResults = document.getElementById('searchResults');
 const searchResultsList = document.getElementById('searchResultsList');
 const closeSearch = document.getElementById('closeSearch');
+const chatsList = document.getElementById('chatsList');
+const groupsList = document.getElementById('groupsList');
+const chatsTabBtn = document.getElementById('chatsTabBtn');
+const groupsTabBtn = document.getElementById('groupsTabBtn');
+const createGroupBtn = document.getElementById('createGroupBtn');
+const groupModal = document.getElementById('groupModal');
+const closeGroupModal = document.getElementById('closeGroupModal');
+const groupName = document.getElementById('groupName');
+const availableUsers = document.getElementById('availableUsers');
+const createGroupFinal = document.getElementById('createGroupFinal');
+
+// Админка
 const adminModal = document.getElementById('adminModal');
 const closeAdmin = document.getElementById('closeAdmin');
 const adminTabs = document.querySelectorAll('.admin-tab');
@@ -47,7 +62,7 @@ const adminsList = document.getElementById('adminsList');
 const addAdminBtn = document.getElementById('addAdminBtn');
 const newAdminPhone = document.getElementById('newAdminPhone');
 
-// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+// Форматирование номера
 function formatPhone(number) {
     let cleaned = number.replace(/\D/g, '');
     if (!cleaned) return '';
@@ -57,6 +72,7 @@ function formatPhone(number) {
     return '+' + cleaned;
 }
 
+// Сессия
 function saveSession(user) {
     localStorage.setItem('linkup_session', JSON.stringify({ user, timestamp: Date.now() }));
 }
@@ -73,7 +89,7 @@ function loadSession() {
 function isOwner() { return CURRENT_USER?.phone === OWNER_PHONE; }
 function isAdmin() { return CURRENT_USER && (ADMINS.includes(CURRENT_USER.phone) || isOwner()); }
 
-// ==================== ГЛАЗКИ ДЛЯ ПАРОЛЯ ====================
+// Глазки
 function addPasswordToggle(input) {
     const container = input.parentElement;
     const btn = document.createElement('span');
@@ -89,7 +105,7 @@ function addPasswordToggle(input) {
 }
 [loginPassword, registerPassword, registerPasswordConfirm].forEach(i => i && addPasswordToggle(i));
 
-// ==================== ПЕРЕКЛЮЧЕНИЕ ФОРМ ====================
+// Переключение форм
 showRegisterButton?.addEventListener('click', () => {
     loginForm.style.display = 'none';
     showRegisterButton.style.display = 'none';
@@ -104,7 +120,7 @@ backToLoginButton?.addEventListener('click', () => {
     authMessage.textContent = '';
 });
 
-// ==================== ВХОД ====================
+// Вход
 loginButton?.addEventListener('click', async () => {
     const phone = formatPhone(loginPhone.value);
     const pass = loginPassword.value;
@@ -124,10 +140,11 @@ loginButton?.addEventListener('click', async () => {
             if (isOwner()) adminsTab.style.display = 'block';
         }
         loadChats();
+        loadGroups();
     } catch (e) { authMessage.textContent = '❌ Ошибка входа: ' + e.message; }
 });
 
-// ==================== РЕГИСТРАЦИЯ ====================
+// Регистрация
 registerButton?.addEventListener('click', async () => {
     const phone = formatPhone(registerPhone.value);
     const pass = registerPassword.value;
@@ -146,7 +163,7 @@ registerButton?.addEventListener('click', async () => {
     } catch (e) { authMessage.textContent = '❌ Ошибка: ' + e.message; }
 });
 
-// ==================== ПОИСК ====================
+// Поиск
 searchButton?.addEventListener('click', searchUsers);
 searchInput?.addEventListener('keypress', e => e.key === 'Enter' && searchUsers());
 
@@ -172,10 +189,27 @@ async function searchUsers() {
 
 closeSearch?.addEventListener('click', () => searchResults.style.display = 'none');
 
-// ==================== ЧАТЫ ====================
+// Вкладки Чаты / Группы
+chatsTabBtn?.addEventListener('click', () => {
+    chatsTabBtn.classList.add('active');
+    groupsTabBtn.classList.remove('active');
+    chatsList.style.display = 'block';
+    groupsList.style.display = 'none';
+});
+
+groupsTabBtn?.addEventListener('click', () => {
+    groupsTabBtn.classList.add('active');
+    chatsTabBtn.classList.remove('active');
+    chatsList.style.display = 'none';
+    groupsList.style.display = 'block';
+    loadGroups();
+});
+
+// Личные чаты
 window.startChat = async function(phone) {
     searchResults.style.display = 'none';
     searchInput.value = '';
+    CURRENT_GROUP = null;
     try {
         const { data: users } = await supabaseClient.from('profiles').select('*').eq('phone', phone);
         if (!users?.length) return;
@@ -207,30 +241,36 @@ async function loadMessages(chatPhone) {
     } catch (e) { console.error(e); }
 }
 
-document.getElementById('sendButton')?.addEventListener('click', sendMessage);
-document.getElementById('messageInput')?.addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
+// Группы
+window.openGroup = async function(groupId) {
+    CURRENT_CHAT = null;
+    CURRENT_GROUP = GROUPS.find(g => g.id === groupId);
+    document.getElementById('currentChatName').textContent = CURRENT_GROUP.name;
+    document.getElementById('currentChatPhone').textContent = 'Группа';
+    welcomeScreen.style.display = 'none';
+    chatWindow.style.display = 'flex';
+    loadGroupMessages(groupId);
+};
 
-async function sendMessage() {
-    const input = document.getElementById('messageInput');
-    const content = input.value.trim();
-    if (!content || !CURRENT_CHAT) return;
+async function loadGroupMessages(groupId) {
     try {
-        const { error } = await supabaseClient.from('messages').insert([{
-            sender: CURRENT_USER.phone,
-            receiver: CURRENT_CHAT.phone,
-            content: content,
-            created_at: new Date()
-        }]);
+        const { data: messages, error } = await supabaseClient
+            .from('group_messages')
+            .select('*')
+            .eq('group_id', groupId)
+            .order('created_at', { ascending: false });
         if (error) throw error;
-        input.value = '';
-        await loadMessages(CURRENT_CHAT.phone);
-        await loadChats();
-    } catch (e) {
-        console.error('Ошибка отправки:', e);
-        alert('❌ Ошибка: ' + e.message);
-    }
+        const area = document.getElementById('messagesArea');
+        if (!messages?.length) area.innerHTML = '<div class="message received">Начните общение в группе</div>';
+        else area.innerHTML = messages.map(m => `
+            <div class="message ${m.sender === CURRENT_USER.phone ? 'sent' : 'received'}">
+                <strong>${m.sender}:</strong> ${m.content}
+                <div class="message-time">${new Date(m.created_at).toLocaleTimeString().slice(0,-3)}</div>
+            </div>`).join('');
+    } catch (e) { console.error(e); }
 }
 
+// Загрузка чатов
 async function loadChats() {
     try {
         const { data: messages, error } = await supabaseClient.from('messages').select('*').or(`sender.eq.${CURRENT_USER.phone},receiver.eq.${CURRENT_USER.phone}`).order('created_at', { ascending: false });
@@ -241,13 +281,156 @@ async function loadChats() {
             if (!chats.has(other) || new Date(m.created_at) > new Date(chats.get(other).lastMessageTime))
                 chats.set(other, { phone: other, lastMessage: m.content, lastMessageTime: m.created_at });
         });
-        const list = document.getElementById('chatsList');
-        if (!chats.size) list.innerHTML = '<div class="chat-item">Найдите контакт через поиск</div>';
-        else list.innerHTML = Array.from(chats.values()).map(c => `<div class="chat-item" onclick="startChat('${c.phone}')"><span class="chat-name">${c.phone}</span><span class="chat-preview">${c.lastMessage.slice(0,30)}...</span></div>`).join('');
+        if (!chats.size) chatsList.innerHTML = '<div class="chat-item">Найдите контакт через поиск</div>';
+        else chatsList.innerHTML = Array.from(chats.values()).map(c => `<div class="chat-item" onclick="startChat('${c.phone}')"><span class="chat-name">${c.phone}</span><span class="chat-preview">${c.lastMessage.slice(0,30)}...</span></div>`).join('');
     } catch (e) { console.error(e); }
 }
 
-// ==================== АДМИНКА ====================
+// Загрузка групп
+async function loadGroups() {
+    try {
+        const { data: memberships } = await supabaseClient
+            .from('group_members')
+            .select('group_id')
+            .eq('user_phone', CURRENT_USER.phone);
+        
+        if (!memberships?.length) {
+            groupsList.innerHTML = '<div class="group-item">Нет групп</div>';
+            return;
+        }
+        
+        const groupIds = memberships.map(m => m.group_id);
+        const { data: groups } = await supabaseClient
+            .from('groups')
+            .select('*')
+            .in('id', groupIds)
+            .order('created_at', { ascending: false });
+        
+        GROUPS = groups || [];
+        groupsList.innerHTML = GROUPS.map(g => `
+            <div class="group-item" onclick="openGroup(${g.id})">
+                <span class="group-name">${g.name}</span>
+                <span class="group-preview">Группа</span>
+            </div>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+
+// Создание группы
+createGroupBtn?.addEventListener('click', async () => {
+    groupModal.style.display = 'flex';
+    await loadAvailableUsers();
+});
+
+closeGroupModal?.addEventListener('click', () => {
+    groupModal.style.display = 'none';
+    groupName.value = '';
+    selectedMembers = [];
+});
+
+async function loadAvailableUsers() {
+    try {
+        const { data: users } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .neq('phone', CURRENT_USER.phone);
+        
+        availableUsers.innerHTML = users?.map(u => `
+            <div class="group-member-item" onclick="toggleSelect('${u.phone}')">
+                <span>${u.username || u.phone}</span>
+            </div>
+        `).join('') || '<p>Нет пользователей</p>';
+    } catch (e) { console.error(e); }
+}
+
+window.toggleSelect = function(phone) {
+    const index = selectedMembers.indexOf(phone);
+    if (index === -1) selectedMembers.push(phone);
+    else selectedMembers.splice(index, 1);
+    
+    document.querySelectorAll('.group-member-item').forEach(el => {
+        const text = el.textContent.trim();
+        if (selectedMembers.includes(text) || selectedMembers.some(s => text.includes(s))) {
+            el.classList.add('selected');
+        } else {
+            el.classList.remove('selected');
+        }
+    });
+};
+
+createGroupFinal?.addEventListener('click', async () => {
+    const name = groupName.value.trim();
+    if (!name) { alert('Введите название группы'); return; }
+    if (!selectedMembers.length) { alert('Выберите участников'); return; }
+    
+    try {
+        const { data: group, error } = await supabaseClient
+            .from('groups')
+            .insert([{ name, created_by: CURRENT_USER.phone }])
+            .select();
+        
+        if (error) throw error;
+        
+        const groupId = group[0].id;
+        
+        await supabaseClient.from('group_members').insert([
+            { group_id: groupId, user_phone: CURRENT_USER.phone, role: 'creator' }
+        ]);
+        
+        const members = selectedMembers.map(phone => ({
+            group_id: groupId,
+            user_phone: phone,
+            role: 'member'
+        }));
+        await supabaseClient.from('group_members').insert(members);
+        
+        alert('✅ Группа создана!');
+        groupModal.style.display = 'none';
+        groupName.value = '';
+        selectedMembers = [];
+        loadGroups();
+        groupsTabBtn.click();
+    } catch (e) {
+        console.error(e);
+        alert('Ошибка: ' + e.message);
+    }
+});
+
+// Отправка сообщений
+document.getElementById('sendButton')?.addEventListener('click', sendMessage);
+document.getElementById('messageInput')?.addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
+
+async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const content = input.value.trim();
+    if (!content) return;
+    
+    try {
+        if (CURRENT_GROUP) {
+            await supabaseClient.from('group_messages').insert([{
+                group_id: CURRENT_GROUP.id,
+                sender: CURRENT_USER.phone,
+                content
+            }]);
+            input.value = '';
+            loadGroupMessages(CURRENT_GROUP.id);
+        } else if (CURRENT_CHAT) {
+            await supabaseClient.from('messages').insert([{
+                sender: CURRENT_USER.phone,
+                receiver: CURRENT_CHAT.phone,
+                content
+            }]);
+            input.value = '';
+            loadMessages(CURRENT_CHAT.phone);
+            loadChats();
+        }
+    } catch (e) {
+        console.error('Ошибка отправки:', e);
+        alert('❌ Ошибка: ' + e.message);
+    }
+}
+
+// Админка
 adminButton?.addEventListener('click', () => {
     adminModal.style.display = 'flex';
     loadAdminUsers();
@@ -372,13 +555,13 @@ addAdminBtn?.addEventListener('click', async () => {
     newAdminPhone.value = '';
 });
 
-// ==================== ФОРМАТИРОВАНИЕ НОМЕРОВ ====================
+// Форматирование номеров
 [loginPhone, registerPhone, newAdminPhone].forEach(i => i?.addEventListener('input', e => {
     let v = e.target.value.replace(/\D/g, '').slice(0, 10);
     e.target.value = v;
 }));
 
-// ==================== СЕССИЯ ====================
+// Сессия
 const savedUser = loadSession();
 if (savedUser) {
     CURRENT_USER = savedUser;
@@ -391,8 +574,10 @@ if (savedUser) {
         if (isOwner()) adminsTab.style.display = 'block';
     }
     loadChats();
+    loadGroups();
 }
 
+// Поиск в админке
 adminUserSearch?.addEventListener('input', e => {
     let term = e.target.value.toLowerCase();
     document.querySelectorAll('.admin-user-item').forEach(el => {
@@ -400,4 +585,4 @@ adminUserSearch?.addEventListener('input', e => {
     });
 });
 
-console.log('✅ LinkUp (финальная версия с сообщениями и разжалованием)');
+console.log('✅ LinkUp (финальная версия с группами)');

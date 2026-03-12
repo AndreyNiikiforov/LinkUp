@@ -397,13 +397,43 @@ body {
     font-size: 24px;
 }
 
-.chats-list {
+/* Вкладки Чаты / Группы */
+.chat-tabs {
+    display: flex;
+    padding: 10px 15px;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.chat-tab {
+    flex: 1;
+    padding: 8px;
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.chat-tab:hover {
+    border-color: var(--accent-purple);
+    color: #fff;
+}
+
+.chat-tab.active {
+    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
+    color: #fff;
+    border: none;
+}
+
+.chats-list, .groups-list {
     flex: 1;
     overflow-y: auto;
     padding: 10px;
 }
 
-.chat-item {
+.chat-item, .group-item {
     display: flex;
     flex-direction: column;
     padding: 12px 15px;
@@ -416,23 +446,41 @@ body {
     cursor: pointer;
 }
 
-.chat-item:hover {
+.chat-item:hover, .group-item:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(124, 58, 237, 0.3);
     box-shadow: 0 0 30px rgba(124, 58, 237, 0.2);
     transform: translateX(8px);
 }
 
-.chat-name {
+.chat-name, .group-name {
     font-weight: 600;
     margin-bottom: 4px;
     color: #fff;
     font-size: 16px;
 }
 
-.chat-preview {
+.chat-preview, .group-preview {
     font-size: 13px;
     color: #888;
+}
+
+.create-group-btn {
+    margin: 15px;
+    padding: 12px;
+    background: linear-gradient(135deg, #00bfff, #7c3aed);
+    border: none;
+    border-radius: 25px;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 0 20px rgba(0, 191, 255, 0.3);
+}
+
+.create-group-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(124, 58, 237, 0.5);
 }
 
 .admin-button {
@@ -614,6 +662,117 @@ body {
     font-size: 16px;
 }
 
+/* МОДАЛКА ГРУППЫ */
+.group-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    backdrop-filter: blur(10px);
+}
+
+.group-modal-content {
+    width: 90%;
+    max-width: 500px;
+    background: #1a1a24;
+    border-radius: 20px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 50px rgba(124, 58, 237, 0.3);
+    animation: modalAppear 0.3s;
+}
+
+@keyframes modalAppear {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.group-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.close-group {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.close-group:hover {
+    color: #fff;
+    transform: rotate(90deg);
+}
+
+.group-input {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #fff;
+    margin-bottom: 20px;
+    outline: none;
+}
+
+.group-input:focus {
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+}
+
+.group-member-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin: 5px 0;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid transparent;
+}
+
+.group-member-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(124, 58, 237, 0.3);
+}
+
+.group-member-item.selected {
+    background: rgba(124, 58, 237, 0.15);
+    border: 1px solid var(--accent-purple);
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+}
+
+.create-group-final {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+    margin-top: 20px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.create-group-final:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(255, 20, 147, 0.5);
+}
+
 /* Админ-панель */
 .admin-modal {
     position: fixed;
@@ -639,11 +798,6 @@ body {
     overflow: hidden;
     box-shadow: 0 0 50px rgba(124, 58, 237, 0.3);
     animation: modalAppear 0.3s;
-}
-
-@keyframes modalAppear {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
 }
 
 .admin-modal-header {
