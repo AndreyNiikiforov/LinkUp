@@ -1825,3 +1825,259 @@ document.addEventListener('click', function(e) {
 });
 
 console.log('✅ LinkUp — полная версия с рангами 1-5 и админ-чатами');
+// ==================== ЗВОНКИ (WebRTC) ====================
+let peerConnection = null;
+let localStream = null;
+let remoteStream = null;
+let callTimer = null;
+let callSeconds = 0;
+let currentCall = null;
+let incomingCallTimeout = null;
+
+const configuration = {
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' }
+    ]
+};
+
+// Элементы звонков
+const audioCallBtn = document.getElementById('audioCallBtn');
+const videoCallBtn = document.getElementById('videoCallBtn');
+const callModal = document.getElementById('callModal');
+const callAvatar = document.getElementById('callAvatar');
+const callName = document.getElementById('callName');
+const callStatus = document.getElementById('callStatus');
+const callVideoContainer = document.getElementById('callVideoContainer');
+const remoteVideo = document.getElementById('remoteVideo');
+const localVideo = document.getElementById('localVideo');
+const muteAudioBtn = document.getElementById('muteAudioBtn');
+const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+const endCallBtn = document.getElementById('endCallBtn');
+const speakerBtn = document.getElementById('speakerBtn');
+const callTimerDisplay = document.getElementById('callTimer');
+
+// Элементы входящего звонка
+const incomingCallModal = document.getElementById('incomingCallModal');
+const incomingCallAvatar = document.getElementById('incomingCallAvatar');
+const incomingCallName = document.getElementById('incomingCallName');
+const incomingCallType = document.getElementById('incomingCallType');
+const acceptCallBtn = document.getElementById('acceptCallBtn');
+const declineCallBtn = document.getElementById('declineCallBtn');
+
+// Аудиозвонок
+audioCallBtn?.addEventListener('click', async () => {
+    if (!CURRENT_CHAT) {
+        alert('Сначала выберите чат');
+        return;
+    }
+    await startCall('audio');
+});
+
+// Видеозвонок
+videoCallBtn?.addEventListener('click', async () => {
+    if (!CURRENT_CHAT) {
+        alert('Сначала выберите чат');
+        return;
+    }
+    await startCall('video');
+});
+
+// Начать звонок
+async function startCall(type) {
+    try {
+        // Запрашиваем доступ к медиа
+        const constraints = {
+            audio: true,
+            video: type === 'video'
+        };
+        
+        localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        // Создаём peer connection
+        peerConnection = new RTCPeerConnection(configuration);
+        
+        // Добавляем локальные треки
+        localStream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, localStream);
+        });
+        
+        // Обработка удалённого потока
+        peerConnection.ontrack = (event) => {
+            remoteStream = event.streams[0];
+            remoteVideo.srcObject = remoteStream;
+        };
+        
+        // Создаём оффер
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        
+        // Отправляем оффер собеседнику (в реальном проекте через сервер)
+        console.log('📞 Отправляем оффер:', offer);
+        
+        // Показываем модалку
+        showCallModal(type);
+        
+        // Имитация ответа (для теста)
+        setTimeout(() => {
+            simulateAnswer();
+        }, 3000);
+        
+    } catch (error) {
+        console.error('Ошибка звонка:', error);
+        alert('❌ Не удалось начать звонок: ' + error.message);
+    }
+}
+
+// Показать модалку звонка
+function showCallModal(type) {
+    callAvatar.textContent = CURRENT_CHAT?.username?.charAt(0) || '👤';
+    callName.textContent = CURRENT_CHAT?.username || CURRENT_CHAT?.phone || 'Собеседник';
+    callStatus.textContent = 'Соединение...';
+    
+    if (type === 'video') {
+        callVideoContainer.style.display = 'block';
+        localVideo.srcObject = localStream;
+    } else {
+        callVideoContainer.style.display = 'none';
+    }
+    
+    callModal.style.display = 'flex';
+    
+    // Запускаем таймер
+    callSeconds = 0;
+    updateCallTimer();
+    callTimer = setInterval(updateCallTimer, 1000);
+}
+
+// Обновление таймера
+function updateCallTimer() {
+    callSeconds++;
+    const minutes = Math.floor(callSeconds / 60);
+    const seconds = callSeconds % 60;
+    callTimerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Имитация ответа (для теста)
+function simulateAnswer() {
+    callStatus.textContent = 'Соединено';
+}
+
+// Завершить звонок
+endCallBtn?.addEventListener('click', endCall);
+
+function endCall() {
+    if (peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+    }
+    
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+    }
+    
+    if (remoteStream) {
+        remoteStream.getTracks().forEach(track => track.stop());
+        remoteStream = null;
+    }
+    
+    if (callTimer) {
+        clearInterval(callTimer);
+        callTimer = null;
+    }
+    
+    callModal.style.display = 'none';
+    incomingCallModal.style.display = 'none';
+    
+    if (incomingCallTimeout) {
+        clearTimeout(incomingCallTimeout);
+        incomingCallTimeout = null;
+    }
+}
+
+// Mute audio
+muteAudioBtn?.addEventListener('click', () => {
+    if (localStream) {
+        const audioTrack = localStream.getAudioTracks()[0];
+        if (audioTrack) {
+            audioTrack.enabled = !audioTrack.enabled;
+            muteAudioBtn.classList.toggle('active');
+            muteAudioBtn.title = audioTrack.enabled ? 'Выключить микрофон' : 'Включить микрофон';
+        }
+    }
+});
+
+// Toggle video
+toggleVideoBtn?.addEventListener('click', () => {
+    if (localStream) {
+        const videoTrack = localStream.getVideoTracks()[0];
+        if (videoTrack) {
+            videoTrack.enabled = !videoTrack.enabled;
+            toggleVideoBtn.classList.toggle('active');
+            toggleVideoBtn.title = videoTrack.enabled ? 'Выключить камеру' : 'Включить камеру';
+        }
+    }
+});
+
+// Speaker (имитация)
+speakerBtn?.addEventListener('click', () => {
+    speakerBtn.classList.toggle('active');
+    speakerBtn.title = speakerBtn.classList.contains('active') ? 'Выключить динамик' : 'Включить динамик';
+});
+
+// Закрытие модалки по ESC
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && callModal.style.display === 'flex') {
+        endCall();
+    }
+});
+
+// Входящий звонок (имитация для теста)
+window.simulateIncomingCall = function(phone, type = 'video') {
+    incomingCallName.textContent = phone;
+    incomingCallType.textContent = type === 'video' ? '📹 Входящий видеозвонок' : '📞 Входящий аудиозвонок';
+    incomingCallModal.style.display = 'flex';
+    
+    // Автоотклонение через 30 секунд
+    incomingCallTimeout = setTimeout(() => {
+        incomingCallModal.style.display = 'none';
+        alert('❌ Вызов не отвечен');
+    }, 30000);
+};
+
+// Принять звонок
+acceptCallBtn?.addEventListener('click', () => {
+    incomingCallModal.style.display = 'none';
+    if (incomingCallTimeout) {
+        clearTimeout(incomingCallTimeout);
+        incomingCallTimeout = null;
+    }
+    
+    // Запускаем звонок (для теста)
+    showCallModal('video');
+    callStatus.textContent = 'Соединено';
+});
+
+// Отклонить звонок
+declineCallBtn?.addEventListener('click', () => {
+    incomingCallModal.style.display = 'none';
+    if (incomingCallTimeout) {
+        clearTimeout(incomingCallTimeout);
+        incomingCallTimeout = null;
+    }
+    alert('❌ Звонок отклонён');
+});
+
+// Для теста: Ctrl+C - входящий звонок
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'c') {
+        simulateIncomingCall('+79991234567', 'video');
+    }
+    if (e.ctrlKey && e.key === 'a') {
+        simulateIncomingCall('+79991234567', 'audio');
+    }
+});
+
+console.log('✅ Звонки добавлены! Нажми Ctrl+C для теста входящего звонка');
