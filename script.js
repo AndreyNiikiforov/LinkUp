@@ -13,7 +13,7 @@ let GROUPS = [];
 let selectedMembers = [];
 let selectedMessageId = null;
 let selectedMessageType = null;
-let CURRENT_USER_ADMIN_DATA = null; // Данные о правах админа
+let ADMINS = [OWNER_PHONE]; // Простой массив админов
 
 // ==================== DOM ЭЛЕМЕНТЫ ====================
 const authScreen = document.getElementById('authScreen');
@@ -34,7 +34,6 @@ const loginButton = document.getElementById('loginButton');
 const registerButton = document.getElementById('registerButton');
 const currentUserPhone = document.getElementById('currentUserPhone');
 const currentUserName = document.getElementById('currentUserName');
-const userStatusDot = document.getElementById('userStatusDot');
 const adminButton = document.getElementById('adminButton');
 const searchInput = document.getElementById('searchInput');
 const searchButton = document.getElementById('searchButton');
@@ -52,15 +51,11 @@ const groupName = document.getElementById('groupName');
 const groupDescription = document.getElementById('groupDescription');
 const availableUsers = document.getElementById('availableUsers');
 const createGroupFinal = document.getElementById('createGroupFinal');
-const pinnedMessages = document.getElementById('pinnedMessages');
 const messagesArea = document.getElementById('messagesArea');
 const messageInput = document.getElementById('messageInput');
 const sendButton = document.getElementById('sendButton');
 const emojiBtn = document.getElementById('emojiBtn');
 const emojiPanel = document.getElementById('emojiPanel');
-const messageMenu = document.getElementById('messageMenu');
-const deleteMessageBtn = document.getElementById('deleteMessageBtn');
-const pinMessageBtn = document.getElementById('pinMessageBtn');
 const chatMenuBtn = document.getElementById('chatMenuBtn');
 
 // Админка
@@ -117,37 +112,20 @@ function loadSession() {
     return null;
 }
 
-// Получение данных админа из БД
-async function getAdminData(phone) {
-    const { data } = await supabaseClient
-        .from('admins')
-        .select('*')
-        .eq('phone', phone)
-        .single();
-    return data;
-}
-
-// Проверка прав админа
-async function isAdmin(phone) {
-    const data = await getAdminData(phone);
-    return !!data;
+// Загрузка списка админов из БД
+async function loadAdminsFromDB() {
+    const { data } = await supabaseClient.from('admins').select('phone');
+    if (data) {
+        ADMINS = data.map(a => a.phone);
+    }
 }
 
 function isOwner() {
     return CURRENT_USER?.phone === OWNER_PHONE;
 }
 
-function getStatusText(lastSeen) {
-    if (!lastSeen) return 'давно';
-    const diff = Date.now() - new Date(lastSeen).getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-    
-    if (minutes < 5) return 'только что';
-    if (minutes < 60) return `${minutes} мин назад`;
-    if (hours < 24) return `${hours} ч назад`;
-    return `${days} д назад`;
+function isAdmin() {
+    return CURRENT_USER && (ADMINS.includes(CURRENT_USER.phone) || isOwner());
 }
 
 // ==================== ГЛАЗКИ ДЛЯ ПАРОЛЯ ====================
@@ -181,30 +159,6 @@ backToLoginButton?.addEventListener('click', () => {
     authMessage.textContent = '';
 });
 
-// ==================== ЗАГРУЗКА НАСТРОЕК ПОЛЬЗОВАТЕЛЯ ====================
-async function loadUserSettings() {
-    const { data } = await supabaseClient
-        .from('user_settings')
-        .select('*')
-        .eq('phone', CURRENT_USER.phone)
-        .single();
-    
-    if (data) {
-        CURRENT_USER.display_name = data.display_name;
-        currentUserName.textContent = data.display_name || CURRENT_USER.phone;
-    } else {
-        // Создаём настройки по умолчанию
-        await supabaseClient
-            .from('user_settings')
-            .insert([{ 
-                phone: CURRENT_USER.phone,
-                display_name: CURRENT_USER.phone
-            }]);
-        CURRENT_USER.display_name = CURRENT_USER.phone;
-        currentUserName.textContent = CURRENT_USER.phone;
-    }
-}
-
 // ==================== ВХОД ====================
 loginButton?.addEventListener('click', async () => {
     const phone = formatPhone(loginPhone.value);
@@ -217,28 +171,20 @@ loginButton?.addEventListener('click', async () => {
         CURRENT_USER = users[0];
         saveSession(CURRENT_USER);
         
-        // Загружаем настройки
-        await loadUserSettings();
-        
-        // Загружаем данные админа если есть
-        CURRENT_USER_ADMIN_DATA = await getAdminData(CURRENT_USER.phone);
+        // Загружаем список админов
+        await loadAdminsFromDB();
         
         authScreen.style.display = 'none';
         app.style.display = 'flex';
-        if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
+        currentUserPhone.textContent = CURRENT_USER.phone;
+        currentUserName.textContent = CURRENT_USER.username || CURRENT_USER.phone;
         
-        // Показываем админ-кнопку если пользователь админ
-        if (CURRENT_USER_ADMIN_DATA) {
+        if (isAdmin()) {
             adminButton.style.display = 'block';
+            if (isOwner()) {
+                adminsTab.style.display = 'block';
+            }
         }
-        
-        // Показываем вкладку админов только владельцу
-        if (isOwner()) {
-            adminsTab.style.display = 'block';
-        }
-        
-        updateLastSeen();
-        setInterval(updateLastSeen, 30000);
         
         loadChats();
         loadGroups();
@@ -257,27 +203,12 @@ registerButton?.addEventListener('click', async () => {
         const { data: existing } = await supabaseClient.from('profiles').select('*').eq('phone', phone);
         if (existing?.length) { authMessage.textContent = '❌ Номер уже зарегистрирован'; return; }
         await supabaseClient.from('profiles').insert([{ phone, password: pass, username: phone }]);
-        
-        // Создаём настройки по умолчанию
-        await supabaseClient.from('user_settings').insert([{ phone, display_name: phone }]);
-        
         authMessage.textContent = '✅ Регистрация успешна! Войдите.';
         authMessage.style.color = '#4caf50';
         registerPhone.value = registerPassword.value = registerPasswordConfirm.value = '';
         setTimeout(() => { backToLoginButton?.click(); authMessage.textContent = ''; }, 2000);
     } catch (e) { authMessage.textContent = '❌ Ошибка: ' + e.message; }
 });
-
-// ==================== СТАТУСЫ ====================
-async function updateLastSeen() {
-    if (!CURRENT_USER) return;
-    await supabaseClient
-        .from('profiles')
-        .update({ last_seen: new Date() })
-        .eq('phone', CURRENT_USER.phone);
-}
-
-window.addEventListener('beforeunload', updateLastSeen);
 
 // ==================== ПОИСК ====================
 searchButton?.addEventListener('click', searchUsers);
@@ -290,18 +221,15 @@ async function searchUsers() {
     try {
         const { data: users, error } = await supabaseClient.from('profiles').select('*').neq('phone', CURRENT_USER.phone).ilike('phone', `%${sp}%`);
         if (error) throw error;
-        searchResultsList.innerHTML = users?.length ? users.map(u => {
-            const status = getStatusText(u.last_seen);
-            return `
+        searchResultsList.innerHTML = users?.length ? users.map(u => `
             <div class="search-result-item" onclick="startChat('${u.phone}')">
                 <div class="search-result-avatar">👤</div>
                 <div class="search-result-info">
-                    <div class="search-result-name">${u.display_name || u.username || u.phone}</div>
-                    <div class="search-result-phone">${u.phone} • ${status}</div>
+                    <div class="search-result-name">${u.username || u.phone}</div>
+                    <div class="search-result-phone">${u.phone}</div>
                 </div>
                 <div class="search-result-add">+</div>
-            </div>`;
-        }).join('') : '<p class="no-data">Пользователи не найдены</p>';
+            </div>`).join('') : '<p class="no-data">Пользователи не найдены</p>';
         searchResults.style.display = 'block';
     } catch (e) { console.error(e); }
 }
@@ -333,12 +261,11 @@ window.startChat = async function(phone) {
         const { data: users } = await supabaseClient.from('profiles').select('*').eq('phone', phone);
         if (!users?.length) return;
         CURRENT_CHAT = users[0];
-        document.getElementById('currentChatName').textContent = CURRENT_CHAT.display_name || CURRENT_CHAT.username || CURRENT_CHAT.phone;
+        document.getElementById('currentChatName').textContent = CURRENT_CHAT.username || CURRENT_CHAT.phone;
         document.getElementById('currentChatPhone').textContent = CURRENT_CHAT.phone;
         welcomeScreen.style.display = 'none';
         chatWindow.style.display = 'flex';
         loadMessages(phone);
-        loadPinnedMessages('private', phone);
     } catch (e) { console.error(e); }
 };
 
@@ -352,24 +279,14 @@ async function loadMessages(chatPhone) {
             .order('created_at', { ascending: false });
         if (error) throw error;
         
-        if (!messages?.length) {
-            messagesArea.innerHTML = '<div class="message received">Начните общение</div>';
-        } else {
-            messagesArea.innerHTML = messages.map(m => {
-                const isSent = m.sender === CURRENT_USER.phone;
-                const senderName = isSent ? 'Вы' : (CURRENT_CHAT?.display_name || CURRENT_CHAT?.username || m.sender);
-                
-                return `
-                <div class="message ${isSent ? 'sent' : 'received'} ${m.pinned ? 'pinned' : ''}" 
-                     data-id="${m.id}" 
-                     data-type="private"
-                     onclick="selectMessage(this, '${m.id}', 'private')">
-                    ${!isSent ? `<div class="message-sender">${senderName}</div>` : ''}
-                    <div class="message-content">${m.content}</div>
-                    <div class="message-time">${new Date(m.created_at).toLocaleTimeString().slice(0,-3)}</div>
-                </div>`;
-            }).join('');
-        }
+        messagesArea.innerHTML = messages?.length ? messages.map(m => {
+            const isSent = m.sender === CURRENT_USER.phone;
+            return `
+            <div class="message ${isSent ? 'sent' : 'received'}" data-id="${m.id}" data-type="private">
+                <div class="message-content">${m.content}</div>
+                <div class="message-time">${new Date(m.created_at).toLocaleTimeString().slice(0,-3)}</div>
+            </div>`;
+        }).join('') : '<div class="message received">Начните общение</div>';
     } catch (e) { console.error(e); }
 }
 
@@ -382,7 +299,6 @@ window.openGroup = async function(groupId) {
     welcomeScreen.style.display = 'none';
     chatWindow.style.display = 'flex';
     loadGroupMessages(groupId);
-    loadPinnedMessages('group', groupId);
 };
 
 async function loadGroupMessages(groupId) {
@@ -394,122 +310,17 @@ async function loadGroupMessages(groupId) {
             .order('created_at', { ascending: false });
         if (error) throw error;
         
-        if (!messages?.length) {
-            messagesArea.innerHTML = '<div class="message received">Начните общение в группе</div>';
-        } else {
-            // Получаем имена отправителей
-            const senderPhones = [...new Set(messages.map(m => m.sender))];
-            const { data: profiles } = await supabaseClient
-                .from('profiles')
-                .select('phone, display_name, username')
-                .in('phone', senderPhones);
-            
-            const senderNames = {};
-            profiles?.forEach(p => {
-                senderNames[p.phone] = p.display_name || p.username || p.phone;
-            });
-            
-            messagesArea.innerHTML = messages.map(m => {
-                const isSent = m.sender === CURRENT_USER.phone;
-                const senderName = isSent ? 'Вы' : (senderNames[m.sender] || m.sender);
-                
-                return `
-                <div class="message ${isSent ? 'sent' : 'received'} ${m.pinned ? 'pinned' : ''}"
-                     data-id="${m.id}"
-                     data-type="group"
-                     onclick="selectMessage(this, '${m.id}', 'group')">
-                    ${!isSent ? `<div class="message-sender">${senderName}</div>` : ''}
-                    <div class="message-content">${m.content}</div>
-                    <div class="message-time">${new Date(m.created_at).toLocaleTimeString().slice(0,-3)}</div>
-                </div>`;
-            }).join('');
-        }
+        messagesArea.innerHTML = messages?.length ? messages.map(m => {
+            const isSent = m.sender === CURRENT_USER.phone;
+            return `
+            <div class="message ${isSent ? 'sent' : 'received'}" data-id="${m.id}" data-type="group">
+                <div class="message-sender">${m.sender}</div>
+                <div class="message-content">${m.content}</div>
+                <div class="message-time">${new Date(m.created_at).toLocaleTimeString().slice(0,-3)}</div>
+            </div>`;
+        }).join('') : '<div class="message received">Начните общение в группе</div>';
     } catch (e) { console.error(e); }
 }
-
-// ==================== ЗАКРЕПЛЁННЫЕ СООБЩЕНИЯ ====================
-async function loadPinnedMessages(type, id) {
-    try {
-        let query;
-        if (type === 'private') {
-            query = await supabaseClient
-                .from('messages')
-                .select('*')
-                .or(`sender.eq.${CURRENT_USER.phone},receiver.eq.${CURRENT_USER.phone}`)
-                .or(`sender.eq.${id},receiver.eq.${id}`)
-                .eq('pinned', true);
-        } else {
-            query = await supabaseClient
-                .from('group_messages')
-                .select('*')
-                .eq('group_id', id)
-                .eq('pinned', true);
-        }
-        
-        const { data: messages } = query;
-        
-        if (!messages?.length) {
-            pinnedMessages.innerHTML = '';
-            return;
-        }
-        
-        pinnedMessages.innerHTML = messages.map(m => `
-            <div class="pinned-message">
-                <span>📌 ${m.content.slice(0, 30)}${m.content.length > 30 ? '...' : ''}</span>
-            </div>
-        `).join('');
-    } catch (e) { console.error(e); }
-}
-
-// ==================== ВЫБОР СООБЩЕНИЯ ====================
-window.selectMessage = function(element, id, type) {
-    document.querySelectorAll('.message').forEach(m => m.classList.remove('selected'));
-    element.classList.add('selected');
-    selectedMessageId = id;
-    selectedMessageType = type;
-};
-
-// ==================== УДАЛЕНИЕ СООБЩЕНИЯ ====================
-deleteMessageBtn?.addEventListener('click', async () => {
-    if (!selectedMessageId) return;
-    
-    try {
-        if (selectedMessageType === 'private') {
-            await supabaseClient.from('messages').delete().eq('id', selectedMessageId);
-            if (CURRENT_CHAT) loadMessages(CURRENT_CHAT.phone);
-        } else {
-            await supabaseClient.from('group_messages').delete().eq('id', selectedMessageId);
-            if (CURRENT_GROUP) loadGroupMessages(CURRENT_GROUP.id);
-        }
-        messageMenu.style.display = 'none';
-    } catch (e) {
-        alert('Ошибка: ' + e.message);
-    }
-});
-
-// ==================== ЗАКРЕПЛЕНИЕ СООБЩЕНИЯ ====================
-pinMessageBtn?.addEventListener('click', async () => {
-    if (!selectedMessageId) return;
-    
-    try {
-        if (selectedMessageType === 'private') {
-            await supabaseClient.from('messages').update({ pinned: true }).eq('id', selectedMessageId);
-            if (CURRENT_CHAT) {
-                loadMessages(CURRENT_CHAT.phone);
-                loadPinnedMessages('private', CURRENT_CHAT.phone);
-            }
-        } else {
-            await supabaseClient.from('group_messages').update({ pinned: true }).eq('id', selectedMessageId);
-            if (CURRENT_GROUP) {
-                loadGroupMessages(CURRENT_GROUP.id);
-                loadPinnedMessages('group', CURRENT_GROUP.id);
-            }
-        }
-        messageMenu.style.display = 'none';
-    } catch (e) {
-        alert('Ошибка: ' + e.message);
-    }
-});
 
 // ==================== ЗАГРУЗКА ЧАТОВ ====================
 async function loadChats() {
@@ -518,24 +329,11 @@ async function loadChats() {
         if (error) throw error;
         const chats = new Map();
         
-        // Получаем имена собеседников
-        const otherPhones = [...new Set(messages.map(m => m.sender === CURRENT_USER.phone ? m.receiver : m.sender))];
-        const { data: profiles } = await supabaseClient
-            .from('profiles')
-            .select('phone, display_name, username')
-            .in('phone', otherPhones);
-        
-        const chatNames = {};
-        profiles?.forEach(p => {
-            chatNames[p.phone] = p.display_name || p.username || p.phone;
-        });
-        
         messages.forEach(m => {
             const other = m.sender === CURRENT_USER.phone ? m.receiver : m.sender;
             if (!chats.has(other) || new Date(m.created_at) > new Date(chats.get(other).lastMessageTime)) {
                 chats.set(other, { 
                     phone: other, 
-                    name: chatNames[other] || other,
                     lastMessage: m.content, 
                     lastMessageTime: m.created_at 
                 });
@@ -545,7 +343,7 @@ async function loadChats() {
         if (!chats.size) chatsList.innerHTML = '<div class="chat-item">Найдите контакт через поиск</div>';
         else chatsList.innerHTML = Array.from(chats.values()).map(c => `
             <div class="chat-item" onclick="startChat('${c.phone}')">
-                <span class="chat-name">${c.name}</span>
+                <span class="chat-name">${c.phone}</span>
                 <span class="chat-preview">${c.lastMessage.slice(0,30)}...</span>
             </div>
         `).join('');
@@ -604,7 +402,7 @@ async function loadAvailableUsers() {
         
         availableUsers.innerHTML = users?.map(u => `
             <div class="group-member-item" onclick="toggleSelect('${u.phone}')">
-                <span>${u.display_name || u.username || u.phone}</span>
+                <span>${u.username || u.phone}</span>
             </div>
         `).join('') || '<p>Нет пользователей</p>';
     } catch (e) { console.error(e); }
@@ -616,8 +414,7 @@ window.toggleSelect = function(phone) {
     else selectedMembers.splice(index, 1);
     
     document.querySelectorAll('.group-member-item').forEach(el => {
-        const text = el.textContent.trim();
-        if (selectedMembers.some(s => text.includes(s))) {
+        if (selectedMembers.some(s => el.textContent.includes(s))) {
             el.classList.add('selected');
         } else {
             el.classList.remove('selected');
@@ -712,8 +509,8 @@ window.insertEmoji = function(emoji) {
 // ==================== НАСТРОЙКИ ПРОФИЛЯ ====================
 userProfile?.addEventListener('click', () => {
     profileModal.style.display = 'flex';
-    if (profileDisplayName) profileDisplayName.value = CURRENT_USER.display_name || CURRENT_USER.phone;
-    if (profilePhone) profilePhone.value = CURRENT_USER.phone;
+    profileDisplayName.value = CURRENT_USER.username || CURRENT_USER.phone;
+    profilePhone.value = CURRENT_USER.phone;
 });
 
 closeProfileModal?.addEventListener('click', () => {
@@ -725,141 +522,17 @@ saveProfileBtn?.addEventListener('click', async () => {
     if (!newName) return;
     
     try {
-        // Сохраняем в БД (синхронизируется между устройствами)
         const { error } = await supabaseClient
-            .from('user_settings')
-            .upsert({ 
-                phone: CURRENT_USER.phone,
-                display_name: newName
-            });
+            .from('profiles')
+            .update({ username: newName })
+            .eq('phone', CURRENT_USER.phone);
         
         if (error) throw error;
         
-        CURRENT_USER.display_name = newName;
-        if (currentUserName) currentUserName.textContent = newName;
+        CURRENT_USER.username = newName;
+        currentUserName.textContent = newName;
         profileModal.style.display = 'none';
         alert('✅ Имя сохранено');
-    } catch (e) {
-        alert('❌ Ошибка: ' + e.message);
-    }
-});
-
-// ==================== НАСТРОЙКИ ГРУППЫ ====================
-let currentGroupSettings = null;
-let currentUserRole = null;
-
-chatMenuBtn?.addEventListener('click', () => {
-    if (CURRENT_GROUP) {
-        openGroupSettings(CURRENT_GROUP.id);
-    }
-});
-
-async function openGroupSettings(groupId) {
-    currentGroupSettings = GROUPS.find(g => g.id === groupId);
-    groupSettingsModal.style.display = 'flex';
-    
-    groupSettingsName.textContent = currentGroupSettings.name;
-    groupSettingsNameInput.value = currentGroupSettings.name;
-    groupSettingsDescription.value = currentGroupSettings.description || '';
-    
-    const { data: members } = await supabaseClient
-        .from('group_members')
-        .select('role')
-        .eq('group_id', groupId)
-        .eq('user_phone', CURRENT_USER.phone)
-        .single();
-    
-    currentUserRole = members?.role;
-    
-    deleteGroupBtn.style.display = (currentUserRole === 'creator' || isOwner()) ? 'block' : 'none';
-    
-    loadGroupMembers(groupId);
-}
-
-closeGroupSettings?.addEventListener('click', () => {
-    groupSettingsModal.style.display = 'none';
-});
-
-groupTabs.forEach(tab => tab.addEventListener('click', () => {
-    groupTabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    
-    document.querySelectorAll('.group-tab-content').forEach(c => c.classList.remove('active'));
-    document.getElementById(`group${tab.dataset.groupTab.charAt(0).toUpperCase() + tab.dataset.groupTab.slice(1)}Tab`).classList.add('active');
-}));
-
-async function loadGroupMembers(groupId) {
-    try {
-        const { data: members } = await supabaseClient
-            .from('group_members')
-            .select('*')
-            .eq('group_id', groupId);
-        
-        groupMembersList.innerHTML = members?.map(m => `
-            <div class="member-item">
-                <span>${m.user_phone}</span>
-                <span class="member-role ${m.role}">${m.role}</span>
-            </div>
-        `).join('');
-    } catch (e) { console.error(e); }
-}
-
-saveGroupInfoBtn?.addEventListener('click', async () => {
-    const newName = groupSettingsNameInput.value.trim();
-    const newDesc = groupSettingsDescription.value.trim();
-    
-    try {
-        const { error } = await supabaseClient
-            .from('groups')
-            .update({ name: newName, description: newDesc })
-            .eq('id', currentGroupSettings.id);
-        
-        if (error) throw error;
-        
-        currentGroupSettings.name = newName;
-        currentGroupSettings.description = newDesc;
-        groupSettingsName.textContent = newName;
-        document.getElementById('currentChatName').textContent = newName;
-        alert('✅ Информация сохранена');
-    } catch (e) {
-        alert('❌ Ошибка: ' + e.message);
-    }
-});
-
-leaveGroupBtn?.addEventListener('click', async () => {
-    if (!confirm('Покинуть группу?')) return;
-    
-    try {
-        await supabaseClient
-            .from('group_members')
-            .delete()
-            .eq('group_id', currentGroupSettings.id)
-            .eq('user_phone', CURRENT_USER.phone);
-        
-        alert('✅ Вы покинули группу');
-        groupSettingsModal.style.display = 'none';
-        welcomeScreen.style.display = 'flex';
-        chatWindow.style.display = 'none';
-        loadGroups();
-    } catch (e) {
-        alert('❌ Ошибка: ' + e.message);
-    }
-});
-
-deleteGroupBtn?.addEventListener('click', async () => {
-    if (!confirm('Удалить группу навсегда?')) return;
-    
-    try {
-        await supabaseClient
-            .from('groups')
-            .delete()
-            .eq('id', currentGroupSettings.id);
-        
-        alert('✅ Группа удалена');
-        groupSettingsModal.style.display = 'none';
-        welcomeScreen.style.display = 'flex';
-        chatWindow.style.display = 'none';
-        loadGroups();
     } catch (e) {
         alert('❌ Ошибка: ' + e.message);
     }
@@ -869,24 +542,7 @@ deleteGroupBtn?.addEventListener('click', async () => {
 adminButton?.addEventListener('click', () => {
     adminModal.style.display = 'flex';
     loadAdminUsers();
-    
-    // Показываем вкладки в зависимости от прав
-    if (isOwner()) {
-        // У владельца все вкладки
-        adminsTab.style.display = 'block';
-        document.querySelector('[data-tab="reports"]').style.display = 'block';
-        document.querySelector('[data-tab="channels"]').style.display = 'block';
-    } else if (CURRENT_USER_ADMIN_DATA) {
-        // У обычного админа показываем только доступные вкладки
-        if (CURRENT_USER_ADMIN_DATA.can_view_reports) {
-            document.querySelector('[data-tab="reports"]').style.display = 'block';
-        }
-        if (CURRENT_USER_ADMIN_DATA.can_manage_groups) {
-            document.querySelector('[data-tab="channels"]').style.display = 'block';
-        }
-        // Вкладка админов скрыта
-        adminsTab.style.display = 'none';
-    }
+    if (isOwner()) loadAdminsList();
 });
 
 closeAdmin?.addEventListener('click', () => adminModal.style.display = 'none');
@@ -896,11 +552,7 @@ adminTabs.forEach(tab => tab.addEventListener('click', () => {
     tab.classList.add('active');
     document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(`admin${tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)}`).classList.add('active');
-    
-    // Загружаем данные в зависимости от вкладки
     if (tab.dataset.tab === 'users') loadAdminUsers();
-    if (tab.dataset.tab === 'reports' && (isOwner() || CURRENT_USER_ADMIN_DATA?.can_view_reports)) loadReports();
-    if (tab.dataset.tab === 'channels' && (isOwner() || CURRENT_USER_ADMIN_DATA?.can_manage_groups)) loadChannels();
     if (tab.dataset.tab === 'admins' && isOwner()) loadAdminsList();
 }));
 
@@ -908,31 +560,22 @@ async function loadAdminUsers() {
     try {
         const { data: users } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
         
-        // Получаем список админов из БД
-        const { data: adminsList } = await supabaseClient.from('admins').select('*');
-        const adminPhones = adminsList?.map(a => a.phone) || [];
-        
-        adminUsersList.innerHTML = users?.map(u => {
-            const isUserAdmin = adminPhones.includes(u.phone);
-            const adminData = adminsList?.find(a => a.phone === u.phone);
-            
-            return `
+        adminUsersList.innerHTML = users?.map(u => `
             <div class="admin-user-item">
                 <div>
-                    <strong>${u.display_name || u.username || u.phone}</strong>
+                    <strong>${u.username || u.phone}</strong>
                     <div style="color:#888;font-size:12px;">${u.phone}</div>
-                    ${isUserAdmin ? '<span style="color:#00bfff;">Админ</span>' : ''}
                 </div>
                 <div class="admin-user-actions">
                     ${isOwner() && u.phone !== OWNER_PHONE ? `
                         <button class="admin-user-btn make-admin" onclick="toggleAdmin('${u.phone}')">
-                            ${isUserAdmin ? 'Убрать из админов' : 'Сделать админом'}
+                            ${ADMINS.includes(u.phone) ? 'Убрать из админов' : 'Сделать админом'}
                         </button>
                     ` : ''}
                     ${u.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
+                    ${ADMINS.includes(u.phone) && u.phone !== OWNER_PHONE ? '<span style="color:#00bfff;">👤 Админ</span>' : ''}
                 </div>
-            </div>`;
-        }).join('') || '<p class="no-data">Нет пользователей</p>';
+            </div>`).join('') || '<p class="no-data">Нет пользователей</p>';
     } catch (e) { console.error(e); }
 }
 
@@ -940,30 +583,15 @@ window.toggleAdmin = async function(phone) {
     if (!isOwner()) return;
     
     try {
-        const { data: existing } = await supabaseClient
-            .from('admins')
-            .select('*')
-            .eq('phone', phone);
-        
-        if (existing?.length) {
-            // Убираем из админов
-            await supabaseClient
-                .from('admins')
-                .delete()
-                .eq('phone', phone);
+        if (ADMINS.includes(phone)) {
+            // Удаляем из админов
+            await supabaseClient.from('admins').delete().eq('phone', phone);
+            ADMINS = ADMINS.filter(p => p !== phone);
             alert(`✅ ${phone} больше не админ`);
         } else {
-            // Назначаем админом (с базовыми правами)
-            await supabaseClient
-                .from('admins')
-                .insert([{ 
-                    phone: phone, 
-                    appointed_by: CURRENT_USER.phone,
-                    can_ban_users: true,
-                    can_manage_groups: true,
-                    can_view_reports: true,
-                    can_manage_admins: false
-                }]);
+            // Добавляем в админы
+            await supabaseClient.from('admins').insert([{ phone }]);
+            ADMINS.push(phone);
             alert(`✅ ${phone} назначен админом`);
         }
         
@@ -976,21 +604,11 @@ window.toggleAdmin = async function(phone) {
 };
 
 async function loadAdminsList() {
-    const { data: admins } = await supabaseClient
-        .from('admins')
-        .select('*');
-    
+    const { data: admins } = await supabaseClient.from('admins').select('*');
     adminsList.innerHTML = admins?.map(a => `
         <div class="admin-user-item">
             <div>${a.phone}</div>
-            <div class="admin-user-actions">
-                ${a.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
-                ${isOwner() && a.phone !== OWNER_PHONE ? `
-                    <button class="admin-user-btn make-admin" onclick="toggleAdmin('${a.phone}')">
-                        Убрать из админов
-                    </button>
-                ` : ''}
-            </div>
+            ${a.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
         </div>
     `).join('');
 }
@@ -999,26 +617,15 @@ addAdminBtn?.addEventListener('click', async () => {
     let p = formatPhone(newAdminPhone.value);
     if (!p) return;
     
-    // Проверяем, существует ли пользователь
     let { data: u } = await supabaseClient.from('profiles').select('*').eq('phone', p);
     if (!u?.length) { 
         alert('❌ Пользователь не найден'); 
         return; 
     }
     
-    // Назначаем админом
     await toggleAdmin(p);
     newAdminPhone.value = '';
 });
-
-// Заглушки для функций (добавь свои)
-async function loadReports() {
-    reportsList.innerHTML = '<p class="no-data">Функция в разработке</p>';
-}
-
-async function loadChannels() {
-    channelsList.innerHTML = '<p class="no-data">Функция в разработке</p>';
-}
 
 // ==================== ФОРМАТИРОВАНИЕ НОМЕРОВ ====================
 [loginPhone, registerPhone, newAdminPhone].forEach(i => i?.addEventListener('input', e => {
@@ -1031,27 +638,19 @@ const savedUser = loadSession();
 if (savedUser) {
     CURRENT_USER = savedUser;
     (async () => {
-        await loadUserSettings();
-        
-        // Загружаем данные админа если есть
-        CURRENT_USER_ADMIN_DATA = await getAdminData(CURRENT_USER.phone);
+        await loadAdminsFromDB();
         
         authScreen.style.display = 'none';
         app.style.display = 'flex';
-        if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
+        currentUserPhone.textContent = CURRENT_USER.phone;
+        currentUserName.textContent = CURRENT_USER.username || CURRENT_USER.phone;
         
-        // Показываем админ-кнопку если пользователь админ
-        if (CURRENT_USER_ADMIN_DATA) {
+        if (isAdmin()) {
             adminButton.style.display = 'block';
+            if (isOwner()) {
+                adminsTab.style.display = 'block';
+            }
         }
-        
-        // Показываем вкладку админов только владельцу
-        if (isOwner()) {
-            adminsTab.style.display = 'block';
-        }
-        
-        updateLastSeen();
-        setInterval(updateLastSeen, 30000);
         
         loadChats();
         loadGroups();
@@ -1066,14 +665,4 @@ adminUserSearch?.addEventListener('input', e => {
     });
 });
 
-// ==================== ЗАКРЫТИЕ МЕНЮ ПРИ КЛИКЕ ВНЕ ЕГО ====================
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.message')) {
-        messageMenu.style.display = 'none';
-    }
-    if (!e.target.closest('.emoji-button') && !e.target.closest('.emoji-panel')) {
-        emojiPanel.style.display = 'none';
-    }
-});
-
-console.log('✅ LinkUp (полная версия с правильной админкой и синхронизацией)');
+console.log('✅ LinkUp (рабочая версия)');
