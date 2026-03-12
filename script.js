@@ -1,6 +1,203 @@
 const SUPABASE_URL = 'https://zrqaiwobrkzilfwhtkvs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpycWFpd29icmt6aWxmd2h0a3ZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNDc0MDgsImV4cCI6MjA4ODcyMzQwOH0.3PeA7LCedWW8YmiSKW_hqv8Lv227Rk_QrAxFJTFeSpw';
-
+// ==================== ПРИНУДИТЕЛЬНАЯ ПРИВЯЗКА ПОСЛЕ ЗАГРУЗКИ ====================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 Привязываем обработчики...');
+    
+    // Профиль (карандаш)
+    const userProfile = document.getElementById('userProfile');
+    if (userProfile) {
+        userProfile.addEventListener('click', function() {
+            console.log('👤 Клик по профилю');
+            const modal = document.getElementById('profileModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                const nameInput = document.getElementById('profileDisplayName');
+                const phoneInput = document.getElementById('profilePhone');
+                if (nameInput) nameInput.value = CURRENT_USER?.display_name || CURRENT_USER?.username || CURRENT_USER?.phone || '';
+                if (phoneInput) phoneInput.value = CURRENT_USER?.phone || '';
+            }
+        });
+    }
+    
+    // Закрытие профиля
+    const closeProfile = document.getElementById('closeProfileModal');
+    if (closeProfile) {
+        closeProfile.addEventListener('click', function() {
+            const modal = document.getElementById('profileModal');
+            if (modal) modal.style.display = 'none';
+        });
+    }
+    
+    // Сохранение профиля
+    const saveProfile = document.getElementById('saveProfileBtn');
+    if (saveProfile) {
+        saveProfile.addEventListener('click', async function() {
+            const nameInput = document.getElementById('profileDisplayName');
+            const newName = nameInput?.value.trim();
+            if (!newName || !CURRENT_USER) return;
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('profiles')
+                    .update({ display_name: newName })
+                    .eq('phone', CURRENT_USER.phone);
+                
+                if (error) throw error;
+                
+                CURRENT_USER.display_name = newName;
+                const userNameEl = document.getElementById('currentUserName');
+                if (userNameEl) userNameEl.textContent = newName;
+                
+                const modal = document.getElementById('profileModal');
+                if (modal) modal.style.display = 'none';
+                
+                alert('✅ Имя сохранено');
+            } catch (e) {
+                alert('❌ Ошибка: ' + e.message);
+            }
+        });
+    }
+    
+    // Меню группы (три точки)
+    const chatMenu = document.getElementById('chatMenuBtn');
+    if (chatMenu) {
+        chatMenu.addEventListener('click', function() {
+            console.log('👥 Клик по меню группы');
+            if (!CURRENT_GROUP) {
+                alert('Сначала выберите группу');
+                return;
+            }
+            
+            const modal = document.getElementById('groupSettingsModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                
+                const nameEl = document.getElementById('groupSettingsName');
+                const nameInput = document.getElementById('groupSettingsNameInput');
+                const descInput = document.getElementById('groupSettingsDescription');
+                
+                if (nameEl) nameEl.textContent = CURRENT_GROUP.name;
+                if (nameInput) nameInput.value = CURRENT_GROUP.name;
+                if (descInput) descInput.value = CURRENT_GROUP.description || '';
+            }
+        });
+    }
+    
+    // Закрытие настроек группы
+    const closeGroup = document.getElementById('closeGroupSettings');
+    if (closeGroup) {
+        closeGroup.addEventListener('click', function() {
+            const modal = document.getElementById('groupSettingsModal');
+            if (modal) modal.style.display = 'none';
+        });
+    }
+    
+    // Сохранение информации о группе
+    const saveGroupInfo = document.getElementById('saveGroupInfoBtn');
+    if (saveGroupInfo) {
+        saveGroupInfo.addEventListener('click', async function() {
+            if (!CURRENT_GROUP) return;
+            
+            const nameInput = document.getElementById('groupSettingsNameInput');
+            const descInput = document.getElementById('groupSettingsDescription');
+            const newName = nameInput?.value.trim();
+            
+            if (!newName) {
+                alert('Введите название группы');
+                return;
+            }
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('groups')
+                    .update({ 
+                        name: newName, 
+                        description: descInput?.value.trim() || '' 
+                    })
+                    .eq('id', CURRENT_GROUP.id);
+                
+                if (error) throw error;
+                
+                CURRENT_GROUP.name = newName;
+                CURRENT_GROUP.description = descInput?.value.trim() || '';
+                
+                const headerName = document.getElementById('currentChatName');
+                if (headerName) headerName.textContent = newName;
+                
+                const settingsName = document.getElementById('groupSettingsName');
+                if (settingsName) settingsName.textContent = newName;
+                
+                alert('✅ Информация сохранена');
+            } catch (e) {
+                alert('❌ Ошибка: ' + e.message);
+            }
+        });
+    }
+    
+    // Покинуть группу
+    const leaveBtn = document.getElementById('leaveGroupBtn');
+    if (leaveBtn) {
+        leaveBtn.addEventListener('click', async function() {
+            if (!CURRENT_GROUP || !CURRENT_USER) return;
+            if (!confirm('Покинуть группу?')) return;
+            
+            try {
+                await supabaseClient
+                    .from('group_members')
+                    .delete()
+                    .eq('group_id', CURRENT_GROUP.id)
+                    .eq('user_phone', CURRENT_USER.phone);
+                
+                alert('✅ Вы покинули группу');
+                
+                const modal = document.getElementById('groupSettingsModal');
+                if (modal) modal.style.display = 'none';
+                
+                const welcome = document.getElementById('welcomeScreen');
+                const chat = document.getElementById('chatWindow');
+                if (welcome) welcome.style.display = 'flex';
+                if (chat) chat.style.display = 'none';
+                
+                CURRENT_GROUP = null;
+                loadGroups();
+            } catch (e) {
+                alert('❌ Ошибка: ' + e.message);
+            }
+        });
+    }
+    
+    // Удалить группу
+    const deleteBtn = document.getElementById('deleteGroupBtn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async function() {
+            if (!CURRENT_GROUP || !CURRENT_USER) return;
+            if (!confirm('Удалить группу навсегда?')) return;
+            
+            try {
+                await supabaseClient
+                    .from('groups')
+                    .delete()
+                    .eq('id', CURRENT_GROUP.id);
+                
+                alert('✅ Группа удалена');
+                
+                const modal = document.getElementById('groupSettingsModal');
+                if (modal) modal.style.display = 'none';
+                
+                const welcome = document.getElementById('welcomeScreen');
+                const chat = document.getElementById('chatWindow');
+                if (welcome) welcome.style.display = 'flex';
+                if (chat) chat.style.display = 'none';
+                
+                CURRENT_GROUP = null;
+                loadGroups();
+            } catch (e) {
+                alert('❌ Ошибка: ' + e.message);
+            }
+        });
+    }
+});
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const OWNER_PHONE = '+79224030705';
