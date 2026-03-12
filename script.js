@@ -15,6 +15,7 @@ let selectedMessageId = null;
 let selectedMessageType = null;
 let ADMIN_RIGHTS = null;
 let CURRENT_SESSION_TOKEN = null;
+let QR_POLLING_INTERVAL = null;
 
 // ==================== DOM ЭЛЕМЕНТЫ ====================
 const authScreen = document.getElementById('authScreen');
@@ -24,6 +25,9 @@ const welcomeScreen = document.getElementById('welcomeScreen');
 const chatWindow = document.getElementById('chatWindow');
 const loginForm = document.getElementById('loginForm');
 const registerForm = document.getElementById('registerForm');
+const qrLoginForm = document.getElementById('qrLoginForm');
+const showQrLogin = document.getElementById('showQrLogin');
+const backFromQrBtn = document.getElementById('backFromQrBtn');
 const showRegisterButton = document.getElementById('showRegisterButton');
 const backToLoginButton = document.getElementById('backToLoginButton');
 const loginPhone = document.getElementById('loginPhone');
@@ -66,6 +70,20 @@ const messageMenu = document.getElementById('messageMenu');
 const deleteMessageBtn = document.getElementById('deleteMessageBtn');
 const pinMessageBtn = document.getElementById('pinMessageBtn');
 const chatMenuBtn = document.getElementById('chatMenuBtn');
+
+// QR элементы
+const qrContainer = document.getElementById('qrContainer');
+const qrPlaceholder = document.getElementById('qrPlaceholder');
+const qrCanvas = document.getElementById('qrCanvas');
+const qrScanModal = document.getElementById('qrScanModal');
+const closeQrScan = document.getElementById('closeQrScan');
+const qrVideo = document.getElementById('qrVideo');
+const stopQrScan = document.getElementById('stopQrScan');
+const qrConfirmModal = document.getElementById('qrConfirmModal');
+const qrConfirmYes = document.getElementById('qrConfirmYes');
+const qrConfirmNo = document.getElementById('qrConfirmNo');
+const qrConfirmDevice = document.getElementById('qrConfirmDevice');
+const qrConfirmLocation = document.getElementById('qrConfirmLocation');
 
 // Настройки профиля
 const profileModal = document.getElementById('profileModal');
@@ -117,6 +135,10 @@ function generateSessionToken() {
     return 'sess_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
 }
 
+function generateQrCode() {
+    return 'qr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+}
+
 function saveSession(user) {
     localStorage.setItem('linkup_session', JSON.stringify({ 
         user, 
@@ -165,6 +187,7 @@ function addPasswordToggle(input) {
 // ==================== ПЕРЕКЛЮЧЕНИЕ ФОРМ ====================
 showRegisterButton?.addEventListener('click', () => {
     loginForm.style.display = 'none';
+    qrLoginForm.style.display = 'none';
     showRegisterButton.style.display = 'none';
     registerForm.style.display = 'block';
     authMessage.textContent = '';
@@ -172,9 +195,255 @@ showRegisterButton?.addEventListener('click', () => {
 
 backToLoginButton?.addEventListener('click', () => {
     loginForm.style.display = 'block';
+    qrLoginForm.style.display = 'none';
     showRegisterButton.style.display = 'block';
     registerForm.style.display = 'none';
     authMessage.textContent = '';
+});
+
+showQrLogin?.addEventListener('click', () => {
+    loginForm.style.display = 'none';
+    registerForm.style.display = 'none';
+    showRegisterButton.style.display = 'none';
+    qrLoginForm.style.display = 'block';
+    authMessage.textContent = '';
+    startQrLogin();
+});
+
+backFromQrBtn?.addEventListener('click', () => {
+    loginForm.style.display = 'block';
+    registerForm.style.display = 'none';
+    qrLoginForm.style.display = 'none';
+    showRegisterButton.style.display = 'block';
+    stopQrLogin();
+});
+
+// ==================== QR-ВХОД ====================
+let currentQrCode = null;
+let currentQrToken = null;
+
+async function startQrLogin() {
+    // Показываем плейсхолдер
+    qrPlaceholder.style.display = 'flex';
+    qrCanvas.style.display = 'none';
+    
+    // Генерируем новый QR-код
+    currentQrToken = generateQrCode();
+    currentQrCode = currentQrToken;
+    
+    // Сохраняем в БД
+    await supabaseClient
+        .from('qr_codes')
+        .insert([{
+            code: currentQrToken,
+            expires_at: new Date(Date.now() + 5 * 60 * 1000), // 5 минут
+            used: false
+        }]);
+    
+    // Генерируем QR-код
+    QRCode.toCanvas(qrCanvas, currentQrToken, {
+        width: 250,
+        margin: 2,
+        color: {
+            dark: '#ffffff',
+            light: '#00000000'
+        }
+    }, function(error) {
+        if (error) {
+            console.error('Ошибка генерации QR:', error);
+            return;
+        }
+        qrPlaceholder.style.display = 'none';
+        qrCanvas.style.display = 'block';
+    });
+    
+    // Опрашиваем статус
+    if (QR_POLLING_INTERVAL) clearInterval(QR_POLLING_INTERVAL);
+    
+    QR_POLLING_INTERVAL = setInterval(async () => {
+        const { data } = await supabaseClient
+            .from('qr_codes')
+            .select('*')
+            .eq('code', currentQrToken)
+            .eq('used', true)
+            .single();
+        
+        if (data) {
+            // QR-код отсканирован, получаем пользователя
+            const { data: session } = await supabaseClient
+                .from('sessions')
+                .select('*')
+                .eq('qr_code', currentQrToken)
+                .single();
+            
+            if (session) {
+                // Входим в аккаунт
+                const { data: user } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('phone', session.user_phone)
+                    .single();
+                
+                if (user) {
+                    CURRENT_USER = user;
+                    CURRENT_SESSION_TOKEN = generateSessionToken();
+                    saveSession(CURRENT_USER);
+                    await saveSessionToDB();
+                    await loadUserSettings();
+                    
+                    authScreen.style.display = 'none';
+                    app.style.display = 'flex';
+                    currentUserPhone.textContent = CURRENT_USER.phone;
+                    
+                    stopQrLogin();
+                    loadChats();
+                    loadGroups();
+                }
+            }
+        }
+    }, 2000);
+}
+
+function stopQrLogin() {
+    if (QR_POLLING_INTERVAL) {
+        clearInterval(QR_POLLING_INTERVAL);
+        QR_POLLING_INTERVAL = null;
+    }
+}
+
+// ==================== СКАНИРОВАНИЕ QR (ДЛЯ ТЕЛЕФОНА) ====================
+let scanning = false;
+let videoStream = null;
+
+// Добавляем кнопку сканирования в меню (можно добавить позже)
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'q') {
+        startQrScanning();
+    }
+});
+
+async function startQrScanning() {
+    qrScanModal.style.display = 'flex';
+    
+    try {
+        videoStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' } 
+        });
+        qrVideo.srcObject = videoStream;
+        qrVideo.setAttribute('playsinline', true);
+        qrVideo.play();
+        
+        scanning = true;
+        requestAnimationFrame(scanQrFrame);
+    } catch (e) {
+        alert('❌ Не удалось получить доступ к камере');
+        qrScanModal.style.display = 'none';
+    }
+}
+
+function scanQrFrame() {
+    if (!scanning) return;
+    
+    if (qrVideo.readyState === qrVideo.HAVE_ENOUGH_DATA) {
+        const canvas = document.createElement('canvas');
+        canvas.width = qrVideo.videoWidth;
+        canvas.height = qrVideo.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(qrVideo, 0, 0, canvas.width, canvas.height);
+        
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, canvas.width, canvas.height);
+        
+        if (code) {
+            // Нашли QR-код
+            processScannedQr(code.data);
+        }
+    }
+    
+    requestAnimationFrame(scanQrFrame);
+}
+
+async function processScannedQr(qrData) {
+    if (!qrData.startsWith('qr_')) return;
+    
+    // Останавливаем сканирование
+    scanning = false;
+    if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+    }
+    qrScanModal.style.display = 'none';
+    
+    // Проверяем QR в БД
+    const { data: qr } = await supabaseClient
+        .from('qr_codes')
+        .select('*')
+        .eq('code', qrData)
+        .eq('used', false)
+        .single();
+    
+    if (!qr) {
+        alert('❌ Недействительный или просроченный QR-код');
+        return;
+    }
+    
+    if (new Date(qr.expires_at) < new Date()) {
+        alert('❌ QR-код истёк');
+        return;
+    }
+    
+    // Показываем подтверждение
+    const deviceInfo = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? '📱 Мобильное' : '💻 Компьютер';
+    qrConfirmDevice.textContent = `Устройство: ${deviceInfo}`;
+    qrConfirmLocation.textContent = `IP: 0.0.0.0 • ${new Date().toLocaleString()}`;
+    
+    qrConfirmModal.style.display = 'flex';
+    
+    // Обработчики подтверждения
+    qrConfirmYes.onclick = async () => {
+        // Создаём сессию для нового устройства
+        const newToken = generateSessionToken();
+        await supabaseClient
+            .from('sessions')
+            .insert([{
+                user_phone: CURRENT_USER.phone,
+                device_name: deviceInfo,
+                device_type: /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+                ip: '0.0.0.0',
+                session_token: newToken,
+                is_current: true,
+                qr_code: qrData
+            }]);
+        
+        // Отмечаем QR как использованный
+        await supabaseClient
+            .from('qr_codes')
+            .update({ used: true, user_phone: CURRENT_USER.phone })
+            .eq('code', qrData);
+        
+        qrConfirmModal.style.display = 'none';
+        alert('✅ Вход подтверждён');
+    };
+    
+    qrConfirmNo.onclick = () => {
+        qrConfirmModal.style.display = 'none';
+        alert('❌ Вход отклонён');
+    };
+}
+
+closeQrScan?.addEventListener('click', () => {
+    scanning = false;
+    if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+    }
+    qrScanModal.style.display = 'none';
+});
+
+stopQrScan?.addEventListener('click', () => {
+    scanning = false;
+    if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+    }
+    qrScanModal.style.display = 'none';
 });
 
 // ==================== ЗАГРУЗКА НАСТРОЕК ПОЛЬЗОВАТЕЛЯ ====================
@@ -212,13 +481,7 @@ async function loadAdminRights(phone) {
 async function saveSessionToDB() {
     if (!CURRENT_USER || !CURRENT_SESSION_TOKEN) return;
     
-    const deviceInfo = {
-        userAgent: navigator.userAgent,
-        platform: navigator.platform,
-        language: navigator.language
-    };
-    
-    const deviceName = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? '📱 Мобильное' : '💻 Компьютер';
+    const deviceInfo = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? '📱 Мобильное' : '💻 Компьютер';
     
     try {
         // Сначала сбрасываем флаг is_current у всех сессий
@@ -232,9 +495,9 @@ async function saveSessionToDB() {
             .from('sessions')
             .insert([{
                 user_phone: CURRENT_USER.phone,
-                device_name: deviceName,
+                device_name: deviceInfo,
                 device_type: /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-                ip: '0.0.0.0', // В реальности нужно получать IP с сервера
+                ip: '0.0.0.0',
                 session_token: CURRENT_SESSION_TOKEN,
                 is_current: true
             }]);
@@ -266,6 +529,7 @@ async function loadSessions() {
                 <div class="device-info">
                     <span class="device-name">${s.device_name || 'Неизвестное устройство'}</span>
                     <span class="device-details">IP: ${s.ip || '0.0.0.0'} • Последняя активность: ${new Date(s.last_active).toLocaleString()}</span>
+                    ${s.qr_code ? '<span class="device-qr">🔓 Вход по QR</span>' : ''}
                 </div>
                 ${s.is_current ? '<span class="device-current">Текущее устройство</span>' : 
                   `<button class="terminate-btn" onclick="terminateSession('${s.session_token}')">Завершить</button>`}
@@ -1005,6 +1269,12 @@ if (savedUser) {
                 .eq('session_token', CURRENT_SESSION_TOKEN);
         }
         
+        ADMIN_RIGHTS = await loadAdminRights(CURRENT_USER.phone);
+        
+        if (isAdmin()) {
+            adminButton.style.display = 'block';
+        }
+        
         loadChats();
         loadGroups();
         
@@ -1028,4 +1298,4 @@ document.addEventListener('click', function(e) {
     }
 });
 
-console.log('✅ LinkUp — Этап 2: Настройки профиля, приватность и устройства');
+console.log('✅ LinkUp — Этап 3: QR-код и вход');

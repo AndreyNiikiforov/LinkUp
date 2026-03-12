@@ -24,7 +24,25 @@
                 <button class="auth-button" id="loginButton">Войти</button>
                 <div class="auth-links">
                     <a href="#" id="forgotPasswordLink">Забыли пароль?</a>
+                    <span class="auth-separator">|</span>
+                    <a href="#" id="showQrLogin">Вход по QR</a>
                 </div>
+            </div>
+
+            <!-- QR-вход -->
+            <div id="qrLoginForm" style="display: none;">
+                <p class="auth-subtitle">Вход по QR-коду</p>
+                <div class="qr-container" id="qrContainer">
+                    <div class="qr-placeholder" id="qrPlaceholder">
+                        <div class="qr-spinner"></div>
+                        <p>Загрузка QR-кода...</p>
+                    </div>
+                    <canvas id="qrCanvas" style="display: none;"></canvas>
+                </div>
+                <p class="qr-hint">1. Открой LinkUp на телефоне</p>
+                <p class="qr-hint">2. Нажми ⋮ → Сканировать QR</p>
+                <p class="qr-hint">3. Наведи камеру на этот код</p>
+                <button class="auth-button secondary" id="backFromQrBtn">← Назад</button>
             </div>
 
             <div class="auth-divider">или</div>
@@ -147,123 +165,143 @@
     </div>
 
     <!-- МОДАЛКА НАСТРОЕК ПРОФИЛЯ -->
-    <!-- МОДАЛКА НАСТРОЕК ПРОФИЛЯ -->
-<div class="profile-modal" id="profileModal" style="display: none;">
-    <div class="profile-modal-content">
-        <div class="profile-modal-header">
-            <h2>⚙️ Настройки профиля</h2>
-            <button class="close-profile" id="closeProfileModal">✕</button>
-        </div>
-        
-        <div class="profile-tabs">
-            <button class="profile-tab active" data-profile-tab="general">👤 Основное</button>
-            <button class="profile-tab" data-profile-tab="privacy">🔒 Приватность</button>
-            <button class="profile-tab" data-profile-tab="devices">📱 Устройства</button>
-            <button class="profile-tab" data-profile-tab="linked">🔗 Привязки</button>
-        </div>
-        
-        <!-- Вкладка Основное -->
-        <div class="profile-tab-content active" id="profileGeneralTab">
-            <div class="avatar-upload">
-                <div class="current-avatar" id="profileAvatar">👤</div>
-                <button class="change-avatar-btn" id="changeAvatarBtn">🖼️ Изменить аватар</button>
-            </div>
-            <div class="profile-field">
-                <label>📝 Отображаемое имя:</label>
-                <input type="text" id="profileDisplayName" placeholder="Как вас видят">
-            </div>
-            <div class="profile-field">
-                <label>🔤 Username:</label>
-                <input type="text" id="profileUsername" placeholder="a-z, 0-9, _" maxlength="20">
-                <div class="field-hint">Только англ. буквы, цифры и _</div>
-            </div>
-            <div class="profile-field">
-                <label>📱 Номер телефона:</label>
-                <input type="text" id="profilePhone" readonly disabled>
-            </div>
-            <button class="save-profile-btn" id="saveProfileBtn">💾 Сохранить</button>
-        </div>
-        
-        <!-- Вкладка Приватность -->
-        <div class="profile-tab-content" id="profilePrivacyTab">
-            <h3>Кто видит мой номер</h3>
-            <div class="privacy-option">
-                <label>
-                    <input type="radio" name="showPhone" value="everyone"> Все
-                </label>
-                <label>
-                    <input type="radio" name="showPhone" value="contacts"> Мои контакты
-                </label>
-                <label>
-                    <input type="radio" name="showPhone" value="nobody"> Никто
-                </label>
+    <div class="profile-modal" id="profileModal" style="display: none;">
+        <div class="profile-modal-content">
+            <div class="profile-modal-header">
+                <h2>⚙️ Настройки профиля</h2>
+                <button class="close-profile" id="closeProfileModal">✕</button>
             </div>
             
-            <h3>Кто может писать мне</h3>
-            <div class="privacy-option">
-                <label>
-                    <input type="radio" name="whoCanWrite" value="everyone"> Все
-                </label>
-                <label>
-                    <input type="radio" name="whoCanWrite" value="contacts"> Только контакты
-                </label>
+            <div class="profile-tabs">
+                <button class="profile-tab active" data-profile-tab="general">👤 Основное</button>
+                <button class="profile-tab" data-profile-tab="privacy">🔒 Приватность</button>
+                <button class="profile-tab" data-profile-tab="devices">📱 Устройства</button>
+                <button class="profile-tab" data-profile-tab="linked">🔗 Привязки</button>
             </div>
             
-            <h3>Кто видит мой последний визит</h3>
-            <div class="privacy-option">
-                <label>
-                    <input type="radio" name="lastSeen" value="everyone"> Все
-                </label>
-                <label>
-                    <input type="radio" name="lastSeen" value="contacts"> Мои контакты
-                </label>
-                <label>
-                    <input type="radio" name="lastSeen" value="nobody"> Никто
-                </label>
+            <!-- Вкладка Основное -->
+            <div class="profile-tab-content active" id="profileGeneralTab">
+                <div class="avatar-upload">
+                    <div class="current-avatar" id="profileAvatar">👤</div>
+                    <button class="change-avatar-btn" id="changeAvatarBtn">🖼️ Изменить аватар</button>
+                </div>
+                <div class="profile-field">
+                    <label>📝 Отображаемое имя:</label>
+                    <input type="text" id="profileDisplayName" placeholder="Как вас видят">
+                </div>
+                <div class="profile-field">
+                    <label>🔤 Username:</label>
+                    <input type="text" id="profileUsername" placeholder="a-z, 0-9, _" maxlength="20">
+                    <div class="field-hint">Только англ. буквы, цифры и _</div>
+                </div>
+                <div class="profile-field">
+                    <label>📱 Номер телефона:</label>
+                    <input type="text" id="profilePhone" readonly disabled>
+                </div>
+                <button class="save-profile-btn" id="saveProfileBtn">💾 Сохранить</button>
             </div>
             
-            <button class="save-privacy-btn" id="savePrivacyBtn">💾 Сохранить настройки</button>
-        </div>
-        
-        <!-- Вкладка Устройства -->
-        <div class="profile-tab-content" id="profileDevicesTab">
-            <div class="devices-list" id="devicesList">
-                <!-- Сюда будет загружаться список устройств -->
-                <p class="no-data">Загрузка устройств...</p>
+            <!-- Вкладка Приватность -->
+            <div class="profile-tab-content" id="profilePrivacyTab">
+                <h3>Кто видит мой номер</h3>
+                <div class="privacy-option">
+                    <label>
+                        <input type="radio" name="showPhone" value="everyone"> Все
+                    </label>
+                    <label>
+                        <input type="radio" name="showPhone" value="contacts"> Мои контакты
+                    </label>
+                    <label>
+                        <input type="radio" name="showPhone" value="nobody"> Никто
+                    </label>
+                </div>
+                
+                <h3>Кто может писать мне</h3>
+                <div class="privacy-option">
+                    <label>
+                        <input type="radio" name="whoCanWrite" value="everyone"> Все
+                    </label>
+                    <label>
+                        <input type="radio" name="whoCanWrite" value="contacts"> Только контакты
+                    </label>
+                </div>
+                
+                <h3>Кто видит мой последний визит</h3>
+                <div class="privacy-option">
+                    <label>
+                        <input type="radio" name="lastSeen" value="everyone"> Все
+                    </label>
+                    <label>
+                        <input type="radio" name="lastSeen" value="contacts"> Мои контакты
+                    </label>
+                    <label>
+                        <input type="radio" name="lastSeen" value="nobody"> Никто
+                    </label>
+                </div>
+                
+                <button class="save-privacy-btn" id="savePrivacyBtn">💾 Сохранить настройки</button>
             </div>
-            <button class="danger-btn" id="terminateAllSessions">🚪 Выйти со всех устройств</button>
-        </div>
-        
-        <!-- Вкладка Привязки -->
-        <div class="profile-tab-content" id="profileLinkedTab">
-            <div class="linked-accounts">
-                <div class="linked-item">
-                    <span>🔐 Google</span>
-                    <button class="link-btn" id="linkGoogle">Привязать</button>
+            
+            <!-- Вкладка Устройства -->
+            <div class="profile-tab-content" id="profileDevicesTab">
+                <div class="devices-list" id="devicesList">
+                    <p class="no-data">Загрузка устройств...</p>
                 </div>
-                <div class="linked-item">
-                    <span>📧 Почта</span>
-                    <button class="link-btn" id="linkEmail">Привязать</button>
-                </div>
-                <div class="linked-item">
-                    <span>💬 MAX</span>
-                    <button class="link-btn" id="linkMax">Привязать</button>
-                </div>
+                <button class="danger-btn" id="terminateAllSessions">🚪 Выйти со всех устройств</button>
             </div>
-            <p class="linked-hint">Привяжите аккаунты для восстановления пароля и двухфакторной аутентификации</p>
+            
+            <!-- Вкладка Привязки -->
+            <div class="profile-tab-content" id="profileLinkedTab">
+                <div class="linked-accounts">
+                    <div class="linked-item">
+                        <span>🔐 Google</span>
+                        <button class="link-btn" id="linkGoogle">Привязать</button>
+                    </div>
+                    <div class="linked-item">
+                        <span>📧 Почта</span>
+                        <button class="link-btn" id="linkEmail">Привязать</button>
+                    </div>
+                    <div class="linked-item">
+                        <span>💬 MAX</span>
+                        <button class="link-btn" id="linkMax">Привязать</button>
+                    </div>
+                </div>
+                <p class="linked-hint">Привяжите аккаунты для восстановления пароля и двухфакторной аутентификации</p>
+            </div>
         </div>
     </div>
-</div>
-    <!-- МОДАЛКА ПРИВЯЗКИ MAX (будет на этапе 4) -->
-    <div class="max-banner" id="maxBanner" style="display: none;">
-        <div class="max-banner-content">
-            <span>🔒 Рекомендуем привязать MAX для безопасности</span>
-            <button id="showMaxBind">Привязать</button>
-            <button id="closeMaxBanner">✕</button>
+
+    <!-- МОДАЛКА СКАНИРОВАНИЯ QR (ДЛЯ ТЕЛЕФОНА) -->
+    <div class="qr-scan-modal" id="qrScanModal" style="display: none;">
+        <div class="qr-scan-content">
+            <div class="qr-scan-header">
+                <h2>📷 Сканировать QR-код</h2>
+                <button class="close-qr-scan" id="closeQrScan">✕</button>
+            </div>
+            <div class="qr-scan-body">
+                <video id="qrVideo" style="width: 100%; border-radius: 10px;"></video>
+                <p class="qr-scan-hint">Наведите камеру на QR-код на другом устройстве</p>
+                <button class="auth-button secondary" id="stopQrScan">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ПОДТВЕРЖДЕНИЯ ВХОДА -->
+    <div class="qr-confirm-modal" id="qrConfirmModal" style="display: none;">
+        <div class="qr-confirm-content">
+            <h2>🔐 Подтверждение входа</h2>
+            <p id="qrConfirmDevice"></p>
+            <p id="qrConfirmLocation"></p>
+            <div class="qr-confirm-actions">
+                <button class="auth-button" id="qrConfirmYes">✅ Да, это я</button>
+                <button class="auth-button secondary" id="qrConfirmNo">❌ Нет, заблокировать</button>
+            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
