@@ -16,6 +16,8 @@ let selectedMessageType = null;
 let ADMIN_RIGHTS = null;
 let CURRENT_SESSION_TOKEN = null;
 let QR_POLLING_INTERVAL = null;
+let leafInterval = null;
+let rainInterval = null;
 
 // ==================== DOM ЭЛЕМЕНТЫ ====================
 const authScreen = document.getElementById('authScreen');
@@ -39,6 +41,7 @@ const registerPasswordConfirm = document.getElementById('registerPasswordConfirm
 const loginButton = document.getElementById('loginButton');
 const registerButton = document.getElementById('registerButton');
 const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+const googleLoginBtn = document.getElementById('googleLoginBtn');
 const currentUserPhone = document.getElementById('currentUserPhone');
 const currentUserName = document.getElementById('currentUserName');
 const currentUserUsername = document.getElementById('currentUserUsername');
@@ -108,28 +111,6 @@ const terminateAllSessions = document.getElementById('terminateAllSessions');
 
 // Привязки
 const linkGoogle = document.getElementById('linkGoogle');
-const linkEmail = document.getElementById('linkEmail');
-const linkMax = document.getElementById('linkMax');
-
-// MAX баннер и модалки
-const maxBanner = document.getElementById('maxBanner');
-const showMaxBind = document.getElementById('showMaxBind');
-const closeMaxBanner = document.getElementById('closeMaxBanner');
-const bindMaxModal = document.getElementById('bindMaxModal');
-const closeBindMax = document.getElementById('closeBindMax');
-const bindMaxPhone = document.getElementById('bindMaxPhone');
-const sendMaxCode = document.getElementById('sendMaxCode');
-const bindStep1 = document.getElementById('bindStep1');
-const bindStep2 = document.getElementById('bindStep2');
-const bindMaxCode = document.getElementById('bindMaxCode');
-const verifyMaxCode = document.getElementById('verifyMaxCode');
-const backToStep1 = document.getElementById('backToStep1');
-const bindMessage = document.getElementById('bindMessage');
-const maxLoginModal = document.getElementById('maxLoginModal');
-const maxLoginCode = document.getElementById('maxLoginCode');
-const verifyLoginCode = document.getElementById('verifyLoginCode');
-const cancelMaxLogin = document.getElementById('cancelMaxLogin');
-const maxLoginMessage = document.getElementById('maxLoginMessage');
 
 // Админка
 const adminModal = document.getElementById('adminModal');
@@ -167,10 +148,6 @@ function generateSessionToken() {
 
 function generateQrCode() {
     return 'qr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
-}
-
-function generateMaxCode() {
-    return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 function saveSession(user) {
@@ -317,6 +294,7 @@ async function startQrLogin() {
                     saveSession(CURRENT_USER);
                     await saveSessionToDB();
                     await loadUserSettings();
+                    await loadUserTheme();
                     
                     authScreen.style.display = 'none';
                     app.style.display = 'flex';
@@ -342,7 +320,8 @@ function stopQrLogin() {
 let scanning = false;
 let videoStream = null;
 
-async function startQrScanning() {
+// Добавляем обработчик для сканирования (можно вызвать из меню)
+window.startQrScanning = async function() {
     qrScanModal.style.display = 'flex';
     
     try {
@@ -359,7 +338,7 @@ async function startQrScanning() {
         alert('❌ Не удалось получить доступ к камере');
         qrScanModal.style.display = 'none';
     }
-}
+};
 
 function scanQrFrame() {
     if (!scanning) return;
@@ -459,148 +438,9 @@ stopQrScan?.addEventListener('click', () => {
     qrScanModal.style.display = 'none';
 });
 
-// ==================== MAX ПРИВЯЗКА ====================
-let currentMaxCode = null;
-let pendingMaxPhone = null;
-
-// Открытие модалки привязки MAX
-function openMaxBindModal() {
-    bindMaxModal.style.display = 'flex';
-    bindStep1.style.display = 'block';
-    bindStep2.style.display = 'none';
-    bindMessage.textContent = '';
-    bindMaxPhone.value = '';
-    bindMaxCode.value = '';
-}
-
-// Закрытие модалки
-closeBindMax?.addEventListener('click', () => {
-    bindMaxModal.style.display = 'none';
-});
-
-// Отправка кода в MAX
-sendMaxCode?.addEventListener('click', async () => {
-    const phone = formatPhone(bindMaxPhone.value);
-    if (!phone) {
-        bindMessage.textContent = '❌ Введите номер телефона';
-        return;
-    }
-    
-    // Генерируем код подтверждения
-    currentMaxCode = generateMaxCode();
-    pendingMaxPhone = phone;
-    
-    // В реальном проекте здесь будет отправка через MAX API
-    console.log(`📱 Отправка кода ${currentMaxCode} в MAX на номер ${phone}`);
-    
-    // Показываем второй шаг
-    bindStep1.style.display = 'none';
-    bindStep2.style.display = 'block';
-    bindMessage.textContent = `✅ Код отправлен в MAX на номер ${phone}`;
-});
-
-// Возврат к первому шагу
-backToStep1?.addEventListener('click', () => {
-    bindStep1.style.display = 'block';
-    bindStep2.style.display = 'none';
-    bindMessage.textContent = '';
-});
-
-// Подтверждение кода
-verifyMaxCode?.addEventListener('click', async () => {
-    const code = bindMaxCode.value.trim();
-    if (!code) {
-        bindMessage.textContent = '❌ Введите код';
-        return;
-    }
-    
-    if (code !== currentMaxCode) {
-        bindMessage.textContent = '❌ Неверный код';
-        return;
-    }
-    
-    // Сохраняем привязку в БД
-    await supabaseClient
-        .from('linked_accounts')
-        .insert([{
-            user_phone: CURRENT_USER.phone,
-            provider: 'max',
-            provider_user_id: pendingMaxPhone,
-            verified: true
-        }]);
-    
-    // Включаем двухфакторную аутентификацию
-    await supabaseClient
-        .from('profiles')
-        .update({ two_factor: 'max' })
-        .eq('phone', CURRENT_USER.phone);
-    
-    bindMessage.textContent = '✅ MAX успешно привязан!';
-    bindMessage.style.color = '#4caf50';
-    
-    setTimeout(() => {
-        bindMaxModal.style.display = 'none';
-        maxBanner.style.display = 'none';
-    }, 2000);
-});
-
-// ==================== ВХОД С MAX КОДОМ ====================
-let pendingLoginPhone = null;
-
-async function requestMaxLogin(phone) {
-    pendingLoginPhone = phone;
-    currentMaxCode = generateMaxCode();
-    
-    // В реальном проекте здесь отправка через MAX API
-    console.log(`📱 Код для входа ${currentMaxCode} отправлен в MAX на номер ${phone}`);
-    
-    maxLoginModal.style.display = 'flex';
-    maxLoginMessage.textContent = '';
-    maxLoginCode.value = '';
-}
-
-verifyLoginCode?.addEventListener('click', async () => {
-    const code = maxLoginCode.value.trim();
-    if (!code) {
-        maxLoginMessage.textContent = '❌ Введите код';
-        return;
-    }
-    
-    if (code !== currentMaxCode) {
-        maxLoginMessage.textContent = '❌ Неверный код';
-        return;
-    }
-    
-    // Получаем пользователя
-    const { data: users } = await supabaseClient
-        .from('profiles')
-        .select('*')
-        .eq('phone', pendingLoginPhone);
-    
-    if (!users?.length) {
-        maxLoginMessage.textContent = '❌ Пользователь не найден';
-        return;
-    }
-    
-    CURRENT_USER = users[0];
-    CURRENT_SESSION_TOKEN = generateSessionToken();
-    saveSession(CURRENT_USER);
-    await saveSessionToDB();
-    await loadUserSettings();
-    
-    maxLoginModal.style.display = 'none';
-    authScreen.style.display = 'none';
-    app.style.display = 'flex';
-    currentUserPhone.textContent = CURRENT_USER.phone;
-    
-    loadChats();
-    loadGroups();
-});
-
-cancelMaxLogin?.addEventListener('click', () => {
-    maxLoginModal.style.display = 'none';
-    pendingLoginPhone = null;
-    currentMaxCode = null;
+// ==================== ВХОД ЧЕРЕЗ GOOGLE ====================
+googleLoginBtn?.addEventListener('click', () => {
+    alert('🔐 Вход через Google будет доступен в ближайшее время!');
 });
 
 // ==================== ЗАГРУЗКА НАСТРОЕК ПОЛЬЗОВАТЕЛЯ ====================
@@ -613,7 +453,6 @@ async function loadUserSettings() {
     
     if (data) {
         CURRENT_USER.username = data.username;
-        CURRENT_USER.two_factor = data.two_factor || 'none';
         CURRENT_USER.privacy_settings = data.privacy_settings || {
             show_phone: 'everyone',
             who_can_write: 'everyone',
@@ -741,21 +580,13 @@ loginButton?.addEventListener('click', async () => {
         if (error) throw error;
         if (!users?.length) { authMessage.textContent = '❌ Неверный номер или пароль'; return; }
         
-        const user = users[0];
-        
-        // Проверяем, включена ли двухфакторка через MAX
-        if (user.two_factor === 'max') {
-            // Запрашиваем код из MAX
-            await requestMaxLogin(phone);
-            return;
-        }
-        
-        CURRENT_USER = user;
+        CURRENT_USER = users[0];
         CURRENT_SESSION_TOKEN = generateSessionToken();
         saveSession(CURRENT_USER);
         
         await saveSessionToDB();
         await loadUserSettings();
+        await loadUserTheme();
         
         ADMIN_RIGHTS = await loadAdminRights(CURRENT_USER.phone);
         
@@ -766,12 +597,6 @@ loginButton?.addEventListener('click', async () => {
         if (isAdmin()) {
             adminButton.style.display = 'block';
         }
-        
-        setTimeout(() => {
-            if (user.two_factor === 'none') {
-                maxBanner.style.display = 'block';
-            }
-        }, 5000);
         
         loadChats();
         loadGroups();
@@ -830,7 +655,7 @@ registerButton?.addEventListener('click', async () => {
             phone, 
             username,
             password: pass,
-            two_factor: 'none',
+            theme: 'dark',
             privacy_settings: {
                 show_phone: 'everyone',
                 who_can_write: 'everyone',
@@ -1216,6 +1041,88 @@ async function loadGroups() {
     } catch (e) { console.error(e); }
 }
 
+// ==================== СОЗДАНИЕ ГРУППЫ ====================
+createGroupBtn?.addEventListener('click', async () => {
+    groupModal.style.display = 'flex';
+    await loadAvailableUsers();
+});
+
+closeGroupModal?.addEventListener('click', () => {
+    groupModal.style.display = 'none';
+    groupName.value = '';
+    groupDescription.value = '';
+    selectedMembers = [];
+});
+
+async function loadAvailableUsers() {
+    try {
+        const { data: users } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .neq('phone', CURRENT_USER.phone);
+        
+        availableUsers.innerHTML = users?.map(u => `
+            <div class="group-member-item" onclick="toggleSelect('${u.phone}')">
+                <span>${u.username || u.phone}</span>
+            </div>
+        `).join('') || '<p>Нет пользователей</p>';
+    } catch (e) { console.error(e); }
+}
+
+window.toggleSelect = function(phone) {
+    const index = selectedMembers.indexOf(phone);
+    if (index === -1) selectedMembers.push(phone);
+    else selectedMembers.splice(index, 1);
+    
+    document.querySelectorAll('.group-member-item').forEach(el => {
+        if (selectedMembers.some(s => el.textContent.includes(s))) {
+            el.classList.add('selected');
+        } else {
+            el.classList.remove('selected');
+        }
+    });
+};
+
+createGroupFinal?.addEventListener('click', async () => {
+    const name = groupName.value.trim();
+    const desc = groupDescription.value.trim();
+    if (!name) { alert('Введите название группы'); return; }
+    if (!selectedMembers.length) { alert('Выберите участников'); return; }
+    
+    try {
+        const { data: group, error } = await supabaseClient
+            .from('groups')
+            .insert([{ name, description: desc, created_by: CURRENT_USER.phone }])
+            .select();
+        
+        if (error) throw error;
+        
+        const groupId = group[0].id;
+        
+        await supabaseClient.from('group_members').insert([
+            { group_id: groupId, user_phone: CURRENT_USER.phone, role: 'creator' }
+        ]);
+        
+        const members = selectedMembers.map(phone => ({
+            group_id: groupId,
+            user_phone: phone,
+            role: 'member'
+        }));
+        await supabaseClient.from('group_members').insert(members);
+        
+        alert('✅ Группа создана!');
+        groupModal.style.display = 'none';
+        groupName.value = '';
+        groupDescription.value = '';
+        selectedMembers = [];
+        loadGroups();
+        groupsTabBtn.click();
+    } catch (e) {
+        console.error(e);
+        alert('❌ Ошибка: ' + e.message);
+    }
+});
+
 // ==================== ОТПРАВКА СООБЩЕНИЙ ====================
 sendButton?.addEventListener('click', sendMessage);
 messageInput?.addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
@@ -1274,6 +1181,10 @@ profileTabs.forEach(tab => {
             loadSessions();
         } else if (tabName === 'privacy') {
             loadPrivacySettings();
+        } else if (tabName === 'themes') {
+            const currentTheme = CURRENT_USER?.theme || 'dark';
+            document.querySelectorAll('.theme-check').forEach(check => check.style.opacity = '0');
+            document.getElementById(`check-${currentTheme}`).style.opacity = '1';
         }
     });
 });
@@ -1377,26 +1288,93 @@ saveProfileBtn?.addEventListener('click', async () => {
     }
 });
 
-// ==================== ПРИВЯЗКИ ====================
+// ==================== ПРИВЯЗКА GOOGLE ====================
 linkGoogle?.addEventListener('click', () => {
-    alert('🔐 Привязка Google будет доступна в следующем обновлении!');
+    alert('🔐 Привязка Google будет доступна в ближайшее время!');
 });
 
-linkEmail?.addEventListener('click', () => {
-    alert('📧 Привязка почты будет доступна в следующем обновлении!');
-});
+// ==================== ТЕМЫ ====================
+async function loadUserTheme() {
+    const { data } = await supabaseClient
+        .from('profiles')
+        .select('theme')
+        .eq('phone', CURRENT_USER.phone)
+        .single();
+    
+    if (data?.theme) {
+        applyTheme(data.theme);
+    } else {
+        applyTheme('dark');
+    }
+}
 
-linkMax?.addEventListener('click', openMaxBindModal);
+function applyTheme(theme) {
+    document.body.classList.remove('light-theme', 'dark-theme', 'forest-theme');
+    document.body.classList.add(`${theme}-theme`);
+    
+    document.querySelectorAll('.theme-check').forEach(check => check.style.opacity = '0');
+    const checkEl = document.getElementById(`check-${theme}`);
+    if (checkEl) checkEl.style.opacity = '1';
+    
+    if (theme === 'forest') {
+        startForestAnimations();
+    } else {
+        stopForestAnimations();
+    }
+    
+    if (CURRENT_USER) {
+        CURRENT_USER.theme = theme;
+    }
+}
 
-// ==================== MAX БАННЕР ====================
-closeMaxBanner?.addEventListener('click', () => {
-    maxBanner.style.display = 'none';
-});
+window.setTheme = async function(theme) {
+    applyTheme(theme);
+    
+    if (CURRENT_USER) {
+        await supabaseClient
+            .from('profiles')
+            .update({ theme })
+            .eq('phone', CURRENT_USER.phone);
+    }
+};
 
-showMaxBind?.addEventListener('click', () => {
-    openMaxBindModal();
-    maxBanner.style.display = 'none';
-});
+function startForestAnimations() {
+    stopForestAnimations();
+    
+    leafInterval = setInterval(() => {
+        const leaf = document.createElement('div');
+        leaf.className = 'leaf';
+        leaf.textContent = ['🍃', '🍂', '🌿'][Math.floor(Math.random() * 3)];
+        leaf.style.left = Math.random() * 100 + '%';
+        leaf.style.fontSize = (15 + Math.random() * 15) + 'px';
+        leaf.style.animationDuration = (3 + Math.random() * 4) + 's';
+        leaf.style.animationDelay = Math.random() * 2 + 's';
+        document.body.appendChild(leaf);
+        
+        setTimeout(() => leaf.remove(), 10000);
+    }, 300);
+    
+    rainInterval = setInterval(() => {
+        for (let i = 0; i < 5; i++) {
+            const drop = document.createElement('div');
+            drop.className = 'raindrop';
+            drop.style.left = Math.random() * 100 + '%';
+            drop.style.animationDuration = (0.5 + Math.random()) + 's';
+            drop.style.animationDelay = Math.random() + 's';
+            drop.style.opacity = 0.3 + Math.random() * 0.3;
+            document.body.appendChild(drop);
+            
+            setTimeout(() => drop.remove(), 2000);
+        }
+    }, 100);
+}
+
+function stopForestAnimations() {
+    if (leafInterval) clearInterval(leafInterval);
+    if (rainInterval) clearInterval(rainInterval);
+    
+    document.querySelectorAll('.leaf, .raindrop').forEach(el => el.remove());
+}
 
 // ==================== АДМИН-ПАНЕЛЬ ====================
 adminButton?.addEventListener('click', () => {
@@ -1432,7 +1410,6 @@ async function loadAdminUsers() {
                 <div>
                     <strong>${u.username || u.phone}</strong>
                     <div style="color:#888;font-size:12px;">${u.phone}</div>
-                    ${u.two_factor === 'max' ? '<span style="color:#00bfff;">🔒 MAX</span>' : ''}
                 </div>
                 <div class="admin-user-actions">
                     ${isOwner() && u.phone !== OWNER_PHONE ? `
@@ -1509,7 +1486,7 @@ addAdminBtn?.addEventListener('click', async () => {
 });
 
 // ==================== ФОРМАТИРОВАНИЕ НОМЕРОВ ====================
-[loginPhone, registerPhone, bindMaxPhone].forEach(i => i?.addEventListener('input', e => {
+[loginPhone, registerPhone].forEach(i => i?.addEventListener('input', e => {
     let v = e.target.value.replace(/\D/g, '').slice(0, 10);
     e.target.value = v;
 }));
@@ -1520,6 +1497,7 @@ if (savedUser) {
     CURRENT_USER = savedUser;
     (async () => {
         await loadUserSettings();
+        await loadUserTheme();
         
         authScreen.style.display = 'none';
         app.style.display = 'flex';
@@ -1540,12 +1518,6 @@ if (savedUser) {
         
         loadChats();
         loadGroups();
-        
-        setTimeout(() => {
-            if (CURRENT_USER.two_factor === 'none') {
-                maxBanner.style.display = 'block';
-            }
-        }, 5000);
     })();
 }
 
@@ -1562,4 +1534,4 @@ document.addEventListener('click', function(e) {
     }
 });
 
-console.log('✅ LinkUp — с MAX привязкой и двухфакторной аутентификацией');
+console.log('✅ LinkUp — полная версия с темами, Google привязкой и админ-панелью');

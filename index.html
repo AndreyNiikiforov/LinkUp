@@ -6,7 +6,7 @@
     <title>LinkUp | Мессенджер</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="dark-theme">
     <!-- ЭКРАН ВХОДА -->
     <div class="auth-screen" id="authScreen">
         <div class="auth-card">
@@ -26,6 +26,11 @@
                     <a href="#" id="forgotPasswordLink">Забыли пароль?</a>
                     <span class="auth-separator">|</span>
                     <a href="#" id="showQrLogin">Вход по QR</a>
+                </div>
+                <div class="auth-google">
+                    <button class="google-login-btn" id="googleLoginBtn">
+                        <img src="https://www.google.com/favicon.ico" alt="Google"> Войти через Google
+                    </button>
                 </div>
             </div>
 
@@ -174,6 +179,7 @@
                 <button class="profile-tab" data-profile-tab="privacy">🔒 Приватность</button>
                 <button class="profile-tab" data-profile-tab="devices">📱 Устройства</button>
                 <button class="profile-tab" data-profile-tab="linked">🔗 Привязки</button>
+                <button class="profile-tab" data-profile-tab="themes">🎨 Темы</button>
             </div>
             
             <!-- Вкладка Основное -->
@@ -254,55 +260,47 @@
                         <span>🔐 Google</span>
                         <button class="link-btn" id="linkGoogle">Привязать</button>
                     </div>
-                    <div class="linked-item">
-                        <span>📧 Почта</span>
-                        <button class="link-btn" id="linkEmail">Привязать</button>
-                    </div>
-                    <div class="linked-item">
-                        <span>💬 MAX</span>
-                        <button class="link-btn" id="linkMax" data-provider="max">Привязать</button>
-                    </div>
                 </div>
-                <p class="linked-hint">Привяжите аккаунты для восстановления пароля и двухфакторной аутентификации</p>
+                <p class="linked-hint">Привяжите Google для восстановления пароля</p>
+            </div>
+
+            <!-- Вкладка Темы -->
+            <div class="profile-tab-content" id="profileThemesTab">
+                <h3>Выберите тему оформления</h3>
+                
+                <div class="theme-option" onclick="setTheme('dark')">
+                    <div class="theme-preview dark-preview"></div>
+                    <div class="theme-info">
+                        <span class="theme-name">🌑 Тёмная</span>
+                        <span class="theme-desc">Классическая тёмная тема</span>
+                    </div>
+                    <span class="theme-check" id="check-dark">✓</span>
+                </div>
+                
+                <div class="theme-option" onclick="setTheme('light')">
+                    <div class="theme-preview light-preview"></div>
+                    <div class="theme-info">
+                        <span class="theme-name">☀️ Светлая</span>
+                        <span class="theme-desc">Светлая тема для дня</span>
+                    </div>
+                    <span class="theme-check" id="check-light">✓</span>
+                </div>
+                
+                <div class="theme-option" onclick="setTheme('forest')">
+                    <div class="theme-preview forest-preview"></div>
+                    <div class="theme-info">
+                        <span class="theme-name">🌳 Живой лес</span>
+                        <span class="theme-desc">Деревья, ветер, листья и дождь</span>
+                    </div>
+                    <span class="theme-check" id="check-forest">✓</span>
+                </div>
+                
+                <p class="theme-hint">Живая тема может немного влиять на производительность</p>
             </div>
         </div>
     </div>
 
-    <!-- МОДАЛКА ПРИВЯЗКИ MAX -->
-    <div class="bind-modal" id="bindMaxModal" style="display: none;">
-        <div class="bind-modal-content">
-            <div class="bind-modal-header">
-                <h2>💬 Привязка MAX</h2>
-                <button class="close-bind" id="closeBindMax">✕</button>
-            </div>
-            <div class="bind-modal-body">
-                <p class="bind-info">Для повышения безопасности рекомендуем привязать аккаунт MAX.</p>
-                <p class="bind-info">После привязки все входы будут подтверждаться кодом из MAX.</p>
-                
-                <div class="bind-step" id="bindStep1">
-                    <h3>Шаг 1: Введите номер MAX</h3>
-                    <div class="phone-input-container">
-                        <span class="phone-prefix">+7</span>
-                        <input type="tel" class="phone-input" id="bindMaxPhone" placeholder="925 XXX XX XX" maxlength="10">
-                    </div>
-                    <button class="auth-button" id="sendMaxCode">Отправить код</button>
-                </div>
-                
-                <div class="bind-step" id="bindStep2" style="display: none;">
-                    <h3>Шаг 2: Введите код из MAX</h3>
-                    <div class="code-input-container">
-                        <input type="text" class="code-input" id="bindMaxCode" placeholder="123456" maxlength="6">
-                    </div>
-                    <button class="auth-button" id="verifyMaxCode">Подтвердить</button>
-                    <button class="auth-button secondary" id="backToStep1">← Назад</button>
-                </div>
-                
-                <p class="bind-message" id="bindMessage"></p>
-            </div>
-        </div>
-    </div>
-
-    <!-- МОДАЛКА СКАНИРОВАНИЯ QR (ДЛЯ ТЕЛЕФОНА) -->
+    <!-- МОДАЛКА СКАНИРОВАНИЯ QR -->
     <div class="qr-scan-modal" id="qrScanModal" style="display: none;">
         <div class="qr-scan-content">
             <div class="qr-scan-header">
@@ -327,29 +325,6 @@
                 <button class="auth-button" id="qrConfirmYes">✅ Да, это я</button>
                 <button class="auth-button secondary" id="qrConfirmNo">❌ Нет, заблокировать</button>
             </div>
-        </div>
-    </div>
-
-    <!-- МОДАЛКА ВХОДА С MAX КОДОМ -->
-    <div class="max-login-modal" id="maxLoginModal" style="display: none;">
-        <div class="max-login-content">
-            <h2>🔐 Подтверждение через MAX</h2>
-            <p>Введите код, отправленный в MAX</p>
-            <div class="code-input-container">
-                <input type="text" class="code-input" id="maxLoginCode" placeholder="123456" maxlength="6">
-            </div>
-            <button class="auth-button" id="verifyLoginCode">Подтвердить</button>
-            <button class="auth-button secondary" id="cancelMaxLogin">Отмена</button>
-            <p class="bind-message" id="maxLoginMessage"></p>
-        </div>
-    </div>
-
-    <!-- MAX баннер -->
-    <div class="max-banner" id="maxBanner" style="display: none;">
-        <div class="max-banner-content">
-            <span>🔒 Рекомендуем привязать MAX для безопасности</span>
-            <button id="showMaxBind">Привязать</button>
-            <button id="closeMaxBanner">✕</button>
         </div>
     </div>
 
@@ -393,7 +368,7 @@
                 <button class="admin-action" id="createChannelBtn">➕ Создать канал</button>
             </div>
             
-            <!-- Вкладка Админы (только для владельца) -->
+            <!-- Вкладка Админы -->
             <div class="admin-tab-content" id="adminAdmins">
                 <div class="admins-list" id="adminsList"></div>
                 <div class="add-admin">
