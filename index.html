@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkUp | Мессенджер</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ЭКРАН ВХОДА -->
+    <div class="auth-screen" id="authScreen">
+        <div class="auth-card">
+            <h1 class="auth-title">LinkUp</h1>
+            
+            <div id="loginForm">
+                <p class="auth-subtitle">Вход по номеру телефона</p>
+                
+                <div class="phone-input-container">
+                    <span class="phone-prefix">+7</span>
+                    <input type="tel" class="phone-input" id="loginPhone" placeholder="925 XXX XX XX" maxlength="10">
+                </div>
+
+                <div class="password-input-container">
+                    <input type="password" class="password-input" id="loginPassword" placeholder="Пароль">
+                </div>
+                
+                <button class="auth-button" id="loginButton">Войти</button>
+            </div>
+
+            <div class="auth-divider">или</div>
+
+            <button class="auth-button secondary" id="showRegisterButton">Тут впервые? Зарегистрироваться</button>
+
+            <div id="registerForm" style="display: none;">
+                <p class="auth-subtitle">Регистрация</p>
+                
+                <div class="phone-input-container">
+                    <span class="phone-prefix">+7</span>
+                    <input type="tel" class="phone-input" id="registerPhone" placeholder="925 XXX XX XX" maxlength="10">
+                </div>
+
+                <div class="password-input-container">
+                    <input type="password" class="password-input" id="registerPassword" placeholder="Придумайте пароль">
+                </div>
+
+                <div class="password-input-container">
+                    <input type="password" class="password-input" id="registerPasswordConfirm" placeholder="Повторите пароль">
+                </div>
+                
+                <button class="auth-button" id="registerButton">Зарегистрироваться</button>
+                <button class="auth-button secondary" id="backToLoginButton">← Назад к входу</button>
+            </div>
+            
+            <p class="auth-note" id="authMessage"></p>
+        </div>
+    </div>
+
+    <!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
+    <div class="app" id="app" style="display: none;">
+        <!-- Левая панель -->
+        <div class="sidebar">
+            <!-- Профиль пользователя -->
+            <div class="user-profile" id="userProfile">
+                <div class="avatar" id="currentUserAvatar">👤</div>
+                <div class="user-info">
+                    <span class="user-name" id="currentUserName">Загрузка...</span>
+                    <span class="user-phone" id="currentUserPhone"></span>
+                </div>
+            </div>
+
+            <!-- Поиск -->
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="Поиск по номеру...">
+                <button class="search-button" id="searchButton">🔍</button>
+            </div>
+
+            <!-- Результаты поиска -->
+            <div class="search-results" id="searchResults" style="display: none;">
+                <div class="search-results-header">
+                    <span>Результаты поиска</span>
+                    <button class="close-search" id="closeSearch">✕</button>
+                </div>
+                <div class="search-results-list" id="searchResultsList"></div>
+            </div>
+
+            <!-- Список чатов -->
+            <div class="chats-list" id="chatsList"></div>
+
+            <!-- Кнопка админ-панели (для владельца и админов) -->
+            <button class="admin-button" id="adminButton" style="display: none;">
+                👑 Админ-панель
+            </button>
+        </div>
+
+        <!-- Правая панель -->
+        <div class="chat-window" id="chatWindow" style="display: none;">
+            <div class="chat-header" id="currentChat">
+                <div class="chat-header-info">
+                    <span class="chat-header-name" id="currentChatName">Выберите чат</span>
+                    <span class="chat-header-phone" id="currentChatPhone"></span>
+                </div>
+            </div>
+            
+            <div class="messages-area" id="messagesArea"></div>
+            
+            <div class="message-input-area">
+                <input type="text" class="message-input" placeholder="Написать сообщение..." id="messageInput">
+                <button class="send-button" id="sendButton">➤</button>
+            </div>
+        </div>
+
+        <!-- Приветственный экран -->
+        <div class="welcome-screen" id="welcomeScreen">
+            <div class="welcome-content">
+                <h1 class="welcome-title">LinkUp</h1>
+                <p class="welcome-text">Выберите чат или начните поиск нового контакта</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- АДМИН-ПАНЕЛЬ -->
+    <div class="admin-modal" id="adminModal" style="display: none;">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h2>👑 Админ-панель</h2>
+                <button class="close-admin" id="closeAdmin">✕</button>
+            </div>
+            
+            <div class="admin-tabs">
+                <button class="admin-tab active" data-tab="users">Пользователи</button>
+                <button class="admin-tab" data-tab="support">Поддержка</button>
+                <button class="admin-tab" data-tab="reports">Жалобы</button>
+                <button class="admin-tab" data-tab="channels">Каналы</button>
+                <button class="admin-tab" data-tab="admins" id="adminsTab" style="display: none;">Админы</button>
+            </div>
+            
+            <!-- Вкладка Пользователи -->
+            <div class="admin-tab-content active" id="adminUsers">
+                <div class="admin-search">
+                    <input type="text" id="adminUserSearch" placeholder="Поиск пользователя...">
+                </div>
+                <div class="admin-users-list" id="adminUsersList"></div>
+            </div>
+            
+            <!-- Вкладка Поддержка -->
+            <div class="admin-tab-content" id="adminSupport">
+                <div class="support-list" id="supportList"></div>
+            </div>
+            
+            <!-- Вкладка Жалобы -->
+            <div class="admin-tab-content" id="adminReports">
+                <div class="reports-list" id="reportsList"></div>
+            </div>
+            
+            <!-- Вкладка Каналы -->
+            <div class="admin-tab-content" id="adminChannels">
+                <div class="channels-list" id="channelsList"></div>
+                <button class="admin-action" id="createChannelBtn">➕ Создать канал</button>
+            </div>
+            
+            <!-- Вкладка Админы (только для владельца) -->
+            <div class="admin-tab-content" id="adminAdmins">
+                <div class="admins-list" id="adminsList"></div>
+                <div class="add-admin">
+                    <input type="text" id="newAdminPhone" placeholder="Номер нового админа">
+                    <button class="admin-action" id="addAdminBtn">Назначить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html>
