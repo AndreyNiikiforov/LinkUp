@@ -9,7 +9,6 @@ const OWNER_PHONE = '+79224030705';
 let CURRENT_USER = null;
 let CURRENT_CHAT = null;
 let CURRENT_GROUP = null;
-let ADMINS = [OWNER_PHONE];
 let GROUPS = [];
 let selectedMembers = [];
 let selectedMessageId = null;
@@ -117,8 +116,18 @@ function loadSession() {
     return null;
 }
 
-function isOwner() { return CURRENT_USER?.phone === OWNER_PHONE; }
-function isAdmin() { return CURRENT_USER && (ADMINS.includes(CURRENT_USER.phone) || isOwner()); }
+// Проверка на админа (через БД)
+async function isAdmin(phone) {
+    const { data } = await supabaseClient
+        .from('admins')
+        .select('*')
+        .eq('phone', phone);
+    return data?.length > 0;
+}
+
+function isOwner() {
+    return CURRENT_USER?.phone === OWNER_PHONE;
+}
 
 function getStatusText(lastSeen) {
     if (!lastSeen) return 'давно';
@@ -164,6 +173,30 @@ backToLoginButton?.addEventListener('click', () => {
     authMessage.textContent = '';
 });
 
+// ==================== ЗАГРУЗКА НАСТРОЕК ПОЛЬЗОВАТЕЛЯ ====================
+async function loadUserSettings() {
+    const { data } = await supabaseClient
+        .from('user_settings')
+        .select('*')
+        .eq('phone', CURRENT_USER.phone)
+        .single();
+    
+    if (data) {
+        CURRENT_USER.display_name = data.display_name;
+        currentUserName.textContent = data.display_name || CURRENT_USER.phone;
+    } else {
+        // Создаём настройки по умолчанию
+        await supabaseClient
+            .from('user_settings')
+            .insert([{ 
+                phone: CURRENT_USER.phone,
+                display_name: CURRENT_USER.phone
+            }]);
+        CURRENT_USER.display_name = CURRENT_USER.phone;
+        currentUserName.textContent = CURRENT_USER.phone;
+    }
+}
+
 // ==================== ВХОД ====================
 loginButton?.addEventListener('click', async () => {
     const phone = formatPhone(loginPhone.value);
@@ -175,14 +208,19 @@ loginButton?.addEventListener('click', async () => {
         if (!users?.length) { authMessage.textContent = '❌ Неверный номер или пароль'; return; }
         CURRENT_USER = users[0];
         saveSession(CURRENT_USER);
+        
+        // Загружаем настройки
+        await loadUserSettings();
+        
         authScreen.style.display = 'none';
         app.style.display = 'flex';
         if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
-        if (currentUserName) currentUserName.textContent = CURRENT_USER.display_name || CURRENT_USER.username || CURRENT_USER.phone;
         
-        if (isAdmin()) {
-            if (adminButton) adminButton.style.display = 'block';
-            if (isOwner() && adminsTab) adminsTab.style.display = 'block';
+        // Проверяем, админ ли пользователь
+        const admin = await isAdmin(CURRENT_USER.phone);
+        if (admin) {
+            adminButton.style.display = 'block';
+            if (isOwner()) adminsTab.style.display = 'block';
         }
         
         updateLastSeen();
@@ -299,14 +337,20 @@ async function loadMessages(chatPhone) {
         if (!messages?.length) {
             messagesArea.innerHTML = '<div class="message received">Начните общение</div>';
         } else {
-            messagesArea.innerHTML = messages.map(m => `
-                <div class="message ${m.sender === CURRENT_USER.phone ? 'sent' : 'received'} ${m.pinned ? 'pinned' : ''}" 
+            messagesArea.innerHTML = messages.map(m => {
+                const isSent = m.sender === CURRENT_USER.phone;
+                const senderName = isSent ? 'Вы' : (CURRENT_CHAT?.display_name || CURRENT_CHAT?.username || m.sender);
+                
+                return `
+                <div class="message ${isSent ? 'sent' : 'received'} ${m.pinned ? 'pinned' : ''}" 
                      data-id="${m.id}" 
                      data-type="private"
                      onclick="selectMessage(this, '${m.id}', 'private')">
-                    ${m.content}
+                    ${!isSent ? `<div class="message-sender">${senderName}</div>` : ''}
+                    <div class="message-content">${m.content}</div>
                     <div class="message-time">${new Date(m.created_at).toLocaleTimeString().slice(0,-3)}</div>
-                </div>`).join('');
+                </div>`;
+            }).join('');
         }
     } catch (e) { console.error(e); }
 }
@@ -335,14 +379,32 @@ async function loadGroupMessages(groupId) {
         if (!messages?.length) {
             messagesArea.innerHTML = '<div class="message received">Начните общение в группе</div>';
         } else {
-            messagesArea.innerHTML = messages.map(m => `
-                <div class="message ${m.sender === CURRENT_USER.phone ? 'sent' : 'received'} ${m.pinned ? 'pinned' : ''}"
+            // Получаем имена отправителей
+            const senderPhones = [...new Set(messages.map(m => m.sender))];
+            const { data: profiles } = await supabaseClient
+                .from('profiles')
+                .select('phone, display_name, username')
+                .in('phone', senderPhones);
+            
+            const senderNames = {};
+            profiles?.forEach(p => {
+                senderNames[p.phone] = p.display_name || p.username || p.phone;
+            });
+            
+            messagesArea.innerHTML = messages.map(m => {
+                const isSent = m.sender === CURRENT_USER.phone;
+                const senderName = isSent ? 'Вы' : (senderNames[m.sender] || m.sender);
+                
+                return `
+                <div class="message ${isSent ? 'sent' : 'received'} ${m.pinned ? 'pinned' : ''}"
                      data-id="${m.id}"
                      data-type="group"
                      onclick="selectMessage(this, '${m.id}', 'group')">
-                    <strong>${m.sender}:</strong> ${m.content}
+                    ${!isSent ? `<div class="message-sender">${senderName}</div>` : ''}
+                    <div class="message-content">${m.content}</div>
                     <div class="message-time">${new Date(m.created_at).toLocaleTimeString().slice(0,-3)}</div>
-                </div>`).join('');
+                </div>`;
+            }).join('');
         }
     } catch (e) { console.error(e); }
 }
@@ -437,13 +499,38 @@ async function loadChats() {
         const { data: messages, error } = await supabaseClient.from('messages').select('*').or(`sender.eq.${CURRENT_USER.phone},receiver.eq.${CURRENT_USER.phone}`).order('created_at', { ascending: false });
         if (error) throw error;
         const chats = new Map();
+        
+        // Получаем имена собеседников
+        const otherPhones = [...new Set(messages.map(m => m.sender === CURRENT_USER.phone ? m.receiver : m.sender))];
+        const { data: profiles } = await supabaseClient
+            .from('profiles')
+            .select('phone, display_name, username')
+            .in('phone', otherPhones);
+        
+        const chatNames = {};
+        profiles?.forEach(p => {
+            chatNames[p.phone] = p.display_name || p.username || p.phone;
+        });
+        
         messages.forEach(m => {
             const other = m.sender === CURRENT_USER.phone ? m.receiver : m.sender;
-            if (!chats.has(other) || new Date(m.created_at) > new Date(chats.get(other).lastMessageTime))
-                chats.set(other, { phone: other, lastMessage: m.content, lastMessageTime: m.created_at });
+            if (!chats.has(other) || new Date(m.created_at) > new Date(chats.get(other).lastMessageTime)) {
+                chats.set(other, { 
+                    phone: other, 
+                    name: chatNames[other] || other,
+                    lastMessage: m.content, 
+                    lastMessageTime: m.created_at 
+                });
+            }
         });
+        
         if (!chats.size) chatsList.innerHTML = '<div class="chat-item">Найдите контакт через поиск</div>';
-        else chatsList.innerHTML = Array.from(chats.values()).map(c => `<div class="chat-item" onclick="startChat('${c.phone}')"><span class="chat-name">${c.phone}</span><span class="chat-preview">${c.lastMessage.slice(0,30)}...</span></div>`).join('');
+        else chatsList.innerHTML = Array.from(chats.values()).map(c => `
+            <div class="chat-item" onclick="startChat('${c.phone}')">
+                <span class="chat-name">${c.name}</span>
+                <span class="chat-preview">${c.lastMessage.slice(0,30)}...</span>
+            </div>
+        `).join('');
     } catch (e) { console.error(e); }
 }
 
@@ -607,7 +694,7 @@ window.insertEmoji = function(emoji) {
 // ==================== НАСТРОЙКИ ПРОФИЛЯ ====================
 userProfile?.addEventListener('click', () => {
     profileModal.style.display = 'flex';
-    if (profileDisplayName) profileDisplayName.value = CURRENT_USER.display_name || CURRENT_USER.username || CURRENT_USER.phone;
+    if (profileDisplayName) profileDisplayName.value = CURRENT_USER.display_name || CURRENT_USER.phone;
     if (profilePhone) profilePhone.value = CURRENT_USER.phone;
 });
 
@@ -620,10 +707,13 @@ saveProfileBtn?.addEventListener('click', async () => {
     if (!newName) return;
     
     try {
+        // Сохраняем в БД (синхронизируется между устройствами)
         const { error } = await supabaseClient
-            .from('profiles')
-            .update({ display_name: newName })
-            .eq('phone', CURRENT_USER.phone);
+            .from('user_settings')
+            .upsert({ 
+                phone: CURRENT_USER.phone,
+                display_name: newName
+            });
         
         if (error) throw error;
         
@@ -778,45 +868,94 @@ adminTabs.forEach(tab => tab.addEventListener('click', () => {
 async function loadAdminUsers() {
     try {
         const { data: users } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
-        adminUsersList.innerHTML = users?.map(u => `
+        
+        // Получаем список админов из БД
+        const { data: adminsList } = await supabaseClient.from('admins').select('phone');
+        const adminPhones = adminsList?.map(a => a.phone) || [];
+        
+        adminUsersList.innerHTML = users?.map(u => {
+            const isUserAdmin = adminPhones.includes(u.phone);
+            return `
             <div class="admin-user-item">
-                <div><strong>${u.display_name || u.username || u.phone}</strong><div style="color:#888;font-size:12px;">${u.phone}</div></div>
+                <div>
+                    <strong>${u.display_name || u.username || u.phone}</strong>
+                    <div style="color:#888;font-size:12px;">${u.phone}</div>
+                </div>
                 <div class="admin-user-actions">
                     ${isOwner() && u.phone !== OWNER_PHONE ? `
-                        <button class="admin-user-btn make-admin" onclick="makeAdmin('${u.phone}')">
-                            ${ADMINS.includes(u.phone) ? 'Убрать из админов' : 'Сделать админом'}
+                        <button class="admin-user-btn make-admin" onclick="toggleAdmin('${u.phone}')">
+                            ${isUserAdmin ? 'Убрать из админов' : 'Сделать админом'}
                         </button>
                     ` : ''}
                     ${u.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
-                    ${ADMINS.includes(u.phone) && u.phone !== OWNER_PHONE ? '<span style="color:#00bfff;">👤 Админ</span>' : ''}
+                    ${isUserAdmin && u.phone !== OWNER_PHONE ? '<span style="color:#00bfff;">👤 Админ</span>' : ''}
                 </div>
-            </div>`).join('') || '<p class="no-data">Нет пользователей</p>';
+            </div>`;
+        }).join('') || '<p class="no-data">Нет пользователей</p>';
     } catch (e) { console.error(e); }
 }
 
-window.makeAdmin = function(phone) {
+window.toggleAdmin = async function(phone) {
     if (!isOwner()) return;
-    if (ADMINS.includes(phone)) {
-        ADMINS = ADMINS.filter(p => p !== phone);
-        alert(`✅ ${phone} больше не админ`);
-    } else {
-        ADMINS.push(phone);
-        alert(`✅ ${phone} назначен админом`);
+    
+    try {
+        const { data: existing } = await supabaseClient
+            .from('admins')
+            .select('*')
+            .eq('phone', phone);
+        
+        if (existing?.length) {
+            // Убираем из админов
+            await supabaseClient
+                .from('admins')
+                .delete()
+                .eq('phone', phone);
+            alert(`✅ ${phone} больше не админ`);
+        } else {
+            // Назначаем админом
+            await supabaseClient
+                .from('admins')
+                .insert([{ 
+                    phone: phone, 
+                    appointed_by: CURRENT_USER.phone 
+                }]);
+            alert(`✅ ${phone} назначен админом`);
+        }
+        
+        loadAdminUsers();
+        if (isOwner()) loadAdminsList();
+    } catch (e) {
+        console.error('Ошибка:', e);
+        alert('❌ Ошибка: ' + e.message);
     }
-    loadAdminUsers();
-    if (isOwner()) loadAdminsList();
 };
 
 async function loadAdminsList() {
-    adminsList.innerHTML = ADMINS.map(a => `<div class="admin-user-item"><div>${a}</div>${a === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}</div>`).join('');
+    const { data: admins } = await supabaseClient
+        .from('admins')
+        .select('*');
+    
+    adminsList.innerHTML = admins?.map(a => `
+        <div class="admin-user-item">
+            <div>${a.phone}</div>
+            ${a.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
+        </div>
+    `).join('');
 }
 
 addAdminBtn?.addEventListener('click', async () => {
     let p = formatPhone(newAdminPhone.value);
     if (!p) return;
+    
+    // Проверяем, существует ли пользователь
     let { data: u } = await supabaseClient.from('profiles').select('*').eq('phone', p);
-    if (!u?.length) { alert('❌ Пользователь не найден'); return; }
-    makeAdmin(p);
+    if (!u?.length) { 
+        alert('❌ Пользователь не найден'); 
+        return; 
+    }
+    
+    // Назначаем админом
+    await toggleAdmin(p);
     newAdminPhone.value = '';
 });
 
@@ -830,21 +969,26 @@ addAdminBtn?.addEventListener('click', async () => {
 const savedUser = loadSession();
 if (savedUser) {
     CURRENT_USER = savedUser;
-    authScreen.style.display = 'none';
-    app.style.display = 'flex';
-    if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
-    if (currentUserName) currentUserName.textContent = CURRENT_USER.display_name || CURRENT_USER.username || CURRENT_USER.phone;
-    
-    if (isAdmin()) {
-        if (adminButton) adminButton.style.display = 'block';
-        if (isOwner() && adminsTab) adminsTab.style.display = 'block';
-    }
-    
-    updateLastSeen();
-    setInterval(updateLastSeen, 30000);
-    
-    loadChats();
-    loadGroups();
+    (async () => {
+        await loadUserSettings();
+        
+        authScreen.style.display = 'none';
+        app.style.display = 'flex';
+        if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
+        
+        // Проверяем, админ ли пользователь
+        const admin = await isAdmin(CURRENT_USER.phone);
+        if (admin) {
+            adminButton.style.display = 'block';
+            if (isOwner()) adminsTab.style.display = 'block';
+        }
+        
+        updateLastSeen();
+        setInterval(updateLastSeen, 30000);
+        
+        loadChats();
+        loadGroups();
+    })();
 }
 
 // ==================== ПОИСК В АДМИНКЕ ====================
@@ -865,4 +1009,4 @@ document.addEventListener('click', function(e) {
     }
 });
 
-console.log('✅ LinkUp (полная версия со статусами, удалением, закреплением и эмодзи)');
+console.log('✅ LinkUp (полная версия с админкой, синхронизацией и дизайном как в Telegram)');
