@@ -14,7 +14,8 @@ let selectedMembers = [];
 let selectedMessageId = null;
 let selectedMessageType = null;
 let ADMIN_RIGHTS = null; // Права текущего админа
-
+// ВРЕМЕННО: принудительно показываем админ-кнопку всем
+adminButton.style.display = 'block';
 // ==================== DOM ЭЛЕМЕНТЫ ====================
 const authScreen = document.getElementById('authScreen');
 const app = document.getElementById('app');
