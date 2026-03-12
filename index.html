@@ -56,6 +56,7 @@
                 <div class="user-info">
                     <span class="user-name" id="currentUserName">Загрузка...</span>
                     <span class="user-phone" id="currentUserPhone"></span>
+                    <span class="user-status-dot" id="userStatusDot"></span>
                 </div>
                 <div class="profile-edit-icon">✏️</div>
             </div>
@@ -101,9 +102,15 @@
                 </div>
                 <div class="chat-header-menu" id="chatMenuBtn">⋮</div>
             </div>
+            
+            <!-- Закреплённые сообщения -->
+            <div class="pinned-messages" id="pinnedMessages"></div>
+            
             <div class="messages-area" id="messagesArea"></div>
+            
             <div class="message-input-area">
                 <input type="text" class="message-input" placeholder="Написать сообщение..." id="messageInput">
+                <button class="emoji-button" id="emojiBtn">😊</button>
                 <button class="send-button" id="sendButton">➤</button>
             </div>
         </div>
@@ -126,7 +133,6 @@
             <div class="profile-modal-body">
                 <div class="avatar-upload">
                     <div class="current-avatar" id="profileAvatar">👤</div>
-                    <button class="change-avatar-btn" id="changeAvatarBtn">Изменить аватар</button>
                 </div>
                 <div class="profile-field">
                     <label>Как вас видят:</label>
@@ -203,9 +209,48 @@
         </div>
     </div>
 
-    <!-- АДМИН-ПАНЕЛЬ -->
+    <!-- МЕНЮ СООБЩЕНИЯ -->
+    <div class="message-menu" id="messageMenu" style="display: none;">
+        <button id="deleteMessageBtn">🗑️ Удалить</button>
+        <button id="pinMessageBtn">📌 Закрепить</button>
+    </div>
+
+    <!-- ПАНЕЛЬ ЭМОДЗИ -->
+    <div class="emoji-panel" id="emojiPanel" style="display: none;">
+        <button onclick="insertEmoji('😊')">😊</button>
+        <button onclick="insertEmoji('😂')">😂</button>
+        <button onclick="insertEmoji('❤️')">❤️</button>
+        <button onclick="insertEmoji('👍')">👍</button>
+        <button onclick="insertEmoji('🔥')">🔥</button>
+        <button onclick="insertEmoji('🎉')">🎉</button>
+        <button onclick="insertEmoji('😢')">😢</button>
+        <button onclick="insertEmoji('😎')">😎</button>
+        <button onclick="insertEmoji('🤔')">🤔</button>
+    </div>
+
+    <!-- АДМИН-ПАНЕЛЬ (кратко) -->
     <div class="admin-modal" id="adminModal" style="display: none;">
-        <!-- ... (такая же как была) ... -->
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h2>👑 Админ-панель</h2>
+                <button class="close-admin" id="closeAdmin">✕</button>
+            </div>
+            <div class="admin-tabs">
+                <button class="admin-tab active" data-tab="users">Пользователи</button>
+                <button class="admin-tab" data-tab="admins" id="adminsTab" style="display: none;">Админы</button>
+            </div>
+            <div class="admin-tab-content active" id="adminUsers">
+                <div class="admin-search"><input type="text" id="adminUserSearch" placeholder="Поиск пользователя..."></div>
+                <div class="admin-users-list" id="adminUsersList"></div>
+            </div>
+            <div class="admin-tab-content" id="adminAdmins">
+                <div class="admins-list" id="adminsList"></div>
+                <div class="add-admin">
+                    <input type="text" id="newAdminPhone" placeholder="Номер нового админа">
+                    <button class="admin-action" id="addAdminBtn">Назначить</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

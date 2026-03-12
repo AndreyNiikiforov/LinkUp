@@ -242,6 +242,7 @@ body {
     padding: 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     background: rgba(0, 0, 0, 0.2);
+    position: relative;
 }
 
 .avatar {
@@ -271,6 +272,27 @@ body {
 .user-phone {
     font-size: 13px;
     color: #888;
+}
+
+.user-status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4caf50;
+    margin-left: 5px;
+    box-shadow: 0 0 10px #4caf50;
+}
+
+.profile-edit-icon {
+    opacity: 0.5;
+    margin-left: 5px;
+    font-size: 14px;
+    transition: opacity 0.3s;
+}
+
+.user-profile:hover .profile-edit-icon {
+    opacity: 1;
 }
 
 .search-container {
@@ -510,6 +532,9 @@ body {
 }
 
 .chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 20px;
     background: rgba(18, 18, 24, 0.8);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -535,6 +560,44 @@ body {
     color: #888;
 }
 
+.chat-header-menu {
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0 10px;
+    opacity: 0.7;
+    transition: all 0.3s;
+}
+
+.chat-header-menu:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* Закреплённые сообщения */
+.pinned-messages {
+    background: rgba(124, 58, 237, 0.1);
+    border-bottom: 1px solid rgba(124, 58, 237, 0.3);
+    padding: 10px 20px;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.pinned-message {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    margin-bottom: 5px;
+    font-size: 13px;
+    border-left: 3px solid var(--accent-purple);
+}
+
+.pinned-message:last-child {
+    margin-bottom: 0;
+}
+
 .messages-area {
     flex: 1;
     padding: 20px;
@@ -552,6 +615,7 @@ body {
     line-height: 1.4;
     position: relative;
     animation: messageAppear 0.3s;
+    cursor: pointer;
 }
 
 @keyframes messageAppear {
@@ -575,6 +639,10 @@ body {
     box-shadow: 0 0 25px rgba(124, 58, 237, 0.2);
 }
 
+.message.pinned {
+    border: 2px solid gold;
+}
+
 .message-time {
     font-size: 10px;
     color: #888;
@@ -589,6 +657,7 @@ body {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     gap: 10px;
     backdrop-filter: blur(10px);
+    position: relative;
 }
 
 .message-input {
@@ -606,6 +675,21 @@ body {
 .message-input:focus {
     border-color: var(--accent-pink);
     box-shadow: 0 0 30px rgba(255, 20, 147, 0.2);
+}
+
+.emoji-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0 10px;
+    opacity: 0.7;
+    transition: all 0.3s;
+}
+
+.emoji-button:hover {
+    opacity: 1;
+    transform: scale(1.2);
 }
 
 .send-button {
@@ -662,118 +746,10 @@ body {
     font-size: 16px;
 }
 
-/* МОДАЛКА ГРУППЫ */
-.group-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 3000;
-    backdrop-filter: blur(10px);
-}
-
-.group-modal-content {
-    width: 90%;
-    max-width: 500px;
-    background: #1a1a24;
-    border-radius: 20px;
-    padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 50px rgba(124, 58, 237, 0.3);
-    animation: modalAppear 0.3s;
-}
-
-@keyframes modalAppear {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-.group-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.close-group {
-    background: none;
-    border: none;
-    color: #888;
-    font-size: 24px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.close-group:hover {
-    color: #fff;
-    transform: rotate(90deg);
-}
-
-.group-input {
-    width: 100%;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    color: #fff;
-    margin-bottom: 20px;
-    outline: none;
-}
-
-.group-input:focus {
-    border-color: var(--accent-purple);
-    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
-}
-
-.group-member-item {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    margin: 5px 0;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s;
-    border: 1px solid transparent;
-}
-
-.group-member-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(124, 58, 237, 0.3);
-}
-
-.group-member-item.selected {
-    background: rgba(124, 58, 237, 0.15);
-    border: 1px solid var(--accent-purple);
-    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
-}
-
-.create-group-final {
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
-    border: none;
-    border-radius: 10px;
-    color: #fff;
-    cursor: pointer;
-    margin-top: 20px;
-    font-weight: 600;
-    transition: all 0.3s;
-}
-
-.create-group-final:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 30px rgba(255, 20, 147, 0.5);
-}
-
-/* Админ-панель */
+/* МОДАЛКИ */
+.profile-modal,
+.group-settings-modal,
+.group-modal,
 .admin-modal {
     position: fixed;
     top: 0;
@@ -788,33 +764,42 @@ body {
     backdrop-filter: blur(10px);
 }
 
+.profile-modal-content,
+.group-settings-content,
+.group-modal-content,
 .admin-modal-content {
     width: 90%;
-    max-width: 800px;
-    max-height: 80vh;
+    max-width: 500px;
     background: #1a1a24;
     border-radius: 20px;
+    padding: 20px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    overflow: hidden;
     box-shadow: 0 0 50px rgba(124, 58, 237, 0.3);
+    max-height: 80vh;
+    overflow-y: auto;
     animation: modalAppear 0.3s;
 }
 
+@keyframes modalAppear {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.profile-modal-header,
+.group-settings-header,
+.group-modal-header,
 .admin-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.3);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.admin-modal-header h2 {
-    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
+.close-profile,
+.close-group-settings,
+.close-group,
 .close-admin {
     background: none;
     border: none;
@@ -824,239 +809,15 @@ body {
     transition: all 0.3s;
 }
 
+.close-profile:hover,
+.close-group-settings:hover,
+.close-group:hover,
 .close-admin:hover {
     color: #fff;
     transform: rotate(90deg);
 }
 
-.admin-tabs {
-    display: flex;
-    padding: 20px 20px 0;
-    gap: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    overflow-x: auto;
-}
-
-.admin-tab {
-    padding: 10px 20px;
-    background: none;
-    border: none;
-    color: #888;
-    cursor: pointer;
-    font-size: 14px;
-    border-radius: 10px 10px 0 0;
-    transition: all 0.3s;
-    white-space: nowrap;
-}
-
-.admin-tab:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.admin-tab.active {
-    color: #fff;
-    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
-}
-
-.admin-tab-content {
-    display: none;
-    padding: 20px;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.admin-tab-content.active {
-    display: block;
-}
-
-.admin-user-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 10px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.admin-user-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.admin-user-btn {
-    padding: 5px 15px;
-    border-radius: 15px;
-    border: none;
-    cursor: pointer;
-    font-size: 12px;
-    transition: all 0.3s;
-    color: white;
-}
-
-.admin-user-btn.make-admin {
-    background: var(--accent-purple);
-}
-
-.admin-user-btn.ban {
-    background: #ff4444;
-}
-
-.support-request-item, .report-item, .channel-item {
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.support-request-question {
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    margin: 10px 0;
-}
-
-.support-answer-input {
-    width: 100%;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    color: #fff;
-    margin-bottom: 10px;
-}
-
-.report-reason {
-    padding: 10px;
-    background: rgba(255, 68, 68, 0.1);
-    border-radius: 8px;
-    margin: 10px 0;
-    color: #ff8888;
-}
-
-.report-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.channel-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.channel-name {
-    font-weight: 600;
-}
-
-.channel-members {
-    color: #888;
-    font-size: 12px;
-}
-
-.channel-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-}
-
-.add-admin {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.add-admin input {
-    flex: 1;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    color: #fff;
-}
-
-.admin-action {
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
-    border: none;
-    border-radius: 10px;
-    color: #fff;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.no-data {
-    text-align: center;
-    color: #666;
-    padding: 30px;
-}
-
-/* Скроллбары */
-::-webkit-scrollbar {
-    width: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
-}
-
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
-    border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-}
-/* Настройки профиля */
-.profile-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 3000;
-    backdrop-filter: blur(10px);
-}
-
-.profile-modal-content {
-    width: 90%;
-    max-width: 400px;
-    background: #1a1a24;
-    border-radius: 20px;
-    padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 50px rgba(124, 58, 237, 0.3);
-}
-
-.profile-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.close-profile {
-    background: none;
-    border: none;
-    color: #888;
-    font-size: 24px;
-    cursor: pointer;
-}
-
+/* Профиль */
 .avatar-upload {
     display: flex;
     flex-direction: column;
@@ -1075,15 +836,6 @@ body {
     font-size: 40px;
     margin-bottom: 10px;
     box-shadow: 0 0 30px rgba(255, 20, 147, 0.3);
-}
-
-.change-avatar-btn {
-    padding: 8px 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    color: #fff;
-    cursor: pointer;
 }
 
 .profile-field {
@@ -1120,48 +872,6 @@ body {
 }
 
 /* Настройки группы */
-.group-settings-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 3000;
-    backdrop-filter: blur(10px);
-}
-
-.group-settings-content {
-    width: 90%;
-    max-width: 500px;
-    background: #1a1a24;
-    border-radius: 20px;
-    padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.group-settings-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.close-group-settings {
-    background: none;
-    border: none;
-    color: #888;
-    font-size: 24px;
-    cursor: pointer;
-}
-
 .group-info {
     display: flex;
     align-items: center;
@@ -1289,35 +999,242 @@ body {
     color: #fff;
 }
 
-.chat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* Создание группы */
+.group-input {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #fff;
+    margin-bottom: 20px;
+    outline: none;
 }
 
-.chat-header-menu {
-    font-size: 24px;
+.group-input:focus {
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+}
+
+.group-member-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin: 5px 0;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
     cursor: pointer;
-    padding: 0 10px;
-    opacity: 0.7;
+    transition: all 0.3s;
+    border: 1px solid transparent;
+}
+
+.group-member-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(124, 58, 237, 0.3);
+}
+
+.group-member-item.selected {
+    background: rgba(124, 58, 237, 0.15);
+    border: 1px solid var(--accent-purple);
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+}
+
+.create-group-final {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+    margin-top: 20px;
+    font-weight: 600;
     transition: all 0.3s;
 }
 
-.chat-header-menu:hover {
-    opacity: 1;
+.create-group-final:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(255, 20, 147, 0.5);
+}
+
+/* Меню сообщения */
+.message-menu {
+    position: fixed;
+    background: #1a1a24;
+    border-radius: 10px;
+    padding: 5px;
+    z-index: 4000;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.message-menu button {
+    display: block;
+    width: 100%;
+    padding: 8px 15px;
+    background: none;
+    border: none;
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s;
+}
+
+.message-menu button:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+/* Панель эмодзи */
+.emoji-panel {
+    position: absolute;
+    bottom: 80px;
+    right: 20px;
+    background: #1a1a24;
+    border-radius: 20px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(3, 40px);
+    gap: 5px;
+    z-index: 4000;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 30px rgba(124,58,237,0.3);
+}
+
+.emoji-panel button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.emoji-panel button:hover {
+    background: rgba(255,255,255,0.1);
     transform: scale(1.2);
 }
 
-.profile-edit-icon {
-    opacity: 0.5;
-    margin-left: 5px;
-    font-size: 14px;
+/* Админ-панель */
+.admin-tabs {
+    display: flex;
+    padding: 20px 20px 0;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    overflow-x: auto;
 }
 
-.user-profile {
+.admin-tab {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    color: #888;
     cursor: pointer;
+    font-size: 14px;
+    border-radius: 10px 10px 0 0;
+    transition: all 0.3s;
+    white-space: nowrap;
 }
 
-.user-profile:hover .profile-edit-icon {
-    opacity: 1;
+.admin-tab:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-tab.active {
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
+}
+
+.admin-tab-content {
+    display: none;
+    padding: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.admin-tab-content.active {
+    display: block;
+}
+
+.admin-user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.admin-user-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-user-btn {
+    padding: 5px 15px;
+    border-radius: 15px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+    color: white;
+}
+
+.admin-user-btn.make-admin {
+    background: var(--accent-purple);
+}
+
+.add-admin {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.add-admin input {
+    flex: 1;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #fff;
+}
+
+.admin-action {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.no-data {
+    text-align: center;
+    color: #666;
+    padding: 30px;
+}
+
+/* Скроллбары */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
 }
