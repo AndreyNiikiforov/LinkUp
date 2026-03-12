@@ -18,6 +18,16 @@ let CURRENT_SESSION_TOKEN = null;
 let QR_POLLING_INTERVAL = null;
 let leafInterval = null;
 let rainInterval = null;
+let currentRankUser = null;
+
+// Описания рангов
+const RANGS = {
+    1: { name: 'Младший модератор', desc: 'Мут и варны', color: '#cd7f32' },
+    2: { name: 'Старший модератор', desc: 'Кик, чистка чата', color: '#c0c0c0' },
+    3: { name: 'Младший администратор', desc: 'Настройки чата, фильтры', color: '#ffd700' },
+    4: { name: 'Старший администратор', desc: 'Назначение модераторов, правила', color: '#00bfff' },
+    5: { name: 'Создатель', desc: 'Полный доступ, передача прав', color: '#ff1493' }
+};
 
 // ==================== DOM ЭЛЕМЕНТЫ ====================
 const authScreen = document.getElementById('authScreen');
@@ -127,6 +137,30 @@ const adminsList = document.getElementById('adminsList');
 const addAdminBtn = document.getElementById('addAdminBtn');
 const newAdminPhone = document.getElementById('newAdminPhone');
 
+// Админ-чаты
+const adminChatsList = document.getElementById('adminChatsList');
+const refreshChatsBtn = document.getElementById('refreshChatsBtn');
+const adminChatSearch = document.getElementById('adminChatSearch');
+
+// Модалка рангов
+const rankModal = document.getElementById('rankModal');
+const closeRankModal = document.getElementById('closeRankModal');
+const rankUserPhone = document.getElementById('rankUserPhone');
+const rankOptions = document.querySelectorAll('.rank-option');
+const confirmRankBtn = document.getElementById('confirmRankBtn');
+const cancelRankBtn = document.getElementById('cancelRankBtn');
+
+// Модалка просмотра чата
+const adminChatViewModal = document.getElementById('adminChatViewModal');
+const closeAdminChatView = document.getElementById('closeAdminChatView');
+const adminChatViewTitle = document.getElementById('adminChatViewTitle');
+const adminChatInfo = document.getElementById('adminChatInfo');
+const adminChatMessages = document.getElementById('adminChatMessages');
+const adminChatWarnBtn = document.getElementById('adminChatWarnBtn');
+const adminChatMuteBtn = document.getElementById('adminChatMuteBtn');
+const adminChatKickBtn = document.getElementById('adminChatKickBtn');
+const adminChatBanBtn = document.getElementById('adminChatBanBtn');
+
 // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
 function formatPhone(number) {
     let cleaned = number.replace(/\D/g, '');
@@ -174,8 +208,28 @@ function isOwner() {
     return CURRENT_USER?.phone === OWNER_PHONE;
 }
 
-function isAdmin() {
-    return !!(ADMIN_RIGHTS || isOwner());
+function getUserRank(phone) {
+    if (phone === OWNER_PHONE) return 5;
+    if (!ADMIN_RIGHTS) return 0;
+    return ADMIN_RIGHTS.rank || 0;
+}
+
+function canUserDo(phone, action) {
+    const rank = getUserRank(phone);
+    if (rank >= 5) return true;
+    
+    const actions = {
+        'warn': rank >= 1,
+        'mute': rank >= 1,
+        'kick': rank >= 2,
+        'clean': rank >= 2,
+        'settings': rank >= 3,
+        'filters': rank >= 3,
+        'assign_mods': rank >= 4,
+        'rules': rank >= 4,
+        'full': rank >= 5
+    };
+    return actions[action] || false;
 }
 
 // ==================== ГЛАЗКИ ДЛЯ ПАРОЛЯ ====================
@@ -316,11 +370,10 @@ function stopQrLogin() {
     }
 }
 
-// ==================== СКАНИРОВАНИЕ QR (ДЛЯ ТЕЛЕФОНА) ====================
+// ==================== СКАНИРОВАНИЕ QR ====================
 let scanning = false;
 let videoStream = null;
 
-// Добавляем обработчик для сканирования (можно вызвать из меню)
 window.startQrScanning = async function() {
     qrScanModal.style.display = 'flex';
     
@@ -443,7 +496,7 @@ googleLoginBtn?.addEventListener('click', () => {
     alert('🔐 Вход через Google будет доступен в ближайшее время!');
 });
 
-// ==================== ЗАГРУЗКА НАСТРОЕК ПОЛЬЗОВАТЕЛЯ ====================
+// ==================== ЗАГРУЗКА НАСТРОЕК ====================
 async function loadUserSettings() {
     const { data } = await supabaseClient
         .from('profiles')
@@ -501,7 +554,7 @@ async function saveSessionToDB() {
     }
 }
 
-// ==================== ЗАГРУЗКА СПИСКА УСТРОЙСТВ ====================
+// ==================== ЗАГРУЗКА УСТРОЙСТВ ====================
 async function loadSessions() {
     if (!devicesList) return;
     
@@ -535,7 +588,6 @@ async function loadSessions() {
     }
 }
 
-// ==================== ЗАВЕРШЕНИЕ СЕССИИ ====================
 window.terminateSession = async function(token) {
     if (!confirm('Завершить эту сессию?')) return;
     
@@ -551,7 +603,6 @@ window.terminateSession = async function(token) {
     }
 };
 
-// ==================== ВЫХОД СО ВСЕХ УСТРОЙСТВ ====================
 terminateAllSessions?.addEventListener('click', async () => {
     if (!confirm('Вы уверены? Это завершит все сессии, кроме текущей.')) return;
     
@@ -594,7 +645,7 @@ loginButton?.addEventListener('click', async () => {
         app.style.display = 'flex';
         currentUserPhone.textContent = CURRENT_USER.phone;
         
-        if (isAdmin()) {
+        if (ADMIN_RIGHTS || isOwner()) {
             adminButton.style.display = 'block';
         }
         
@@ -1380,6 +1431,7 @@ function stopForestAnimations() {
 adminButton?.addEventListener('click', () => {
     adminModal.style.display = 'flex';
     loadAdminUsers();
+    loadAdminChats();
     if (isOwner()) loadAdminsList();
 });
 
@@ -1392,63 +1444,301 @@ adminTabs.forEach(tab => tab.addEventListener('click', () => {
     document.getElementById(`admin${tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)}`).classList.add('active');
     
     if (tab.dataset.tab === 'users') loadAdminUsers();
+    if (tab.dataset.tab === 'chats') loadAdminChats();
     if (tab.dataset.tab === 'support') loadSupportRequests();
     if (tab.dataset.tab === 'reports') loadReports();
     if (tab.dataset.tab === 'channels') loadChannels();
     if (tab.dataset.tab === 'admins' && isOwner()) loadAdminsList();
 }));
 
+// Загрузка пользователей для админки
 async function loadAdminUsers() {
     try {
         const { data: users } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
         
-        const { data: admins } = await supabaseClient.from('admins').select('phone');
-        const adminPhones = admins?.map(a => a.phone) || [];
+        const { data: admins } = await supabaseClient.from('admins').select('phone, rank');
+        const adminMap = {};
+        admins?.forEach(a => adminMap[a.phone] = a.rank || 1);
         
-        adminUsersList.innerHTML = users?.map(u => `
+        adminUsersList.innerHTML = users?.map(u => {
+            const rank = u.phone === OWNER_PHONE ? 5 : (adminMap[u.phone] || 0);
+            return `
             <div class="admin-user-item">
                 <div>
                     <strong>${u.username || u.phone}</strong>
                     <div style="color:#888;font-size:12px;">${u.phone}</div>
+                    ${rank > 0 ? `<div style="color:${RANGS[rank]?.color}">Ранг ${rank}: ${RANGS[rank]?.name}</div>` : ''}
                 </div>
                 <div class="admin-user-actions">
                     ${isOwner() && u.phone !== OWNER_PHONE ? `
-                        <button class="admin-user-btn make-admin" onclick="toggleAdmin('${u.phone}')">
-                            ${adminPhones.includes(u.phone) ? '👑 Убрать из админов' : '👑 Сделать админом'}
+                        <button class="admin-user-btn make-admin" onclick="openRankModal('${u.phone}')">
+                            ${rank > 0 ? '👑 Изменить ранг' : '👑 Назначить'}
                         </button>
                     ` : ''}
                     ${u.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
-                    ${adminPhones.includes(u.phone) && u.phone !== OWNER_PHONE ? '<span style="color:#00bfff;">👤 Админ</span>' : ''}
                 </div>
-            </div>`).join('') || '<p class="no-data">Нет пользователей</p>';
+            </div>`;
+        }).join('') || '<p class="no-data">Нет пользователей</p>';
     } catch (e) { console.error(e); }
 }
 
-window.toggleAdmin = async function(phone) {
-    if (!isOwner()) return;
+// Модалка выбора ранга
+window.openRankModal = function(phone) {
+    currentRankUser = phone;
+    rankUserPhone.textContent = `Пользователь: ${phone}`;
+    
+    // Сбрасываем выделение
+    rankOptions.forEach(opt => opt.classList.remove('selected'));
+    
+    // Загружаем текущий ранг
+    supabaseClient.from('admins').select('rank').eq('phone', phone).single().then(({ data }) => {
+        if (data) {
+            const rank = data.rank;
+            rankOptions.forEach(opt => {
+                if (opt.dataset.rank == rank) {
+                    opt.classList.add('selected');
+                }
+            });
+        }
+    });
+    
+    rankModal.style.display = 'flex';
+};
+
+window.selectRank = function(rank) {
+    rankOptions.forEach(opt => opt.classList.remove('selected'));
+    rankOptions.forEach(opt => {
+        if (opt.dataset.rank == rank) {
+            opt.classList.add('selected');
+        }
+    });
+};
+
+closeRankModal?.addEventListener('click', () => {
+    rankModal.style.display = 'none';
+    currentRankUser = null;
+});
+
+cancelRankBtn?.addEventListener('click', () => {
+    rankModal.style.display = 'none';
+    currentRankUser = null;
+});
+
+confirmRankBtn?.addEventListener('click', async () => {
+    const selected = document.querySelector('.rank-option.selected');
+    if (!selected) {
+        alert('Выберите ранг');
+        return;
+    }
+    
+    const rank = parseInt(selected.dataset.rank);
     
     try {
+        // Проверяем, есть ли уже запись
         const { data: existing } = await supabaseClient
             .from('admins')
             .select('*')
-            .eq('phone', phone);
+            .eq('phone', currentRankUser);
         
         if (existing?.length) {
-            await supabaseClient.from('admins').delete().eq('phone', phone);
-            alert(`✅ ${phone} больше не админ`);
+            // Обновляем ранг
+            await supabaseClient
+                .from('admins')
+                .update({ rank })
+                .eq('phone', currentRankUser);
         } else {
-            await supabaseClient.from('admins').insert([{ phone }]);
-            alert(`✅ ${phone} назначен админом`);
+            // Создаём новую запись
+            await supabaseClient
+                .from('admins')
+                .insert([{ phone: currentRankUser, rank }]);
         }
         
+        alert(`✅ Ранг ${rank} назначен`);
+        rankModal.style.display = 'none';
         loadAdminUsers();
-        if (isOwner()) loadAdminsList();
     } catch (e) {
-        console.error('Ошибка:', e);
         alert('❌ Ошибка: ' + e.message);
+    }
+});
+
+// Загрузка чатов для админки
+async function loadAdminChats() {
+    if (!adminChatsList) return;
+    
+    try {
+        // Загружаем личные сообщения
+        const { data: privateMessages } = await supabaseClient
+            .from('messages')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        // Загружаем группы
+        const { data: groups } = await supabaseClient
+            .from('groups')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        const chats = [];
+        
+        // Группируем личные сообщения по парам
+        const privateChats = new Map();
+        privateMessages?.forEach(m => {
+            const participants = [m.sender, m.receiver].sort().join('-');
+            if (!privateChats.has(participants) || new Date(m.created_at) > new Date(privateChats.get(participants).lastMessageTime)) {
+                privateChats.set(participants, {
+                    type: 'private',
+                    participants: [m.sender, m.receiver],
+                    lastMessage: m.content,
+                    lastMessageTime: m.created_at,
+                    messageCount: 1
+                });
+            } else {
+                privateChats.get(participants).messageCount++;
+            }
+        });
+        
+        privateChats.forEach(chat => chats.push(chat));
+        
+        // Добавляем группы
+        groups?.forEach(g => {
+            chats.push({
+                type: 'group',
+                id: g.id,
+                name: g.name,
+                created_by: g.created_by,
+                created_at: g.created_at
+            });
+        });
+        
+        // Сортируем по дате
+        chats.sort((a, b) => {
+            const dateA = a.lastMessageTime || a.created_at;
+            const dateB = b.lastMessageTime || b.created_at;
+            return new Date(dateB) - new Date(dateA);
+        });
+        
+        if (!chats.length) {
+            adminChatsList.innerHTML = '<p class="no-data">Нет чатов</p>';
+            return;
+        }
+        
+        adminChatsList.innerHTML = chats.map(chat => {
+            if (chat.type === 'private') {
+                const other = chat.participants.find(p => p !== CURRENT_USER.phone) || chat.participants[0];
+                return `
+                <div class="admin-chat-item">
+                    <div class="admin-chat-header">
+                        <span class="admin-chat-type private">💬 Личный чат</span>
+                        <span>${new Date(chat.lastMessageTime).toLocaleString()}</span>
+                    </div>
+                    <div class="admin-chat-users">Участники: ${chat.participants.join(', ')}</div>
+                    <div class="admin-chat-last-message">${chat.lastMessage}</div>
+                    <div class="admin-chat-actions">
+                        <button class="admin-chat-btn view" onclick="viewAdminChat('private', '${chat.participants.join('|')}')">👁️ Просмотр</button>
+                        ${canUserDo(CURRENT_USER.phone, 'warn') ? `<button class="admin-chat-btn warn" onclick="moderateChat('${other}', 'warn')">⚠️ Варн</button>` : ''}
+                        ${canUserDo(CURRENT_USER.phone, 'mute') ? `<button class="admin-chat-btn mute" onclick="moderateChat('${other}', 'mute')">🔇 Мут</button>` : ''}
+                        ${canUserDo(CURRENT_USER.phone, 'kick') ? `<button class="admin-chat-btn kick" onclick="moderateChat('${other}', 'kick')">👢 Кик</button>` : ''}
+                        ${canUserDo(CURRENT_USER.phone, 'full') ? `<button class="admin-chat-btn ban" onclick="moderateChat('${other}', 'ban')">🚫 Бан</button>` : ''}
+                    </div>
+                </div>`;
+            } else {
+                return `
+                <div class="admin-chat-item">
+                    <div class="admin-chat-header">
+                        <span class="admin-chat-type group">👥 Группа: ${chat.name}</span>
+                        <span>${new Date(chat.created_at).toLocaleString()}</span>
+                    </div>
+                    <div class="admin-chat-users">Создатель: ${chat.created_by}</div>
+                    <div class="admin-chat-actions">
+                        <button class="admin-chat-btn view" onclick="viewAdminChat('group', ${chat.id})">👁️ Просмотр</button>
+                        ${canUserDo(CURRENT_USER.phone, 'settings') ? `<button class="admin-chat-btn" onclick="editGroup(${chat.id})">⚙️ Настройки</button>` : ''}
+                    </div>
+                </div>`;
+            }
+        }).join('');
+    } catch (e) {
+        console.error('Ошибка загрузки чатов:', e);
+    }
+}
+
+// Просмотр чата админом
+window.viewAdminChat = async function(type, id) {
+    adminChatViewModal.style.display = 'flex';
+    
+    if (type === 'private') {
+        const [user1, user2] = id.split('|');
+        adminChatViewTitle.textContent = `Чат: ${user1} - ${user2}`;
+        adminChatInfo.innerHTML = `<p>Тип: Личный чат</p><p>Участники: ${user1}, ${user2}</p>`;
+        
+        // Загружаем сообщения
+        const { data: messages } = await supabaseClient
+            .from('messages')
+            .select('*')
+            .or(`and(sender.eq.${user1},receiver.eq.${user2}),and(sender.eq.${user2},receiver.eq.${user1})`)
+            .order('created_at', { ascending: true });
+        
+        adminChatMessages.innerHTML = messages?.map(m => `
+            <div class="message ${m.sender === CURRENT_USER.phone ? 'sent' : 'received'}" style="margin:5px 0;max-width:100%">
+                <div><strong>${m.sender}:</strong> ${m.content}</div>
+                <div style="font-size:10px;color:#888">${new Date(m.created_at).toLocaleString()}</div>
+            </div>
+        `).join('') || '<p>Нет сообщений</p>';
+    } else {
+        const { data: group } = await supabaseClient.from('groups').select('*').eq('id', id).single();
+        adminChatViewTitle.textContent = `Группа: ${group.name}`;
+        adminChatInfo.innerHTML = `<p>Тип: Группа</p><p>Создатель: ${group.created_by}</p><p>Описание: ${group.description || 'Нет'}</p>`;
+        
+        const { data: messages } = await supabaseClient
+            .from('group_messages')
+            .select('*')
+            .eq('group_id', id)
+            .order('created_at', { ascending: true });
+        
+        adminChatMessages.innerHTML = messages?.map(m => `
+            <div class="message received" style="margin:5px 0;max-width:100%">
+                <div><strong>${m.sender}:</strong> ${m.content}</div>
+                <div style="font-size:10px;color:#888">${new Date(m.created_at).toLocaleString()}</div>
+            </div>
+        `).join('') || '<p>Нет сообщений</p>';
     }
 };
 
+closeAdminChatView?.addEventListener('click', () => {
+    adminChatViewModal.style.display = 'none';
+});
+
+// Модерация
+window.moderateChat = async function(userPhone, action) {
+    if (userPhone === OWNER_PHONE) {
+        alert('❌ Нельзя модерировать владельца');
+        return;
+    }
+    
+    const actionNames = {
+        warn: 'выдать предупреждение',
+        mute: 'замутить',
+        kick: 'кикнуть',
+        ban: 'забанить'
+    };
+    
+    if (!confirm(`Вы уверены, что хотите ${actionNames[action]} пользователя ${userPhone}?`)) return;
+    
+    // Здесь будет логика модерации
+    alert(`✅ Действие "${actionNames[action]}" выполнено (тестовая версия)`);
+};
+
+// Обновление списка чатов
+refreshChatsBtn?.addEventListener('click', loadAdminChats);
+
+// Поиск по чатам
+adminChatSearch?.addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+    document.querySelectorAll('.admin-chat-item').forEach(el => {
+        el.style.display = el.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+    });
+});
+
+// Заглушки для других вкладок
 async function loadSupportRequests() {
     supportList.innerHTML = '<p class="no-data">Функция поддержки в разработке</p>';
 }
@@ -1465,7 +1755,7 @@ async function loadAdminsList() {
     const { data: admins } = await supabaseClient.from('admins').select('*');
     adminsList.innerHTML = admins?.map(a => `
         <div class="admin-user-item">
-            <div>${a.phone}</div>
+            <div>${a.phone} - Ранг ${a.rank || 1}</div>
             ${a.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
         </div>
     `).join('');
@@ -1481,7 +1771,7 @@ addAdminBtn?.addEventListener('click', async () => {
         return; 
     }
     
-    await toggleAdmin(p);
+    openRankModal(p);
     newAdminPhone.value = '';
 });
 
@@ -1512,7 +1802,7 @@ if (savedUser) {
         
         ADMIN_RIGHTS = await loadAdminRights(CURRENT_USER.phone);
         
-        if (isAdmin()) {
+        if (ADMIN_RIGHTS || isOwner()) {
             adminButton.style.display = 'block';
         }
         
@@ -1521,7 +1811,7 @@ if (savedUser) {
     })();
 }
 
-// ==================== ЗАКРЫТИЕ МЕНЮ ПРИ КЛИКЕ ВНЕ ЕГО ====================
+// ==================== ЗАКРЫТИЕ МЕНЮ ====================
 document.addEventListener('click', function(e) {
     if (!e.target.closest('.message')) {
         messageMenu.style.display = 'none';
@@ -1534,4 +1824,4 @@ document.addEventListener('click', function(e) {
     }
 });
 
-console.log('✅ LinkUp — полная версия с темами, Google привязкой и админ-панелью');
+console.log('✅ LinkUp — полная версия с рангами 1-5 и админ-чатами');

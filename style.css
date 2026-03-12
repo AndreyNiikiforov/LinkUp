@@ -18,6 +18,11 @@
     --success: #4caf50;
     --danger: #ff4444;
     --warning: #ffbb33;
+    --rank-1: #cd7f32;
+    --rank-2: #c0c0c0;
+    --rank-3: #ffd700;
+    --rank-4: #00bfff;
+    --rank-5: #ff1493;
 }
 
 body {
@@ -642,7 +647,7 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: rgba(10, 10, 15, 0.95);
+    background: transparent;
     transition: background-color 0.3s;
 }
 
@@ -1535,6 +1540,19 @@ body {
     transform: translateY(-2px);
 }
 
+.admin-user-btn.warn {
+    background: var(--warning);
+    color: #000;
+}
+
+.admin-user-btn.mute {
+    background: #ff8800;
+}
+
+.admin-user-btn.kick {
+    background: #ff4444;
+}
+
 .admin-action {
     width: 100%;
     padding: 12px;
@@ -1576,6 +1594,256 @@ body {
     text-align: center;
     color: var(--text-secondary);
     padding: 30px;
+}
+
+/* Админ-чаты */
+.admin-chats-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.admin-chat-item {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s;
+}
+
+.admin-chat-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--accent-purple);
+}
+
+.admin-chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.admin-chat-type {
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.admin-chat-type.private {
+    background: rgba(0, 191, 255, 0.2);
+    color: #00bfff;
+}
+
+.admin-chat-type.group {
+    background: rgba(124, 58, 237, 0.2);
+    color: #7c3aed;
+}
+
+.admin-chat-users {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.admin-chat-last-message {
+    font-size: 13px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 2px solid var(--accent-purple);
+}
+
+.admin-chat-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-chat-btn {
+    padding: 6px 15px;
+    border: none;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.admin-chat-btn.view {
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+    color: white;
+}
+
+.admin-chat-btn.warn {
+    background: var(--warning);
+    color: #000;
+}
+
+.admin-chat-btn.mute {
+    background: #ff8800;
+    color: white;
+}
+
+.admin-chat-btn.kick {
+    background: #ff4444;
+    color: white;
+}
+
+.admin-chat-btn.ban {
+    background: var(--danger);
+    color: white;
+}
+
+.admin-chat-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+/* ==================== МОДАЛКА РАНГОВ ==================== */
+.rank-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 6000;
+    backdrop-filter: blur(10px);
+}
+
+.rank-modal-content {
+    width: 90%;
+    max-width: 500px;
+    background: #1a1a24;
+    border-radius: 20px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 50px rgba(124, 58, 237, 0.3);
+}
+
+.rank-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.close-rank {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.rank-user-phone {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    text-align: center;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+}
+
+.rank-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.rank-option {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid transparent;
+}
+
+.rank-option:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--accent-purple);
+    transform: translateX(5px);
+}
+
+.rank-option.selected {
+    background: rgba(124, 58, 237, 0.15);
+    border-color: var(--accent-purple);
+}
+
+.rank-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.rank-badge.rank-1 {
+    background: var(--rank-1);
+    color: #fff;
+}
+
+.rank-badge.rank-2 {
+    background: var(--rank-2);
+    color: #000;
+}
+
+.rank-badge.rank-3 {
+    background: var(--rank-3);
+    color: #000;
+}
+
+.rank-badge.rank-4 {
+    background: var(--rank-4);
+    color: #fff;
+}
+
+.rank-badge.rank-5 {
+    background: var(--rank-5);
+    color: #fff;
+}
+
+.rank-info {
+    flex: 1;
+}
+
+.rank-name {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.rank-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.rank-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
 }
 
 /* ==================== МЕНЮ СООБЩЕНИЯ ==================== */
@@ -1678,7 +1946,7 @@ body.light-theme {
 }
 
 .light-theme .chat-window {
-    background: #f0f0f0;
+    background: transparent;
 }
 
 .light-theme .message.received {
@@ -1706,7 +1974,7 @@ body.light-theme {
 /* ==================== ЖИВАЯ ТЕМА ЛЕС ==================== */
 body.forest-theme {
     --bg-dark: #1a3f2a;
-    --bg-sidebar: #2d5a3a;
+    --bg-sidebar: rgba(45, 90, 58, 0.85);
     --accent-pink: #ff8c8c;
     --accent-blue: #7ec8e0;
     --accent-purple: #b19cd9;
@@ -1716,8 +1984,31 @@ body.forest-theme {
     overflow-x: hidden;
 }
 
-/* Деревья (фоновые элементы) */
-.forest-theme::before {
+body.forest-theme::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: -2;
+    background: 
+        radial-gradient(circle at 10% 90%, #2d5a3a 8%, transparent 28%),
+        radial-gradient(circle at 90% 85%, #2d5a3a 10%, transparent 32%),
+        radial-gradient(circle at 20% 70%, #2d5a3a 7%, transparent 27%),
+        radial-gradient(circle at 80% 60%, #2d5a3a 9%, transparent 30%),
+        radial-gradient(circle at 30% 40%, #2d5a3a 6%, transparent 24%),
+        radial-gradient(circle at 70% 30%, #2d5a3a 8%, transparent 26%);
+    animation: forestBreath 20s infinite ease-in-out;
+}
+
+@keyframes forestBreath {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
+}
+
+body.forest-theme::after {
     content: '';
     position: fixed;
     top: 0;
@@ -1726,68 +2017,65 @@ body.forest-theme {
     bottom: 0;
     pointer-events: none;
     z-index: -1;
-    background: 
-        radial-gradient(circle at 10% 90%, #2d5a3a 5%, transparent 25%),
-        radial-gradient(circle at 90% 85%, #2d5a3a 8%, transparent 30%),
-        radial-gradient(circle at 20% 70%, #2d5a3a 6%, transparent 25%),
-        radial-gradient(circle at 80% 60%, #2d5a3a 7%, transparent 28%),
-        radial-gradient(circle at 30% 40%, #2d5a3a 5%, transparent 22%),
-        radial-gradient(circle at 70% 30%, #2d5a3a 6%, transparent 24%);
+    background: repeating-linear-gradient(45deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 30px, transparent 30px, transparent 60px);
 }
 
-/* Лёгкое покачивание */
-.forest-theme .sidebar,
-.forest-theme .chat-window,
-.forest-theme .auth-card {
-    animation: sway 10s infinite ease-in-out;
-    transform-origin: center bottom;
+body.forest-theme .sidebar {
+    background: rgba(45, 90, 58, 0.75);
+    backdrop-filter: blur(8px);
 }
 
-@keyframes sway {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(0.2deg); }
-    75% { transform: rotate(-0.2deg); }
+body.forest-theme .chat-window {
+    background: transparent !important;
 }
 
-/* Листья */
-.forest-theme .leaf {
+body.forest-theme .chat-header {
+    background: rgba(18, 18, 24, 0.4);
+    backdrop-filter: blur(8px);
+}
+
+body.forest-theme .message.received {
+    background: rgba(42, 42, 42, 0.65);
+    backdrop-filter: blur(4px);
+}
+
+body.forest-theme .message.sent {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.55), rgba(0, 191, 255, 0.55));
+    backdrop-filter: blur(4px);
+}
+
+body.forest-theme .message-input-area {
+    background: rgba(18, 18, 24, 0.4);
+    backdrop-filter: blur(8px);
+}
+
+body.forest-theme .leaf {
     position: fixed;
     color: #d4a373;
     font-size: 20px;
     pointer-events: none;
     z-index: 9999;
     animation: fall linear infinite;
+    text-shadow: 0 0 5px rgba(255,255,255,0.3);
 }
 
 @keyframes fall {
-    0% {
-        transform: translateY(-10vh) rotate(0deg);
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(110vh) rotate(360deg);
-        opacity: 0;
-    }
+    0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0.2; }
 }
 
-/* Дождь */
-.forest-theme .raindrop {
+body.forest-theme .raindrop {
     position: fixed;
     width: 2px;
-    height: 15px;
-    background: rgba(255, 255, 255, 0.3);
+    height: 20px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.2));
     pointer-events: none;
     z-index: 9998;
     animation: rain linear infinite;
+    border-radius: 1px;
 }
 
 @keyframes rain {
-    0% {
-        transform: translateY(-10vh);
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(110vh);
-        opacity: 0;
-    }
+    0% { transform: translateY(-10vh); opacity: 0.8; }
+    100% { transform: translateY(110vh); opacity: 0.2; }
 }
