@@ -126,9 +126,6 @@
             <!-- Кнопка создания группы -->
             <button class="create-group-btn" id="createGroupBtn">➕ Создать группу</button>
 
-            <!-- Кнопка BotMaker -->
-            <button class="bot-maker-btn" id="openBotMakerBtn">🤖 BotMaker</button>
-
             <!-- Кнопка админ-панели -->
             <button class="admin-button" id="adminButton" style="display: none;">👑 Админ-панель</button>
         </div>
@@ -263,10 +260,44 @@
                     </div>
                     <div class="linked-item">
                         <span>💬 MAX</span>
-                        <button class="link-btn" id="linkMax">Привязать</button>
+                        <button class="link-btn" id="linkMax" data-provider="max">Привязать</button>
                     </div>
                 </div>
                 <p class="linked-hint">Привяжите аккаунты для восстановления пароля и двухфакторной аутентификации</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ПРИВЯЗКИ MAX -->
+    <div class="bind-modal" id="bindMaxModal" style="display: none;">
+        <div class="bind-modal-content">
+            <div class="bind-modal-header">
+                <h2>💬 Привязка MAX</h2>
+                <button class="close-bind" id="closeBindMax">✕</button>
+            </div>
+            <div class="bind-modal-body">
+                <p class="bind-info">Для повышения безопасности рекомендуем привязать аккаунт MAX.</p>
+                <p class="bind-info">После привязки все входы будут подтверждаться кодом из MAX.</p>
+                
+                <div class="bind-step" id="bindStep1">
+                    <h3>Шаг 1: Введите номер MAX</h3>
+                    <div class="phone-input-container">
+                        <span class="phone-prefix">+7</span>
+                        <input type="tel" class="phone-input" id="bindMaxPhone" placeholder="925 XXX XX XX" maxlength="10">
+                    </div>
+                    <button class="auth-button" id="sendMaxCode">Отправить код</button>
+                </div>
+                
+                <div class="bind-step" id="bindStep2" style="display: none;">
+                    <h3>Шаг 2: Введите код из MAX</h3>
+                    <div class="code-input-container">
+                        <input type="text" class="code-input" id="bindMaxCode" placeholder="123456" maxlength="6">
+                    </div>
+                    <button class="auth-button" id="verifyMaxCode">Подтвердить</button>
+                    <button class="auth-button secondary" id="backToStep1">← Назад</button>
+                </div>
+                
+                <p class="bind-message" id="bindMessage"></p>
             </div>
         </div>
     </div>
@@ -295,6 +326,80 @@
             <div class="qr-confirm-actions">
                 <button class="auth-button" id="qrConfirmYes">✅ Да, это я</button>
                 <button class="auth-button secondary" id="qrConfirmNo">❌ Нет, заблокировать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ВХОДА С MAX КОДОМ -->
+    <div class="max-login-modal" id="maxLoginModal" style="display: none;">
+        <div class="max-login-content">
+            <h2>🔐 Подтверждение через MAX</h2>
+            <p>Введите код, отправленный в MAX</p>
+            <div class="code-input-container">
+                <input type="text" class="code-input" id="maxLoginCode" placeholder="123456" maxlength="6">
+            </div>
+            <button class="auth-button" id="verifyLoginCode">Подтвердить</button>
+            <button class="auth-button secondary" id="cancelMaxLogin">Отмена</button>
+            <p class="bind-message" id="maxLoginMessage"></p>
+        </div>
+    </div>
+
+    <!-- MAX баннер -->
+    <div class="max-banner" id="maxBanner" style="display: none;">
+        <div class="max-banner-content">
+            <span>🔒 Рекомендуем привязать MAX для безопасности</span>
+            <button id="showMaxBind">Привязать</button>
+            <button id="closeMaxBanner">✕</button>
+        </div>
+    </div>
+
+    <!-- АДМИН-ПАНЕЛЬ -->
+    <div class="admin-modal" id="adminModal" style="display: none;">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h2>👑 Админ-панель</h2>
+                <button class="close-admin" id="closeAdmin">✕</button>
+            </div>
+            
+            <div class="admin-tabs">
+                <button class="admin-tab active" data-tab="users">👥 Пользователи</button>
+                <button class="admin-tab" data-tab="support">❓ Поддержка</button>
+                <button class="admin-tab" data-tab="reports">⚠️ Жалобы</button>
+                <button class="admin-tab" data-tab="channels">📢 Каналы</button>
+                <button class="admin-tab" data-tab="admins" id="adminsTab">👑 Админы</button>
+            </div>
+            
+            <!-- Вкладка Пользователи -->
+            <div class="admin-tab-content active" id="adminUsers">
+                <div class="admin-search">
+                    <input type="text" id="adminUserSearch" placeholder="🔍 Поиск пользователя...">
+                </div>
+                <div class="admin-users-list" id="adminUsersList"></div>
+            </div>
+            
+            <!-- Вкладка Поддержка -->
+            <div class="admin-tab-content" id="adminSupport">
+                <div class="support-list" id="supportList"></div>
+            </div>
+            
+            <!-- Вкладка Жалобы -->
+            <div class="admin-tab-content" id="adminReports">
+                <div class="reports-list" id="reportsList"></div>
+            </div>
+            
+            <!-- Вкладка Каналы -->
+            <div class="admin-tab-content" id="adminChannels">
+                <div class="channels-list" id="channelsList"></div>
+                <button class="admin-action" id="createChannelBtn">➕ Создать канал</button>
+            </div>
+            
+            <!-- Вкладка Админы (только для владельца) -->
+            <div class="admin-tab-content" id="adminAdmins">
+                <div class="admins-list" id="adminsList"></div>
+                <div class="add-admin">
+                    <input type="text" id="newAdminPhone" placeholder="📱 Номер нового админа">
+                    <button class="admin-action" id="addAdminBtn">👑 Назначить</button>
+                </div>
             </div>
         </div>
     </div>
