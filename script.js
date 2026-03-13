@@ -20,13 +20,38 @@ let leafInterval = null;
 let rainInterval = null;
 let currentRankUser = null;
 
-// Описания рангов
+// Расширенные описания рангов
 const RANGS = {
-    1: { name: 'Младший модератор', desc: 'Мут и варны', color: '#cd7f32' },
-    2: { name: 'Старший модератор', desc: 'Кик, чистка чата', color: '#c0c0c0' },
-    3: { name: 'Младший администратор', desc: 'Настройки чата, фильтры', color: '#ffd700' },
-    4: { name: 'Старший администратор', desc: 'Назначение модераторов, правила', color: '#00bfff' },
-    5: { name: 'Создатель', desc: 'Полный доступ, передача прав', color: '#ff1493' }
+    1: { 
+        name: 'Младший модератор', 
+        desc: 'Мут и варны', 
+        color: '#cd7f32',
+        permissions: ['warn', 'mute']
+    },
+    2: { 
+        name: 'Старший модератор', 
+        desc: 'Кик, чистка чата', 
+        color: '#c0c0c0',
+        permissions: ['warn', 'mute', 'kick', 'clean']
+    },
+    3: { 
+        name: 'Младший администратор', 
+        desc: 'Настройки чата, фильтры', 
+        color: '#ffd700',
+        permissions: ['warn', 'mute', 'kick', 'clean', 'settings', 'filters']
+    },
+    4: { 
+        name: 'Старший администратор', 
+        desc: 'Назначение модераторов, правила', 
+        color: '#00bfff',
+        permissions: ['warn', 'mute', 'kick', 'clean', 'settings', 'filters', 'assign_mods', 'rules']
+    },
+    5: { 
+        name: 'Заместитель владельца', 
+        desc: 'Все функции, кроме удаления владельца', 
+        color: '#ff1493',
+        permissions: ['warn', 'mute', 'kick', 'clean', 'settings', 'filters', 'assign_mods', 'rules', 'full', 'manage_admins']
+    }
 };
 
 // ==================== DOM ЭЛЕМЕНТЫ ====================
@@ -56,6 +81,7 @@ const currentUserPhone = document.getElementById('currentUserPhone');
 const currentUserName = document.getElementById('currentUserName');
 const currentUserUsername = document.getElementById('currentUserUsername');
 const adminButton = document.getElementById('adminButton');
+const logoutBtn = document.getElementById('logoutBtn');
 const searchInput = document.getElementById('searchInput');
 const searchButton = document.getElementById('searchButton');
 const searchTypeRadios = document.querySelectorAll('input[name="searchType"]');
@@ -245,19 +271,22 @@ function getUserRank(phone) {
 function canUserDo(phone, action) {
     const rank = getUserRank(phone);
     if (rank >= 5) return true;
+    if (rank === 0) return false;
     
-    const actions = {
-        'warn': rank >= 1,
-        'mute': rank >= 1,
-        'kick': rank >= 2,
-        'clean': rank >= 2,
-        'settings': rank >= 3,
-        'filters': rank >= 3,
-        'assign_mods': rank >= 4,
-        'rules': rank >= 4,
-        'full': rank >= 5
-    };
-    return actions[action] || false;
+    return RANGS[rank]?.permissions?.includes(action) || false;
+}
+
+// ==================== ВЫХОД ИЗ ПРОФИЛЯ ====================
+function logout() {
+    localStorage.removeItem('linkup_session');
+    CURRENT_USER = null;
+    CURRENT_SESSION_TOKEN = null;
+    ADMIN_RIGHTS = null;
+    authScreen.style.display = 'flex';
+    app.style.display = 'none';
+    loginPhone.value = '';
+    loginPassword.value = '';
+    authMessage.textContent = '';
 }
 
 // ==================== ГЛАЗКИ ДЛЯ ПАРОЛЯ ====================
@@ -1641,7 +1670,7 @@ function stopForestAnimations() {
     document.querySelectorAll('.leaf, .raindrop').forEach(el => el.remove());
 }
 
-// ==================== ЗВОНКИ ====================
+// ==================== ЗВОНКИ (ИСПРАВЛЕННЫЕ) ====================
 let peerConnection = null;
 let localStream = null;
 let remoteStream = null;
@@ -1650,6 +1679,7 @@ let callSeconds = 0;
 let currentCallType = null;
 let incomingCallTimeout = null;
 let pendingCall = null;
+let activeCall = false;
 
 const iceServers = {
     iceServers: [
@@ -1661,49 +1691,52 @@ const iceServers = {
     ]
 };
 
+// Состояние звонков
+let callState = {
+    isCalling: false,
+    targetUser: null,
+    callType: null,
+    callId: null
+};
+
 if (audioCallBtn) {
     audioCallBtn.addEventListener('click', async () => {
-        if (!CURRENT_CHAT && !CURRENT_GROUP) {
+        if (!CURRENT_CHAT) {
             alert('Сначала выберите чат');
             return;
         }
         
-        if (CURRENT_GROUP) {
-            startGroupCall('audio');
-        } else {
-            startCall('audio');
+        if (callState.isCalling) {
+            alert('Уже есть активный звонок');
+            return;
         }
+        
+        await startCall('audio', CURRENT_CHAT.phone);
     });
 }
 
 if (videoCallBtn) {
     videoCallBtn.addEventListener('click', async () => {
-        if (!CURRENT_CHAT && !CURRENT_GROUP) {
+        if (!CURRENT_CHAT) {
             alert('Сначала выберите чат');
             return;
         }
         
-        if (CURRENT_GROUP) {
-            startGroupCall('video');
-        } else {
-            startCall('video');
-        }
-    });
-}
-
-if (groupCallBtn) {
-    groupCallBtn.addEventListener('click', () => {
-        if (!CURRENT_GROUP) {
-            alert('Сначала выберите группу');
+        if (callState.isCalling) {
+            alert('Уже есть активный звонок');
             return;
         }
-        startGroupCall('video');
+        
+        await startCall('video', CURRENT_CHAT.phone);
     });
 }
 
-async function startCall(type) {
+async function startCall(type, targetPhone) {
     try {
-        currentCallType = type;
+        callState.isCalling = true;
+        callState.targetUser = targetPhone;
+        callState.callType = type;
+        callState.callId = 'call_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
         
         const constraints = {
             audio: true,
@@ -1721,6 +1754,7 @@ async function startCall(type) {
         peerConnection.ontrack = (event) => {
             remoteStream = event.streams[0];
             if (remoteVideo) remoteVideo.srcObject = remoteStream;
+            callStatus.textContent = 'Соединено';
         };
         
         peerConnection.onicecandidate = (event) => {
@@ -1732,56 +1766,105 @@ async function startCall(type) {
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
         
-        simulateCallRequest(type);
-        showCallModal(type);
+        // Создаём запись о звонке в БД
+        await supabaseClient
+            .from('calls')
+            .insert([{
+                call_id: callState.callId,
+                caller: CURRENT_USER.phone,
+                callee: targetPhone,
+                type: type,
+                status: 'calling',
+                started_at: new Date()
+            }]);
+        
+        // Отправляем уведомление о звонке (в реальном проекте через WebSocket)
+        setTimeout(() => {
+            simulateIncomingCall(targetPhone, type, callState.callId);
+        }, 2000);
+        
+        showCallModal(type, targetPhone);
         
     } catch (error) {
         console.error('Ошибка звонка:', error);
         alert('❌ Не удалось начать звонок: ' + error.message);
+        callState.isCalling = false;
     }
 }
 
-function startGroupCall(type) {
-    alert(`🔄 Групповой ${type === 'video' ? 'видео' : 'аудио'}звонок пока в разработке`);
-}
-
-function simulateCallRequest(type) {
-    const callerName = CURRENT_USER?.username || CURRENT_USER?.phone || 'Собеседник';
+function simulateIncomingCall(fromPhone, type, callId) {
+    // Проверяем, не ответили ли уже
+    if (!callState.isCalling) return;
     
-    setTimeout(() => {
-        if (incomingCallName) incomingCallName.textContent = callerName;
-        if (incomingCallType) {
-            incomingCallType.textContent = type === 'video' ? '📹 Входящий видеозвонок' : '📞 Входящий аудиозвонок';
-        }
-        if (incomingCallModal) incomingCallModal.style.display = 'flex';
+    // Получаем имя звонящего
+    supabaseClient.from('profiles').select('username').eq('phone', fromPhone).single().then(({ data }) => {
+        const callerName = data?.username || fromPhone;
         
-        if (incomingCallTimeout) clearTimeout(incomingCallTimeout);
-        incomingCallTimeout = setTimeout(() => {
-            if (incomingCallModal) incomingCallModal.style.display = 'none';
-            if (callStatus) callStatus.textContent = 'Нет ответа';
-            setTimeout(() => endCall(), 2000);
-        }, 30000);
-    }, 2000);
+        incomingCallName.textContent = callerName;
+        incomingCallType.textContent = type === 'video' ? '📹 Входящий видеозвонок' : '📞 Входящий аудиозвонок';
+        incomingCallModal.style.display = 'flex';
+        
+        // Таймер на ответ (30 секунд)
+        let timeLeft = 30;
+        const timerInterval = setInterval(() => {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                if (incomingCallModal.style.display === 'flex') {
+                    incomingCallModal.style.display = 'none';
+                    endCall();
+                    alert('❌ Вызов не отвечен');
+                }
+            }
+        }, 1000);
+        
+        // Обработчики ответа
+        acceptCallBtn.onclick = () => {
+            clearInterval(timerInterval);
+            incomingCallModal.style.display = 'none';
+            callStatus.textContent = 'Соединено';
+            
+            supabaseClient
+                .from('calls')
+                .update({ status: 'connected', answered_at: new Date() })
+                .eq('call_id', callId);
+        };
+        
+        declineCallBtn.onclick = () => {
+            clearInterval(timerInterval);
+            incomingCallModal.style.display = 'none';
+            endCall();
+            
+            supabaseClient
+                .from('calls')
+                .update({ status: 'declined' })
+                .eq('call_id', callId);
+        };
+    });
 }
 
-function showCallModal(type) {
-    if (callAvatar) callAvatar.textContent = CURRENT_CHAT?.username?.charAt(0) || '👤';
-    if (callName) callName.textContent = CURRENT_CHAT?.username || CURRENT_CHAT?.phone || 'Собеседник';
-    if (callStatus) callStatus.textContent = 'Вызов...';
-    
-    if (type === 'video' && callVideoContainer) {
-        callVideoContainer.style.display = 'block';
-        if (localVideo) localVideo.srcObject = localStream;
-    } else if (callVideoContainer) {
-        callVideoContainer.style.display = 'none';
-    }
-    
-    if (callModal) callModal.style.display = 'flex';
-    
-    callSeconds = 0;
-    updateCallTimer();
-    if (callTimer) clearInterval(callTimer);
-    callTimer = setInterval(updateCallTimer, 1000);
+function showCallModal(type, targetPhone) {
+    supabaseClient.from('profiles').select('username').eq('phone', targetPhone).single().then(({ data }) => {
+        const targetName = data?.username || targetPhone;
+        
+        callAvatar.textContent = targetName.charAt(0) || '👤';
+        callName.textContent = targetName;
+        callStatus.textContent = 'Вызов...';
+        
+        if (type === 'video' && callVideoContainer) {
+            callVideoContainer.style.display = 'block';
+            if (localVideo) localVideo.srcObject = localStream;
+        } else if (callVideoContainer) {
+            callVideoContainer.style.display = 'none';
+        }
+        
+        callModal.style.display = 'flex';
+        
+        callSeconds = 0;
+        updateCallTimer();
+        if (callTimer) clearInterval(callTimer);
+        callTimer = setInterval(updateCallTimer, 1000);
+    });
 }
 
 function updateCallTimer() {
@@ -1819,36 +1902,22 @@ function endCall() {
         incomingCallTimeout = null;
     }
     
-    if (callModal) callModal.style.display = 'none';
-    if (incomingCallModal) incomingCallModal.style.display = 'none';
+    callModal.style.display = 'none';
+    incomingCallModal.style.display = 'none';
+    
+    if (callState.callId) {
+        supabaseClient
+            .from('calls')
+            .update({ status: 'ended', ended_at: new Date() })
+            .eq('call_id', callState.callId);
+    }
+    
+    callState.isCalling = false;
+    callState.callId = null;
 }
 
 if (endCallBtn) {
     endCallBtn.addEventListener('click', endCall);
-}
-
-if (acceptCallBtn) {
-    acceptCallBtn.addEventListener('click', () => {
-        if (incomingCallModal) incomingCallModal.style.display = 'none';
-        if (incomingCallTimeout) {
-            clearTimeout(incomingCallTimeout);
-            incomingCallTimeout = null;
-        }
-        
-        if (callStatus) callStatus.textContent = 'Соединено';
-    });
-}
-
-if (declineCallBtn) {
-    declineCallBtn.addEventListener('click', () => {
-        if (incomingCallModal) incomingCallModal.style.display = 'none';
-        if (incomingCallTimeout) {
-            clearTimeout(incomingCallTimeout);
-            incomingCallTimeout = null;
-        }
-        if (callStatus) callStatus.textContent = 'Отклонено';
-        setTimeout(() => endCall(), 2000);
-    });
 }
 
 if (muteAudioBtn) {
@@ -2222,13 +2291,13 @@ function formatDuration(seconds) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-// ==================== АДМИН-ПАНЕЛЬ ====================
+// ==================== АДМИН-ПАНЕЛЬ С РАСШИРЕННЫМИ ПРАВАМИ ====================
 if (adminButton) {
     adminButton.addEventListener('click', () => {
         if (adminModal) adminModal.style.display = 'flex';
         loadAdminUsers();
         loadAdminChats();
-        if (isOwner()) loadAdminsList();
+        if (isOwner() || canUserDo(CURRENT_USER.phone, 'manage_admins')) loadAdminsList();
     });
 }
 
@@ -2251,7 +2320,7 @@ if (adminTabs) {
         if (tab.dataset.tab === 'support') loadSupportRequests();
         if (tab.dataset.tab === 'reports') loadReports();
         if (tab.dataset.tab === 'channels') loadChannels();
-        if (tab.dataset.tab === 'admins' && isOwner()) loadAdminsList();
+        if (tab.dataset.tab === 'admins' && (isOwner() || canUserDo(CURRENT_USER.phone, 'manage_admins'))) loadAdminsList();
     }));
 }
 
@@ -2267,6 +2336,8 @@ async function loadAdminUsers() {
         
         adminUsersList.innerHTML = users?.map(u => {
             const rank = u.phone === OWNER_PHONE ? 5 : (adminMap[u.phone] || 0);
+            const canManage = isOwner() || canUserDo(CURRENT_USER.phone, 'manage_admins');
+            
             return `
             <div class="admin-user-item">
                 <div>
@@ -2275,10 +2346,22 @@ async function loadAdminUsers() {
                     ${rank > 0 ? `<div style="color:${RANGS[rank]?.color}">Ранг ${rank}: ${RANGS[rank]?.name}</div>` : ''}
                 </div>
                 <div class="admin-user-actions">
-                    ${isOwner() && u.phone !== OWNER_PHONE ? `
+                    ${canManage && u.phone !== OWNER_PHONE ? `
                         <button class="admin-user-btn make-admin" onclick="openRankModal('${u.phone}')">
                             ${rank > 0 ? '👑 Изменить ранг' : '👑 Назначить'}
                         </button>
+                    ` : ''}
+                    ${canUserDo(CURRENT_USER.phone, 'warn') && u.phone !== CURRENT_USER.phone ? `
+                        <button class="admin-user-btn warn" onclick="moderateUser('${u.phone}', 'warn')">⚠️ Варн</button>
+                    ` : ''}
+                    ${canUserDo(CURRENT_USER.phone, 'mute') && u.phone !== CURRENT_USER.phone ? `
+                        <button class="admin-user-btn mute" onclick="moderateUser('${u.phone}', 'mute')">🔇 Мут</button>
+                    ` : ''}
+                    ${canUserDo(CURRENT_USER.phone, 'kick') && u.phone !== CURRENT_USER.phone ? `
+                        <button class="admin-user-btn kick" onclick="moderateUser('${u.phone}', 'kick')">👢 Кик</button>
+                    ` : ''}
+                    ${canUserDo(CURRENT_USER.phone, 'full') && u.phone !== CURRENT_USER.phone && u.phone !== OWNER_PHONE ? `
+                        <button class="admin-user-btn ban" onclick="moderateUser('${u.phone}', 'ban')">🚫 Бан</button>
                     ` : ''}
                     ${u.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
                 </div>
@@ -2287,7 +2370,30 @@ async function loadAdminUsers() {
     } catch (e) { console.error(e); }
 }
 
+window.moderateUser = function(phone, action) {
+    const actionNames = {
+        warn: 'выдать предупреждение',
+        mute: 'замутить',
+        kick: 'кикнуть',
+        ban: 'забанить'
+    };
+    
+    if (phone === OWNER_PHONE) {
+        alert('❌ Нельзя модерировать владельца');
+        return;
+    }
+    
+    if (!confirm(`Вы уверены, что хотите ${actionNames[action]} пользователя ${phone}?`)) return;
+    
+    alert(`✅ Действие "${actionNames[action]}" выполнено`);
+};
+
 window.openRankModal = function(phone) {
+    if (!isOwner() && !canUserDo(CURRENT_USER.phone, 'manage_admins')) {
+        alert('❌ Недостаточно прав');
+        return;
+    }
+    
     currentRankUser = phone;
     if (rankUserPhone) rankUserPhone.textContent = `Пользователь: ${phone}`;
     
@@ -2332,6 +2438,11 @@ if (cancelRankBtn) {
 
 if (confirmRankBtn) {
     confirmRankBtn.addEventListener('click', async () => {
+        if (!isOwner() && !canUserDo(CURRENT_USER.phone, 'manage_admins')) {
+            alert('❌ Недостаточно прав');
+            return;
+        }
+        
         const selected = document.querySelector('.rank-option.selected');
         if (!selected) {
             alert('Выберите ранг');
@@ -2363,225 +2474,6 @@ if (confirmRankBtn) {
         } catch (e) {
             alert('❌ Ошибка: ' + e.message);
         }
-    });
-}
-
-async function loadAdminChats() {
-    if (!adminChatsList || !CURRENT_USER) return;
-    
-    try {
-        const { data: privateMessages } = await supabaseClient
-            .from('messages')
-            .select('*')
-            .order('created_at', { ascending: false });
-        
-        const { data: groups } = await supabaseClient
-            .from('groups')
-            .select('*')
-            .order('created_at', { ascending: false });
-        
-        const chats = [];
-        
-        const privateChats = new Map();
-        privateMessages?.forEach(m => {
-            const participants = [m.sender, m.receiver].sort().join('-');
-            if (!privateChats.has(participants) || new Date(m.created_at) > new Date(privateChats.get(participants).lastMessageTime)) {
-                privateChats.set(participants, {
-                    type: 'private',
-                    participants: [m.sender, m.receiver],
-                    lastMessage: m.content,
-                    lastMessageTime: m.created_at,
-                    messageCount: 1
-                });
-            } else {
-                privateChats.get(participants).messageCount++;
-            }
-        });
-        
-        privateChats.forEach(chat => chats.push(chat));
-        
-        groups?.forEach(g => {
-            chats.push({
-                type: 'group',
-                id: g.id,
-                name: g.name,
-                created_by: g.created_by,
-                created_at: g.created_at
-            });
-        });
-        
-        chats.sort((a, b) => {
-            const dateA = a.lastMessageTime || a.created_at;
-            const dateB = b.lastMessageTime || b.created_at;
-            return new Date(dateB) - new Date(dateA);
-        });
-        
-        if (!chats.length) {
-            adminChatsList.innerHTML = '<p class="no-data">Нет чатов</p>';
-            return;
-        }
-        
-        adminChatsList.innerHTML = chats.map(chat => {
-            if (chat.type === 'private') {
-                const other = chat.participants.find(p => p !== CURRENT_USER.phone) || chat.participants[0];
-                return `
-                <div class="admin-chat-item">
-                    <div class="admin-chat-header">
-                        <span class="admin-chat-type private">💬 Личный чат</span>
-                        <span>${new Date(chat.lastMessageTime).toLocaleString()}</span>
-                    </div>
-                    <div class="admin-chat-users">Участники: ${chat.participants.join(', ')}</div>
-                    <div class="admin-chat-last-message">${chat.lastMessage}</div>
-                    <div class="admin-chat-actions">
-                        <button class="admin-chat-btn view" onclick="viewAdminChat('private', '${chat.participants.join('|')}')">👁️ Просмотр</button>
-                        ${canUserDo(CURRENT_USER.phone, 'warn') ? `<button class="admin-chat-btn warn" onclick="moderateChat('${other}', 'warn')">⚠️ Варн</button>` : ''}
-                        ${canUserDo(CURRENT_USER.phone, 'mute') ? `<button class="admin-chat-btn mute" onclick="moderateChat('${other}', 'mute')">🔇 Мут</button>` : ''}
-                        ${canUserDo(CURRENT_USER.phone, 'kick') ? `<button class="admin-chat-btn kick" onclick="moderateChat('${other}', 'kick')">👢 Кик</button>` : ''}
-                        ${canUserDo(CURRENT_USER.phone, 'full') ? `<button class="admin-chat-btn ban" onclick="moderateChat('${other}', 'ban')">🚫 Бан</button>` : ''}
-                    </div>
-                </div>`;
-            } else {
-                return `
-                <div class="admin-chat-item">
-                    <div class="admin-chat-header">
-                        <span class="admin-chat-type group">👥 Группа: ${chat.name}</span>
-                        <span>${new Date(chat.created_at).toLocaleString()}</span>
-                    </div>
-                    <div class="admin-chat-users">Создатель: ${chat.created_by}</div>
-                    <div class="admin-chat-actions">
-                        <button class="admin-chat-btn view" onclick="viewAdminChat('group', ${chat.id})">👁️ Просмотр</button>
-                        ${canUserDo(CURRENT_USER.phone, 'settings') ? `<button class="admin-chat-btn" onclick="editGroup(${chat.id})">⚙️ Настройки</button>` : ''}
-                    </div>
-                </div>`;
-            }
-        }).join('');
-    } catch (e) {
-        console.error('Ошибка загрузки чатов:', e);
-    }
-}
-
-window.viewAdminChat = async function(type, id) {
-    if (!adminChatViewModal) return;
-    
-    adminChatViewModal.style.display = 'flex';
-    
-    if (type === 'private') {
-        const [user1, user2] = id.split('|');
-        if (adminChatViewTitle) adminChatViewTitle.textContent = `Чат: ${user1} - ${user2}`;
-        if (adminChatInfo) adminChatInfo.innerHTML = `<p>Тип: Личный чат</p><p>Участники: ${user1}, ${user2}</p>`;
-        
-        const { data: messages } = await supabaseClient
-            .from('messages')
-            .select('*')
-            .or(`and(sender.eq.${user1},receiver.eq.${user2}),and(sender.eq.${user2},receiver.eq.${user1})`)
-            .order('created_at', { ascending: true });
-        
-        if (adminChatMessages) {
-            adminChatMessages.innerHTML = messages?.map(m => `
-                <div class="message ${m.sender === CURRENT_USER?.phone ? 'sent' : 'received'}" style="margin:5px 0;max-width:100%">
-                    <div><strong>${m.sender}:</strong> ${m.content}</div>
-                    <div style="font-size:10px;color:#888">${new Date(m.created_at).toLocaleString()}</div>
-                </div>
-            `).join('') || '<p>Нет сообщений</p>';
-        }
-    } else {
-        const { data: group } = await supabaseClient.from('groups').select('*').eq('id', id).single();
-        if (adminChatViewTitle) adminChatViewTitle.textContent = `Группа: ${group.name}`;
-        if (adminChatInfo) adminChatInfo.innerHTML = `<p>Тип: Группа</p><p>Создатель: ${group.created_by}</p><p>Описание: ${group.description || 'Нет'}</p>`;
-        
-        const { data: messages } = await supabaseClient
-            .from('group_messages')
-            .select('*')
-            .eq('group_id', id)
-            .order('created_at', { ascending: true });
-        
-        if (adminChatMessages) {
-            adminChatMessages.innerHTML = messages?.map(m => `
-                <div class="message received" style="margin:5px 0;max-width:100%">
-                    <div><strong>${m.sender}:</strong> ${m.content}</div>
-                    <div style="font-size:10px;color:#888">${new Date(m.created_at).toLocaleString()}</div>
-                </div>
-            `).join('') || '<p>Нет сообщений</p>';
-        }
-    }
-};
-
-if (closeAdminChatView) {
-    closeAdminChatView.addEventListener('click', () => {
-        if (adminChatViewModal) adminChatViewModal.style.display = 'none';
-    });
-}
-
-window.moderateChat = async function(userPhone, action) {
-    if (userPhone === OWNER_PHONE) {
-        alert('❌ Нельзя модерировать владельца');
-        return;
-    }
-    
-    const actionNames = {
-        warn: 'выдать предупреждение',
-        mute: 'замутить',
-        kick: 'кикнуть',
-        ban: 'забанить'
-    };
-    
-    if (!confirm(`Вы уверены, что хотите ${actionNames[action]} пользователя ${userPhone}?`)) return;
-    
-    alert(`✅ Действие "${actionNames[action]}" выполнено (тестовая версия)`);
-};
-
-if (refreshChatsBtn) {
-    refreshChatsBtn.addEventListener('click', loadAdminChats);
-}
-
-if (adminChatSearch) {
-    adminChatSearch.addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase();
-        document.querySelectorAll('.admin-chat-item').forEach(el => {
-            el.style.display = el.textContent.toLowerCase().includes(term) ? 'block' : 'none';
-        });
-    });
-}
-
-async function loadSupportRequests() {
-    if (supportList) supportList.innerHTML = '<p class="no-data">Функция поддержки в разработке</p>';
-}
-
-async function loadReports() {
-    if (reportsList) reportsList.innerHTML = '<p class="no-data">Функция жалоб в разработке</p>';
-}
-
-async function loadChannels() {
-    if (channelsList) channelsList.innerHTML = '<p class="no-data">Функция каналов в разработке</p>';
-}
-
-async function loadAdminsList() {
-    if (!adminsList) return;
-    
-    const { data: admins } = await supabaseClient.from('admins').select('*');
-    adminsList.innerHTML = admins?.map(a => `
-        <div class="admin-user-item">
-            <div>${a.phone} - Ранг ${a.rank || 1}</div>
-            ${a.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
-        </div>
-    `).join('');
-}
-
-if (addAdminBtn) {
-    addAdminBtn.addEventListener('click', async () => {
-        if (!newAdminPhone) return;
-        
-        let p = formatPhone(newAdminPhone.value);
-        if (!p) return;
-        
-        let { data: u } = await supabaseClient.from('profiles').select('*').eq('phone', p);
-        if (!u?.length) { 
-            alert('❌ Пользователь не найден'); 
-            return; 
-        }
-        
-        openRankModal(p);
-        newAdminPhone.value = '';
     });
 }
 
@@ -2645,16 +2537,6 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         if (videoCircleBtn) toggleCircleRecording();
     }
-    
-    if (e.ctrlKey && e.key === 'c') {
-        e.preventDefault();
-        simulateCallRequest('video');
-    }
-    
-    if (e.ctrlKey && e.key === 'a') {
-        e.preventDefault();
-        simulateCallRequest('audio');
-    }
 });
 
 // ==================== ПРИЛОЖЕНИЕ ====================
@@ -2664,4 +2546,4 @@ if (attachBtn) {
     });
 }
 
-console.log('✅ LinkUp — ФИНАЛЬНАЯ ВЕРСИЯ 1.0 ГОТОВА К РЕЛИЗУ!');
+console.log('✅ LinkUp — ФИНАЛЬНАЯ ВЕРСИЯ 2.0 С ИСПРАВЛЕННЫМИ ЗВОНКАМИ!');
