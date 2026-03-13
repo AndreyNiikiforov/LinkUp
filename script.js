@@ -87,8 +87,7 @@ const chatMenuBtn = document.getElementById('chatMenuBtn');
 // Кнопки звонков
 const audioCallBtn = document.getElementById('audioCallBtn');
 const videoCallBtn = document.getElementById('videoCallBtn');
-const voiceMsgBtn = document.getElementById('voiceMsgBtn');
-const videoCircleBtn = document.getElementById('videoCircleBtn');
+const groupCallBtn = document.getElementById('groupCallBtn');
 
 // Модалки звонков
 const callModal = document.getElementById('callModal');
@@ -110,26 +109,10 @@ const incomingCallType = document.getElementById('incomingCallType');
 const acceptCallBtn = document.getElementById('acceptCallBtn');
 const declineCallBtn = document.getElementById('declineCallBtn');
 
-// Голосовые сообщения
-const voiceRecorderModal = document.getElementById('voiceRecorderModal');
-const closeVoiceRecorder = document.getElementById('closeVoiceRecorder');
-const voiceTimer = document.getElementById('voiceTimer');
-const startRecordingBtn = document.getElementById('startRecordingBtn');
-const stopRecordingBtn = document.getElementById('stopRecordingBtn');
-const playRecordingBtn = document.getElementById('playRecordingBtn');
-const sendRecordingBtn = document.getElementById('sendRecordingBtn');
-const cancelRecordingBtn = document.getElementById('cancelRecordingBtn');
-
-// Кружочки
-const videoCircleModal = document.getElementById('videoCircleModal');
-const closeVideoCircle = document.getElementById('closeVideoCircle');
-const circleVideo = document.getElementById('circleVideo');
-const circleTimer = document.getElementById('circleTimer');
-const startCircleBtn = document.getElementById('startCircleBtn');
-const stopCircleBtn = document.getElementById('stopCircleBtn');
-const playCircleBtn = document.getElementById('playCircleBtn');
-const sendCircleBtn = document.getElementById('sendCircleBtn');
-const cancelCircleBtn = document.getElementById('cancelCircleBtn');
+// Голосовые сообщения и кружочки
+const voiceMsgBtn = document.getElementById('voiceMsgBtn');
+const videoCircleBtn = document.getElementById('videoCircleBtn');
+const attachBtn = document.getElementById('attachBtn');
 
 // QR элементы
 const qrContainer = document.getElementById('qrContainer');
@@ -297,38 +280,46 @@ function addPasswordToggle(input) {
 [loginPassword, registerPassword, registerPasswordConfirm].forEach(i => i && addPasswordToggle(i));
 
 // ==================== ПЕРЕКЛЮЧЕНИЕ ФОРМ ====================
-showRegisterButton?.addEventListener('click', () => {
-    loginForm.style.display = 'none';
-    qrLoginForm.style.display = 'none';
-    showRegisterButton.style.display = 'none';
-    registerForm.style.display = 'block';
-    authMessage.textContent = '';
-});
+if (showRegisterButton) {
+    showRegisterButton.addEventListener('click', () => {
+        loginForm.style.display = 'none';
+        qrLoginForm.style.display = 'none';
+        showRegisterButton.style.display = 'none';
+        registerForm.style.display = 'block';
+        authMessage.textContent = '';
+    });
+}
 
-backToLoginButton?.addEventListener('click', () => {
-    loginForm.style.display = 'block';
-    qrLoginForm.style.display = 'none';
-    showRegisterButton.style.display = 'block';
-    registerForm.style.display = 'none';
-    authMessage.textContent = '';
-});
+if (backToLoginButton) {
+    backToLoginButton.addEventListener('click', () => {
+        loginForm.style.display = 'block';
+        qrLoginForm.style.display = 'none';
+        showRegisterButton.style.display = 'block';
+        registerForm.style.display = 'none';
+        authMessage.textContent = '';
+    });
+}
 
-showQrLogin?.addEventListener('click', () => {
-    loginForm.style.display = 'none';
-    registerForm.style.display = 'none';
-    showRegisterButton.style.display = 'none';
-    qrLoginForm.style.display = 'block';
-    authMessage.textContent = '';
-    startQrLogin();
-});
+if (showQrLogin) {
+    showQrLogin.addEventListener('click', () => {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'none';
+        showRegisterButton.style.display = 'none';
+        qrLoginForm.style.display = 'block';
+        authMessage.textContent = '';
+        startQrLogin();
+    });
+}
 
-backFromQrBtn?.addEventListener('click', () => {
-    loginForm.style.display = 'block';
-    registerForm.style.display = 'none';
-    qrLoginForm.style.display = 'none';
-    showRegisterButton.style.display = 'block';
-    stopQrLogin();
-});
+if (backFromQrBtn) {
+    backFromQrBtn.addEventListener('click', () => {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        qrLoginForm.style.display = 'none';
+        showRegisterButton.style.display = 'block';
+        stopQrLogin();
+    });
+}
 
 // ==================== QR-ВХОД ====================
 let currentQrCode = null;
@@ -557,7 +548,7 @@ if (googleLoginBtn) {
     });
 }
 
-// ==================== ЗАГРУЗКА НАСТОЕК ====================
+// ==================== ЗАГРУЗКА НАСТРОЕК ====================
 async function loadUserSettings() {
     if (!CURRENT_USER) return;
     
@@ -939,6 +930,36 @@ async function loadMessages(chatPhone) {
         } else {
             messagesArea.innerHTML = messages.map(m => {
                 const isSent = m.sender === CURRENT_USER.phone;
+                
+                // Голосовое сообщение
+                if (m.voice_data) {
+                    return `
+                    <div class="message ${isSent ? 'sent' : 'received'} voice-message" 
+                         data-id="${m.id}" 
+                         data-type="private"
+                         onclick="playVoiceMessage('${m.voice_data}')">
+                        <span>🎤</span>
+                        <div class="voice-waveform">
+                            <span></span><span></span><span></span><span></span><span></span>
+                        </div>
+                        <span class="voice-duration">${formatDuration(m.voice_duration)}</span>
+                    </div>`;
+                }
+                
+                // Кружочек
+                if (m.circle_data) {
+                    return `
+                    <div class="message ${isSent ? 'sent' : 'received'} video-circle-message" 
+                         data-id="${m.id}" 
+                         data-type="private"
+                         onclick="playCircleMessage('${m.circle_data}')">
+                        <video src="${m.circle_data}" style="display:none;"></video>
+                        <span class="play-icon">▶️</span>
+                        <span class="voice-duration" style="position:absolute;bottom:5px;right:5px;">${formatDuration(m.circle_duration)}</span>
+                    </div>`;
+                }
+                
+                // Обычное сообщение
                 return `
                 <div class="message ${isSent ? 'sent' : 'received'} ${m.pinned ? 'pinned' : ''}" 
                      data-id="${m.id}" 
@@ -1002,6 +1023,35 @@ async function loadGroupMessages(groupId) {
                 const isSent = m.sender === CURRENT_USER.phone;
                 const senderName = isSent ? 'Вы' : (senderNames[m.sender] || m.sender);
                 
+                // Голосовое сообщение
+                if (m.voice_data) {
+                    return `
+                    <div class="message ${isSent ? 'sent' : 'received'} voice-message" 
+                         data-id="${m.id}" 
+                         data-type="group"
+                         onclick="playVoiceMessage('${m.voice_data}')">
+                        <span>🎤</span>
+                        <div class="voice-waveform">
+                            <span></span><span></span><span></span><span></span><span></span>
+                        </div>
+                        <span class="voice-duration">${formatDuration(m.voice_duration)}</span>
+                    </div>`;
+                }
+                
+                // Кружочек
+                if (m.circle_data) {
+                    return `
+                    <div class="message ${isSent ? 'sent' : 'received'} video-circle-message" 
+                         data-id="${m.id}" 
+                         data-type="group"
+                         onclick="playCircleMessage('${m.circle_data}')">
+                        <video src="${m.circle_data}" style="display:none;"></video>
+                        <span class="play-icon">▶️</span>
+                        <span class="voice-duration" style="position:absolute;bottom:5px;right:5px;">${formatDuration(m.circle_duration)}</span>
+                    </div>`;
+                }
+                
+                // Обычное сообщение
                 return `
                 <div class="message ${isSent ? 'sent' : 'received'} ${m.pinned ? 'pinned' : ''}"
                      data-id="${m.id}"
@@ -1591,29 +1641,64 @@ let localStream = null;
 let remoteStream = null;
 let callTimer = null;
 let callSeconds = 0;
+let currentCallType = null;
+let incomingCallTimeout = null;
+let pendingCall = null;
+
+const iceServers = {
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' }
+    ]
+};
 
 if (audioCallBtn) {
     audioCallBtn.addEventListener('click', async () => {
-        if (!CURRENT_CHAT) {
+        if (!CURRENT_CHAT && !CURRENT_GROUP) {
             alert('Сначала выберите чат');
             return;
         }
-        await startCall('audio');
+        
+        if (CURRENT_GROUP) {
+            startGroupCall('audio');
+        } else {
+            startCall('audio');
+        }
     });
 }
 
 if (videoCallBtn) {
     videoCallBtn.addEventListener('click', async () => {
-        if (!CURRENT_CHAT) {
+        if (!CURRENT_CHAT && !CURRENT_GROUP) {
             alert('Сначала выберите чат');
             return;
         }
-        await startCall('video');
+        
+        if (CURRENT_GROUP) {
+            startGroupCall('video');
+        } else {
+            startCall('video');
+        }
+    });
+}
+
+if (groupCallBtn) {
+    groupCallBtn.addEventListener('click', () => {
+        if (!CURRENT_GROUP) {
+            alert('Сначала выберите группу');
+            return;
+        }
+        startGroupCall('video');
     });
 }
 
 async function startCall(type) {
     try {
+        currentCallType = type;
+        
         const constraints = {
             audio: true,
             video: type === 'video'
@@ -1621,32 +1706,76 @@ async function startCall(type) {
         
         localStream = await navigator.mediaDevices.getUserMedia(constraints);
         
-        if (callAvatar) callAvatar.textContent = CURRENT_CHAT?.username?.charAt(0) || '👤';
-        if (callName) callName.textContent = CURRENT_CHAT?.username || CURRENT_CHAT?.phone || 'Собеседник';
-        if (callStatus) callStatus.textContent = 'Соединение...';
+        peerConnection = new RTCPeerConnection(iceServers);
         
-        if (type === 'video' && callVideoContainer) {
-            callVideoContainer.style.display = 'block';
-            if (localVideo) localVideo.srcObject = localStream;
-        } else if (callVideoContainer) {
-            callVideoContainer.style.display = 'none';
-        }
+        localStream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, localStream);
+        });
         
-        if (callModal) callModal.style.display = 'flex';
+        peerConnection.ontrack = (event) => {
+            remoteStream = event.streams[0];
+            if (remoteVideo) remoteVideo.srcObject = remoteStream;
+        };
         
-        callSeconds = 0;
-        updateCallTimer();
-        if (callTimer) clearInterval(callTimer);
-        callTimer = setInterval(updateCallTimer, 1000);
+        peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                console.log('ICE candidate:', event.candidate);
+            }
+        };
         
-        setTimeout(() => {
-            if (callStatus) callStatus.textContent = 'Соединено';
-        }, 2000);
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        
+        simulateCallRequest(type);
+        showCallModal(type);
         
     } catch (error) {
         console.error('Ошибка звонка:', error);
         alert('❌ Не удалось начать звонок: ' + error.message);
     }
+}
+
+function startGroupCall(type) {
+    alert(`🔄 Групповой ${type === 'video' ? 'видео' : 'аудио'}звонок пока в разработке`);
+}
+
+function simulateCallRequest(type) {
+    const callerName = CURRENT_USER?.username || CURRENT_USER?.phone || 'Собеседник';
+    
+    setTimeout(() => {
+        if (incomingCallName) incomingCallName.textContent = callerName;
+        if (incomingCallType) {
+            incomingCallType.textContent = type === 'video' ? '📹 Входящий видеозвонок' : '📞 Входящий аудиозвонок';
+        }
+        if (incomingCallModal) incomingCallModal.style.display = 'flex';
+        
+        if (incomingCallTimeout) clearTimeout(incomingCallTimeout);
+        incomingCallTimeout = setTimeout(() => {
+            if (incomingCallModal) incomingCallModal.style.display = 'none';
+            if (callStatus) callStatus.textContent = 'Нет ответа';
+            setTimeout(() => endCall(), 2000);
+        }, 30000);
+    }, 2000);
+}
+
+function showCallModal(type) {
+    if (callAvatar) callAvatar.textContent = CURRENT_CHAT?.username?.charAt(0) || '👤';
+    if (callName) callName.textContent = CURRENT_CHAT?.username || CURRENT_CHAT?.phone || 'Собеседник';
+    if (callStatus) callStatus.textContent = 'Вызов...';
+    
+    if (type === 'video' && callVideoContainer) {
+        callVideoContainer.style.display = 'block';
+        if (localVideo) localVideo.srcObject = localStream;
+    } else if (callVideoContainer) {
+        callVideoContainer.style.display = 'none';
+    }
+    
+    if (callModal) callModal.style.display = 'flex';
+    
+    callSeconds = 0;
+    updateCallTimer();
+    if (callTimer) clearInterval(callTimer);
+    callTimer = setInterval(updateCallTimer, 1000);
 }
 
 function updateCallTimer() {
@@ -1659,20 +1788,61 @@ function updateCallTimer() {
 }
 
 function endCall() {
+    if (peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+    }
+    
     if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
         localStream = null;
     }
+    
+    if (remoteStream) {
+        remoteStream.getTracks().forEach(track => track.stop());
+        remoteStream = null;
+    }
+    
     if (callTimer) {
         clearInterval(callTimer);
         callTimer = null;
     }
+    
+    if (incomingCallTimeout) {
+        clearTimeout(incomingCallTimeout);
+        incomingCallTimeout = null;
+    }
+    
     if (callModal) callModal.style.display = 'none';
     if (incomingCallModal) incomingCallModal.style.display = 'none';
 }
 
 if (endCallBtn) {
     endCallBtn.addEventListener('click', endCall);
+}
+
+if (acceptCallBtn) {
+    acceptCallBtn.addEventListener('click', () => {
+        if (incomingCallModal) incomingCallModal.style.display = 'none';
+        if (incomingCallTimeout) {
+            clearTimeout(incomingCallTimeout);
+            incomingCallTimeout = null;
+        }
+        
+        if (callStatus) callStatus.textContent = 'Соединено';
+    });
+}
+
+if (declineCallBtn) {
+    declineCallBtn.addEventListener('click', () => {
+        if (incomingCallModal) incomingCallModal.style.display = 'none';
+        if (incomingCallTimeout) {
+            clearTimeout(incomingCallTimeout);
+            incomingCallTimeout = null;
+        }
+        if (callStatus) callStatus.textContent = 'Отклонено';
+        setTimeout(() => endCall(), 2000);
+    });
 }
 
 if (muteAudioBtn) {
@@ -1708,336 +1878,333 @@ if (speakerBtn) {
     });
 }
 
-window.simulateIncomingCall = function(phone, type = 'video') {
-    if (incomingCallName) incomingCallName.textContent = phone;
-    if (incomingCallType) {
-        incomingCallType.textContent = type === 'video' ? '📹 Входящий видеозвонок' : '📞 Входящий аудиозвонок';
-    }
-    if (incomingCallModal) incomingCallModal.style.display = 'flex';
-};
-
-if (acceptCallBtn) {
-    acceptCallBtn.addEventListener('click', () => {
-        if (incomingCallModal) incomingCallModal.style.display = 'none';
-        if (callModal) callModal.style.display = 'flex';
-        if (callStatus) callStatus.textContent = 'Соединено';
-    });
-}
-
-if (declineCallBtn) {
-    declineCallBtn.addEventListener('click', () => {
-        if (incomingCallModal) incomingCallModal.style.display = 'none';
-        alert('❌ Звонок отклонён');
-    });
-}
-
 // ==================== ГОЛОСОВЫЕ СООБЩЕНИЯ ====================
 let mediaRecorder = null;
-let recordedChunks = [];
+let audioChunks = [];
 let recordingTimer = null;
 let recordingSeconds = 0;
+let recordingIndicator = null;
 
 if (voiceMsgBtn) {
-    voiceMsgBtn.addEventListener('click', () => {
-        if (!CURRENT_CHAT && !CURRENT_GROUP) {
-            alert('Сначала выберите чат');
-            return;
-        }
-        if (voiceRecorderModal) voiceRecorderModal.style.display = 'flex';
-    });
+    voiceMsgBtn.addEventListener('click', toggleVoiceRecording);
 }
 
-if (closeVoiceRecorder) {
-    closeVoiceRecorder.addEventListener('click', () => {
-        if (voiceRecorderModal) voiceRecorderModal.style.display = 'none';
-    });
+function toggleVoiceRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        stopVoiceRecording();
+    } else {
+        startVoiceRecording();
+    }
 }
 
-if (startRecordingBtn) {
-    startRecordingBtn.addEventListener('click', async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            recordedChunks = [];
-            
-            mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) {
-                    recordedChunks.push(e.data);
-                }
-            };
-            
-            mediaRecorder.onstop = () => {
-                stream.getTracks().forEach(track => track.stop());
-                if (playRecordingBtn) playRecordingBtn.style.display = 'inline-block';
-                if (sendRecordingBtn) sendRecordingBtn.style.display = 'inline-block';
-            };
-            
-            mediaRecorder.start();
-            
-            if (startRecordingBtn) startRecordingBtn.style.display = 'none';
-            if (stopRecordingBtn) stopRecordingBtn.style.display = 'inline-block';
-            
-            recordingSeconds = 0;
-            if (voiceTimer) voiceTimer.textContent = '00:00';
-            
-            if (recordingTimer) clearInterval(recordingTimer);
-            recordingTimer = setInterval(() => {
-                recordingSeconds++;
-                const minutes = Math.floor(recordingSeconds / 60);
-                const seconds = recordingSeconds % 60;
-                if (voiceTimer) {
-                    voiceTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                }
-            }, 1000);
-            
-        } catch (error) {
-            alert('❌ Не удалось получить доступ к микрофону');
-        }
-    });
-}
-
-if (stopRecordingBtn) {
-    stopRecordingBtn.addEventListener('click', () => {
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
-        }
-        if (stopRecordingBtn) stopRecordingBtn.style.display = 'none';
-        if (recordingTimer) clearInterval(recordingTimer);
-    });
-}
-
-if (playRecordingBtn) {
-    playRecordingBtn.addEventListener('click', () => {
-        const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audio.play();
-    });
-}
-
-if (sendRecordingBtn) {
-    sendRecordingBtn.addEventListener('click', async () => {
-        const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = async () => {
-            const base64data = reader.result;
-            
-            try {
-                if (CURRENT_GROUP) {
-                    await supabaseClient.from('group_messages').insert([{
-                        group_id: CURRENT_GROUP.id,
-                        sender: CURRENT_USER.phone,
-                        content: '🎤 Голосовое сообщение',
-                        voice_data: base64data
-                    }]);
-                    loadGroupMessages(CURRENT_GROUP.id);
-                } else if (CURRENT_CHAT) {
-                    await supabaseClient.from('messages').insert([{
-                        sender: CURRENT_USER.phone,
-                        receiver: CURRENT_CHAT.phone,
-                        content: '🎤 Голосовое сообщение',
-                        voice_data: base64data
-                    }]);
-                    loadMessages(CURRENT_CHAT.phone);
-                    loadChats();
-                }
-                
-                if (voiceRecorderModal) voiceRecorderModal.style.display = 'none';
-                if (startRecordingBtn) startRecordingBtn.style.display = 'inline-block';
-                if (stopRecordingBtn) stopRecordingBtn.style.display = 'none';
-                if (playRecordingBtn) playRecordingBtn.style.display = 'none';
-                if (sendRecordingBtn) sendRecordingBtn.style.display = 'none';
-                
-            } catch (e) {
-                alert('❌ Ошибка отправки: ' + e.message);
+async function startVoiceRecording() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+                audioChunks.push(e.data);
             }
         };
-    });
+        
+        mediaRecorder.onstop = async () => {
+            stream.getTracks().forEach(track => track.stop());
+            
+            if (audioChunks.length > 0) {
+                await sendVoiceMessage();
+            }
+            
+            removeRecordingIndicator();
+        };
+        
+        mediaRecorder.start();
+        
+        showRecordingIndicator('voice');
+        
+        voiceMsgBtn.style.background = '#ff4444';
+        voiceMsgBtn.style.transform = 'scale(1.2)';
+        
+        recordingSeconds = 0;
+        if (recordingTimer) clearInterval(recordingTimer);
+        recordingTimer = setInterval(() => {
+            recordingSeconds++;
+            const timer = document.querySelector('.recording-timer');
+            if (timer) {
+                const minutes = Math.floor(recordingSeconds / 60);
+                const seconds = recordingSeconds % 60;
+                timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }, 1000);
+        
+    } catch (error) {
+        alert('❌ Не удалось получить доступ к микрофону');
+    }
 }
 
-if (cancelRecordingBtn) {
-    cancelRecordingBtn.addEventListener('click', () => {
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
-        }
+function stopVoiceRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        voiceMsgBtn.style.background = '';
+        voiceMsgBtn.style.transform = '';
         if (recordingTimer) clearInterval(recordingTimer);
-        if (voiceRecorderModal) voiceRecorderModal.style.display = 'none';
-        if (startRecordingBtn) startRecordingBtn.style.display = 'inline-block';
-        if (stopRecordingBtn) stopRecordingBtn.style.display = 'none';
-        if (playRecordingBtn) playRecordingBtn.style.display = 'none';
-        if (sendRecordingBtn) sendRecordingBtn.style.display = 'none';
-    });
+    }
+}
+
+async function sendVoiceMessage() {
+    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    
+    reader.onloadend = async () => {
+        const base64data = reader.result;
+        const duration = recordingSeconds;
+        
+        try {
+            if (CURRENT_GROUP) {
+                await supabaseClient.from('group_messages').insert([{
+                    group_id: CURRENT_GROUP.id,
+                    sender: CURRENT_USER.phone,
+                    content: '🎤 Голосовое сообщение',
+                    voice_data: base64data,
+                    voice_duration: duration
+                }]);
+                loadGroupMessages(CURRENT_GROUP.id);
+            } else if (CURRENT_CHAT) {
+                await supabaseClient.from('messages').insert([{
+                    sender: CURRENT_USER.phone,
+                    receiver: CURRENT_CHAT.phone,
+                    content: '🎤 Голосовое сообщение',
+                    voice_data: base64data,
+                    voice_duration: duration
+                }]);
+                loadMessages(CURRENT_CHAT.phone);
+                loadChats();
+            }
+        } catch (e) {
+            alert('❌ Ошибка отправки: ' + e.message);
+        }
+    };
 }
 
 // ==================== КРУЖОЧКИ ====================
 let circleRecorder = null;
-let circleChunks = [];
+let videoChunks = [];
 let circleTimerInterval = null;
 let circleSeconds = 0;
 
 if (videoCircleBtn) {
-    videoCircleBtn.addEventListener('click', () => {
-        if (!CURRENT_CHAT && !CURRENT_GROUP) {
-            alert('Сначала выберите чат');
-            return;
-        }
-        if (videoCircleModal) videoCircleModal.style.display = 'flex';
-        startCirclePreview();
-    });
+    videoCircleBtn.addEventListener('click', toggleCircleRecording);
 }
 
-if (closeVideoCircle) {
-    closeVideoCircle.addEventListener('click', () => {
-        if (videoCircleModal) videoCircleModal.style.display = 'none';
-        stopCirclePreview();
-    });
+function toggleCircleRecording() {
+    if (circleRecorder && circleRecorder.state === 'recording') {
+        stopCircleRecording();
+    } else {
+        startCircleRecording();
+    }
 }
 
-async function startCirclePreview() {
+async function startCircleRecording() {
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        if (circleVideo) circleVideo.srcObject = stream;
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                width: { ideal: 300 },
+                height: { ideal: 300 },
+                aspectRatio: 1
+            }, 
+            audio: true 
+        });
+        
+        circleRecorder = new MediaRecorder(stream);
+        videoChunks = [];
+        
+        const previewVideo = document.createElement('video');
+        previewVideo.srcObject = stream;
+        previewVideo.autoplay = true;
+        previewVideo.muted = true;
+        previewVideo.style.position = 'fixed';
+        previewVideo.style.bottom = '100px';
+        previewVideo.style.right = '20px';
+        previewVideo.style.width = '100px';
+        previewVideo.style.height = '100px';
+        previewVideo.style.borderRadius = '50%';
+        previewVideo.style.border = '3px solid #e91e63';
+        previewVideo.style.zIndex = '8000';
+        previewVideo.style.objectFit = 'cover';
+        previewVideo.id = 'circlePreview';
+        document.body.appendChild(previewVideo);
+        
+        circleRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+                videoChunks.push(e.data);
+            }
+        };
+        
+        circleRecorder.onstop = async () => {
+            stream.getTracks().forEach(track => track.stop());
+            const preview = document.getElementById('circlePreview');
+            if (preview) preview.remove();
+            
+            if (videoChunks.length > 0) {
+                await sendCircleMessage();
+            }
+            
+            removeRecordingIndicator();
+        };
+        
+        circleRecorder.start();
+        
+        showRecordingIndicator('circle');
+        
+        videoCircleBtn.style.background = '#ff4444';
+        videoCircleBtn.style.transform = 'scale(1.2)';
+        
+        circleSeconds = 0;
+        if (circleTimerInterval) clearInterval(circleTimerInterval);
+        circleTimerInterval = setInterval(() => {
+            circleSeconds++;
+            const timer = document.querySelector('.recording-timer');
+            if (timer) {
+                const minutes = Math.floor(circleSeconds / 60);
+                const seconds = circleSeconds % 60;
+                timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }, 1000);
+        
     } catch (error) {
         alert('❌ Не удалось получить доступ к камере');
     }
 }
 
-function stopCirclePreview() {
-    if (circleVideo && circleVideo.srcObject) {
-        circleVideo.srcObject.getTracks().forEach(track => track.stop());
-        circleVideo.srcObject = null;
+function stopCircleRecording() {
+    if (circleRecorder && circleRecorder.state === 'recording') {
+        circleRecorder.stop();
+        videoCircleBtn.style.background = '';
+        videoCircleBtn.style.transform = '';
+        if (circleTimerInterval) clearInterval(circleTimerInterval);
     }
 }
 
-if (startCircleBtn) {
-    startCircleBtn.addEventListener('click', async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            circleRecorder = new MediaRecorder(stream);
-            circleChunks = [];
-            
-            circleRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) {
-                    circleChunks.push(e.data);
-                }
-            };
-            
-            circleRecorder.onstop = () => {
-                stream.getTracks().forEach(track => track.stop());
-                if (playCircleBtn) playCircleBtn.style.display = 'inline-block';
-                if (sendCircleBtn) sendCircleBtn.style.display = 'inline-block';
-            };
-            
-            circleRecorder.start();
-            
-            if (startCircleBtn) startCircleBtn.style.display = 'none';
-            if (stopCircleBtn) stopCircleBtn.style.display = 'inline-block';
-            
-            circleSeconds = 0;
-            if (circleTimer) circleTimer.textContent = '00:00';
-            
-            if (circleTimerInterval) clearInterval(circleTimerInterval);
-            circleTimerInterval = setInterval(() => {
-                circleSeconds++;
-                const minutes = Math.floor(circleSeconds / 60);
-                const seconds = circleSeconds % 60;
-                if (circleTimer) {
-                    circleTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                }
-            }, 1000);
-            
-        } catch (error) {
-            alert('❌ Не удалось начать запись');
-        }
-    });
-}
-
-if (stopCircleBtn) {
-    stopCircleBtn.addEventListener('click', () => {
-        if (circleRecorder && circleRecorder.state !== 'inactive') {
-            circleRecorder.stop();
-        }
-        if (stopCircleBtn) stopCircleBtn.style.display = 'none';
-        if (circleTimerInterval) clearInterval(circleTimerInterval);
-    });
-}
-
-if (playCircleBtn) {
-    playCircleBtn.addEventListener('click', () => {
-        const blob = new Blob(circleChunks, { type: 'video/webm' });
-        const url = URL.createObjectURL(blob);
-        const video = document.createElement('video');
-        video.src = url;
-        video.controls = true;
-        video.style.width = '100%';
-        video.style.borderRadius = '50%';
+async function sendCircleMessage() {
+    const blob = new Blob(videoChunks, { type: 'video/webm' });
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    
+    reader.onloadend = async () => {
+        const base64data = reader.result;
+        const duration = circleSeconds;
         
-        const container = document.querySelector('.video-circle-body');
-        if (container) {
-            const oldVideo = document.getElementById('circleVideo');
-            if (oldVideo) oldVideo.style.display = 'none';
-            container.insertBefore(video, container.firstChild);
-            video.play();
-        }
-    });
-}
-
-if (sendCircleBtn) {
-    sendCircleBtn.addEventListener('click', async () => {
-        const blob = new Blob(circleChunks, { type: 'video/webm' });
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = async () => {
-            const base64data = reader.result;
-            
-            try {
-                if (CURRENT_GROUP) {
-                    await supabaseClient.from('group_messages').insert([{
-                        group_id: CURRENT_GROUP.id,
-                        sender: CURRENT_USER.phone,
-                        content: '⭕ Кружочек',
-                        circle_data: base64data
-                    }]);
-                    loadGroupMessages(CURRENT_GROUP.id);
-                } else if (CURRENT_CHAT) {
-                    await supabaseClient.from('messages').insert([{
-                        sender: CURRENT_USER.phone,
-                        receiver: CURRENT_CHAT.phone,
-                        content: '⭕ Кружочек',
-                        circle_data: base64data
-                    }]);
-                    loadMessages(CURRENT_CHAT.phone);
-                    loadChats();
-                }
-                
-                if (videoCircleModal) videoCircleModal.style.display = 'none';
-                if (startCircleBtn) startCircleBtn.style.display = 'inline-block';
-                if (stopCircleBtn) stopCircleBtn.style.display = 'none';
-                if (playCircleBtn) playCircleBtn.style.display = 'none';
-                if (sendCircleBtn) sendCircleBtn.style.display = 'none';
-                stopCirclePreview();
-                
-            } catch (e) {
-                alert('❌ Ошибка отправки: ' + e.message);
+        try {
+            if (CURRENT_GROUP) {
+                await supabaseClient.from('group_messages').insert([{
+                    group_id: CURRENT_GROUP.id,
+                    sender: CURRENT_USER.phone,
+                    content: '⭕ Кружочек',
+                    circle_data: base64data,
+                    circle_duration: duration
+                }]);
+                loadGroupMessages(CURRENT_GROUP.id);
+            } else if (CURRENT_CHAT) {
+                await supabaseClient.from('messages').insert([{
+                    sender: CURRENT_USER.phone,
+                    receiver: CURRENT_CHAT.phone,
+                    content: '⭕ Кружочек',
+                    circle_data: base64data,
+                    circle_duration: duration
+                }]);
+                loadMessages(CURRENT_CHAT.phone);
+                loadChats();
             }
-        };
-    });
+        } catch (e) {
+            alert('❌ Ошибка отправки: ' + e.message);
+        }
+    };
 }
 
-if (cancelCircleBtn) {
-    cancelCircleBtn.addEventListener('click', () => {
-        if (circleRecorder && circleRecorder.state !== 'inactive') {
-            circleRecorder.stop();
-        }
-        if (circleTimerInterval) clearInterval(circleTimerInterval);
-        if (videoCircleModal) videoCircleModal.style.display = 'none';
-        if (startCircleBtn) startCircleBtn.style.display = 'inline-block';
-        if (stopCircleBtn) stopCircleBtn.style.display = 'none';
-        if (playCircleBtn) playCircleBtn.style.display = 'none';
-        if (sendCircleBtn) sendCircleBtn.style.display = 'none';
-        stopCirclePreview();
-    });
+// ==================== ИНДИКАТОР ЗАПИСИ ====================
+function showRecordingIndicator(type) {
+    removeRecordingIndicator();
+    
+    recordingIndicator = document.createElement('div');
+    recordingIndicator.className = `recording-indicator ${type === 'circle' ? 'circle' : ''}`;
+    
+    const icon = document.createElement('span');
+    icon.textContent = type === 'circle' ? '⭕' : '🎤';
+    
+    const timer = document.createElement('span');
+    timer.className = 'recording-timer';
+    timer.textContent = '00:00';
+    
+    const stopBtn = document.createElement('button');
+    stopBtn.className = 'recording-stop';
+    stopBtn.textContent = '⏹️';
+    stopBtn.onclick = type === 'circle' ? stopCircleRecording : stopVoiceRecording;
+    
+    recordingIndicator.appendChild(icon);
+    recordingIndicator.appendChild(timer);
+    recordingIndicator.appendChild(stopBtn);
+    
+    document.body.appendChild(recordingIndicator);
+}
+
+function removeRecordingIndicator() {
+    if (recordingIndicator) {
+        recordingIndicator.remove();
+        recordingIndicator = null;
+    }
+}
+
+// ==================== ВОСПРОИЗВЕДЕНИЕ ====================
+window.playVoiceMessage = function(dataUrl) {
+    const audio = new Audio(dataUrl);
+    audio.play();
+};
+
+window.playCircleMessage = function(dataUrl) {
+    const video = document.createElement('video');
+    video.src = dataUrl;
+    video.controls = true;
+    video.style.width = '300px';
+    video.style.borderRadius = '50%';
+    
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.right = '0';
+    modal.style.bottom = '0';
+    modal.style.background = 'rgba(0,0,0,0.9)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '10000';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.position = 'absolute';
+    closeBtn.style.top = '20px';
+    closeBtn.style.right = '20px';
+    closeBtn.style.background = 'none';
+    closeBtn.style.border = 'none';
+    closeBtn.style.color = 'white';
+    closeBtn.style.fontSize = '30px';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.onclick = () => modal.remove();
+    
+    modal.appendChild(video);
+    modal.appendChild(closeBtn);
+    document.body.appendChild(modal);
+    
+    video.play();
+};
+
+function formatDuration(seconds) {
+    if (!seconds) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 // ==================== АДМИН-ПАНЕЛЬ ====================
@@ -2452,16 +2619,34 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Горячие клавиши для теста
+// Горячие клавиши
 document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'v') {
+        e.preventDefault();
+        if (voiceMsgBtn) toggleVoiceRecording();
+    }
+    
+    if (e.ctrlKey && e.key === 'b') {
+        e.preventDefault();
+        if (videoCircleBtn) toggleCircleRecording();
+    }
+    
     if (e.ctrlKey && e.key === 'c') {
         e.preventDefault();
-        simulateIncomingCall('+79991234567', 'video');
+        simulateCallRequest('video');
     }
+    
     if (e.ctrlKey && e.key === 'a') {
         e.preventDefault();
-        simulateIncomingCall('+79991234567', 'audio');
+        simulateCallRequest('audio');
     }
 });
 
-console.log('✅ LinkUp — ФИНАЛЬНАЯ РАБОЧАЯ ВЕРСИЯ со звонками, голосовыми, кружочками и админкой!');
+// ==================== ПРИЛОЖЕНИЕ ====================
+if (attachBtn) {
+    attachBtn.addEventListener('click', () => {
+        alert('📎 Прикрепление файлов будет доступно в следующем обновлении!');
+    });
+}
+
+console.log('✅ LinkUp — ФИНАЛЬНАЯ ВЕРСИЯ со звонками, голосовыми, кружочками и админкой!');

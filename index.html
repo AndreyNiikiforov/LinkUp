@@ -146,8 +146,7 @@
                 <div class="chat-header-actions">
                     <button class="call-btn audio-call" id="audioCallBtn" title="Аудиозвонок">📞</button>
                     <button class="call-btn video-call" id="videoCallBtn" title="Видеозвонок">📹</button>
-                    <button class="call-btn voice-msg" id="voiceMsgBtn" title="Голосовое сообщение">🎤</button>
-                    <button class="call-btn video-circle" id="videoCircleBtn" title="Кружочек">⭕</button>
+                    <button class="call-btn group-call" id="groupCallBtn" title="Групповой звонок">👥</button>
                     <div class="chat-header-menu" id="chatMenuBtn">⋮</div>
                 </div>
             </div>
@@ -158,8 +157,11 @@
             <div class="messages-area" id="messagesArea"></div>
             
             <div class="message-input-area">
+                <button class="attach-btn" id="attachBtn">📎</button>
                 <input type="text" class="message-input" placeholder="Написать сообщение..." id="messageInput">
                 <button class="emoji-button" id="emojiBtn">😊</button>
+                <button class="voice-msg-btn" id="voiceMsgBtn" title="Голосовое сообщение">🎤</button>
+                <button class="video-circle-btn" id="videoCircleBtn" title="Кружочек">⭕</button>
                 <button class="send-button" id="sendButton">➤</button>
             </div>
         </div>
@@ -347,48 +349,6 @@
             <div class="incoming-call-controls">
                 <button class="incoming-call-btn accept" id="acceptCallBtn">✅ Принять</button>
                 <button class="incoming-call-btn decline" id="declineCallBtn">❌ Отклонить</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- МОДАЛКА ЗАПИСИ ГОЛОСА -->
-    <div class="voice-recorder-modal" id="voiceRecorderModal" style="display: none;">
-        <div class="voice-recorder-content">
-            <div class="voice-recorder-header">
-                <h2>🎤 Запись голосового сообщения</h2>
-                <button class="close-voice-recorder" id="closeVoiceRecorder">✕</button>
-            </div>
-            <div class="voice-recorder-body">
-                <div class="voice-wave" id="voiceWave">🎤</div>
-                <div class="voice-timer" id="voiceTimer">00:00</div>
-                <div class="voice-controls">
-                    <button class="voice-control-btn" id="startRecordingBtn">⏺️ Начать запись</button>
-                    <button class="voice-control-btn" id="stopRecordingBtn" style="display: none;">⏹️ Остановить</button>
-                    <button class="voice-control-btn" id="playRecordingBtn" style="display: none;">▶️ Прослушать</button>
-                    <button class="voice-control-btn" id="sendRecordingBtn" style="display: none;">📤 Отправить</button>
-                    <button class="voice-control-btn" id="cancelRecordingBtn">❌ Отмена</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- МОДАЛКА ЗАПИСИ КРУЖОЧКА -->
-    <div class="video-circle-modal" id="videoCircleModal" style="display: none;">
-        <div class="video-circle-content">
-            <div class="video-circle-header">
-                <h2>⭕ Запись кружочка</h2>
-                <button class="close-video-circle" id="closeVideoCircle">✕</button>
-            </div>
-            <div class="video-circle-body">
-                <video id="circleVideo" autoplay playsinline muted></video>
-                <div class="circle-timer" id="circleTimer">00:00</div>
-                <div class="circle-controls">
-                    <button class="circle-control-btn" id="startCircleBtn">⏺️ Начать запись</button>
-                    <button class="circle-control-btn" id="stopCircleBtn" style="display: none;">⏹️ Остановить</button>
-                    <button class="circle-control-btn" id="playCircleBtn" style="display: none;">▶️ Просмотреть</button>
-                    <button class="circle-control-btn" id="sendCircleBtn" style="display: none;">📤 Отправить</button>
-                    <button class="circle-control-btn" id="cancelCircleBtn">❌ Отмена</button>
-                </div>
             </div>
         </div>
     </div>
