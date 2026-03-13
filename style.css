@@ -384,6 +384,29 @@ body {
     opacity: 1;
 }
 
+/* Кнопка выхода */
+.logout-btn {
+    margin: 10px 15px;
+    padding: 10px;
+    background: rgba(255, 68, 68, 0.2);
+    border: 1px solid var(--danger);
+    border-radius: 20px;
+    color: var(--danger);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.logout-btn:hover {
+    background: var(--danger);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
 /* Поиск */
 .search-container {
     display: flex;
@@ -448,7 +471,7 @@ body {
 
 .search-results {
     position: absolute;
-    top: 200px;
+    top: 250px;
     left: 20px;
     right: 20px;
     background: #1a1a24;
@@ -852,12 +875,13 @@ body {
     align-items: center;
     gap: 10px;
     min-width: 200px;
+    animation: voiceWave 2s infinite;
 }
 
 @keyframes voiceWave {
-    0% { transform: scaleY(0.5); }
-    50% { transform: scaleY(1.5); }
-    100% { transform: scaleY(0.5); }
+    0% { opacity: 1; }
+    50% { opacity: 0.8; }
+    100% { opacity: 1; }
 }
 
 .voice-waveform {
@@ -873,13 +897,18 @@ body {
     height: 15px;
     background: white;
     border-radius: 1px;
-    animation: voiceWave 1s infinite;
+    animation: waveform 1s infinite;
 }
 
 .voice-waveform span:nth-child(2) { animation-delay: 0.1s; height: 20px; }
 .voice-waveform span:nth-child(3) { animation-delay: 0.2s; height: 25px; }
 .voice-waveform span:nth-child(4) { animation-delay: 0.3s; height: 20px; }
 .voice-waveform span:nth-child(5) { animation-delay: 0.4s; height: 15px; }
+
+@keyframes waveform {
+    0%, 100% { transform: scaleY(0.5); }
+    50% { transform: scaleY(1.5); }
+}
 
 .voice-duration {
     font-size: 12px;
@@ -897,6 +926,13 @@ body {
     justify-content: center;
     cursor: pointer;
     position: relative;
+    animation: circlePulse 2s infinite;
+}
+
+@keyframes circlePulse {
+    0% { box-shadow: 0 0 10px rgba(233, 30, 99, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(156, 39, 176, 0.8); }
+    100% { box-shadow: 0 0 10px rgba(233, 30, 99, 0.5); }
 }
 
 .message.video-circle-message video {
@@ -1019,44 +1055,54 @@ body {
 
 /* Индикатор записи */
 .recording-indicator {
-    position: absolute;
+    position: fixed;
     bottom: 100px;
     left: 50%;
     transform: translateX(-50%);
     background: linear-gradient(135deg, #ff9800, #ff5722);
     color: white;
-    padding: 10px 20px;
-    border-radius: 30px;
-    font-size: 14px;
+    padding: 15px 25px;
+    border-radius: 50px;
+    font-size: 16px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    z-index: 8000;
-    box-shadow: 0 0 20px rgba(255, 152, 0, 0.5);
-    animation: pulse 1s infinite;
+    gap: 15px;
+    z-index: 9000;
+    box-shadow: 0 0 30px rgba(255, 152, 0, 0.7);
+    animation: recordingPulse 1s infinite;
 }
 
 .recording-indicator.circle {
     background: linear-gradient(135deg, #e91e63, #9c27b0);
-    box-shadow: 0 0 20px rgba(233, 30, 99, 0.5);
+    box-shadow: 0 0 30px rgba(233, 30, 99, 0.7);
+}
+
+@keyframes recordingPulse {
+    0% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.05); }
+    100% { transform: translateX(-50%) scale(1); }
 }
 
 .recording-timer {
     font-family: monospace;
-    font-size: 16px;
+    font-size: 20px;
+    font-weight: bold;
 }
 
 .recording-stop {
-    background: none;
+    background: rgba(255, 255, 255, 0.2);
     border: none;
     color: white;
-    font-size: 20px;
+    font-size: 24px;
     cursor: pointer;
-    padding: 0 5px;
+    padding: 5px 10px;
+    border-radius: 30px;
+    transition: all 0.3s;
 }
 
 .recording-stop:hover {
-    transform: scale(1.2);
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(1.1);
 }
 
 /* Индикатор набора текста */
