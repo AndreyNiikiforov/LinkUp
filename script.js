@@ -84,10 +84,13 @@ const deleteMessageBtn = document.getElementById('deleteMessageBtn');
 const pinMessageBtn = document.getElementById('pinMessageBtn');
 const chatMenuBtn = document.getElementById('chatMenuBtn');
 
-// Кнопки звонков
+// Кнопки звонков и медиа
 const audioCallBtn = document.getElementById('audioCallBtn');
 const videoCallBtn = document.getElementById('videoCallBtn');
 const groupCallBtn = document.getElementById('groupCallBtn');
+const voiceMsgBtn = document.getElementById('voiceMsgBtn');
+const videoCircleBtn = document.getElementById('videoCircleBtn');
+const attachBtn = document.getElementById('attachBtn');
 
 // Модалки звонков
 const callModal = document.getElementById('callModal');
@@ -108,11 +111,6 @@ const incomingCallName = document.getElementById('incomingCallName');
 const incomingCallType = document.getElementById('incomingCallType');
 const acceptCallBtn = document.getElementById('acceptCallBtn');
 const declineCallBtn = document.getElementById('declineCallBtn');
-
-// Голосовые сообщения и кружочки
-const voiceMsgBtn = document.getElementById('voiceMsgBtn');
-const videoCircleBtn = document.getElementById('videoCircleBtn');
-const attachBtn = document.getElementById('attachBtn');
 
 // QR элементы
 const qrContainer = document.getElementById('qrContainer');
@@ -721,6 +719,13 @@ if (registerButton) {
         const pass = registerPassword.value;
         const confirm = registerPasswordConfirm.value;
         
+        // Проверка чекбокса
+        const termsCheckbox = document.getElementById('termsCheckbox');
+        if (!termsCheckbox || !termsCheckbox.checked) {
+            authMessage.textContent = '❌ Необходимо принять условия';
+            return;
+        }
+        
         if (!phone || !username || !pass || !confirm) {
             authMessage.textContent = '❌ Заполните все поля';
             return;
@@ -781,6 +786,7 @@ if (registerButton) {
             registerUsername.value = '';
             registerPassword.value = '';
             registerPasswordConfirm.value = '';
+            if (termsCheckbox) termsCheckbox.checked = false;
             
             setTimeout(() => {
                 if (backToLoginButton) backToLoginButton.click();
@@ -1962,26 +1968,29 @@ async function sendVoiceMessage() {
         const duration = recordingSeconds;
         
         try {
+            const messageData = {
+                sender: CURRENT_USER.phone,
+                content: '🎤 Голосовое сообщение',
+                voice_data: base64data,
+                voice_duration: duration,
+                created_at: new Date()
+            };
+            
             if (CURRENT_GROUP) {
-                await supabaseClient.from('group_messages').insert([{
-                    group_id: CURRENT_GROUP.id,
-                    sender: CURRENT_USER.phone,
-                    content: '🎤 Голосовое сообщение',
-                    voice_data: base64data,
-                    voice_duration: duration
-                }]);
+                messageData.group_id = CURRENT_GROUP.id;
+                await supabaseClient.from('group_messages').insert([messageData]);
                 loadGroupMessages(CURRENT_GROUP.id);
             } else if (CURRENT_CHAT) {
-                await supabaseClient.from('messages').insert([{
-                    sender: CURRENT_USER.phone,
-                    receiver: CURRENT_CHAT.phone,
-                    content: '🎤 Голосовое сообщение',
-                    voice_data: base64data,
-                    voice_duration: duration
-                }]);
+                messageData.receiver = CURRENT_CHAT.phone;
+                await supabaseClient.from('messages').insert([messageData]);
                 loadMessages(CURRENT_CHAT.phone);
                 loadChats();
             }
+            
+            removeRecordingIndicator();
+            voiceMsgBtn.style.background = '';
+            voiceMsgBtn.style.transform = '';
+            
         } catch (e) {
             alert('❌ Ошибка отправки: ' + e.message);
         }
@@ -2097,26 +2106,32 @@ async function sendCircleMessage() {
         const duration = circleSeconds;
         
         try {
+            const messageData = {
+                sender: CURRENT_USER.phone,
+                content: '⭕ Кружочек',
+                circle_data: base64data,
+                circle_duration: duration,
+                created_at: new Date()
+            };
+            
             if (CURRENT_GROUP) {
-                await supabaseClient.from('group_messages').insert([{
-                    group_id: CURRENT_GROUP.id,
-                    sender: CURRENT_USER.phone,
-                    content: '⭕ Кружочек',
-                    circle_data: base64data,
-                    circle_duration: duration
-                }]);
+                messageData.group_id = CURRENT_GROUP.id;
+                await supabaseClient.from('group_messages').insert([messageData]);
                 loadGroupMessages(CURRENT_GROUP.id);
             } else if (CURRENT_CHAT) {
-                await supabaseClient.from('messages').insert([{
-                    sender: CURRENT_USER.phone,
-                    receiver: CURRENT_CHAT.phone,
-                    content: '⭕ Кружочек',
-                    circle_data: base64data,
-                    circle_duration: duration
-                }]);
+                messageData.receiver = CURRENT_CHAT.phone;
+                await supabaseClient.from('messages').insert([messageData]);
                 loadMessages(CURRENT_CHAT.phone);
                 loadChats();
             }
+            
+            removeRecordingIndicator();
+            videoCircleBtn.style.background = '';
+            videoCircleBtn.style.transform = '';
+            
+            const preview = document.getElementById('circlePreview');
+            if (preview) preview.remove();
+            
         } catch (e) {
             alert('❌ Ошибка отправки: ' + e.message);
         }
@@ -2649,4 +2664,4 @@ if (attachBtn) {
     });
 }
 
-console.log('✅ LinkUp — ФИНАЛЬНАЯ ВЕРСИЯ со звонками, голосовыми, кружочками и админкой!');
+console.log('✅ LinkUp — ФИНАЛЬНАЯ ВЕРСИЯ 1.0 ГОТОВА К РЕЛИЗУ!');

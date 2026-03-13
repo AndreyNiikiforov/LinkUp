@@ -723,6 +723,24 @@ body {
     box-shadow: 0 0 20px #ff9800;
 }
 
+.call-btn.audio-call.active {
+    background: #4caf50;
+    box-shadow: 0 0 30px #4caf50;
+    animation: pulse 2s infinite;
+}
+
+.call-btn.video-call.active {
+    background: var(--accent-blue);
+    box-shadow: 0 0 30px var(--accent-blue);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
 .chat-header-menu {
     font-size: 24px;
     cursor: pointer;
@@ -778,6 +796,7 @@ body {
     line-height: 1.4;
     position: relative;
     animation: messageAppear 0.3s;
+    transition: transform 0.2s;
 }
 
 @keyframes messageAppear {
@@ -785,16 +804,22 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+.message:hover {
+    transform: translateY(-2px);
+}
+
 .message.sent {
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+    background: linear-gradient(135deg, #7c3aed, #00bfff);
     align-self: flex-end;
     border-bottom-right-radius: 5px;
+    box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3);
 }
 
 .message.received {
     background: #2a2a2a;
     align-self: flex-start;
     border-bottom-left-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .message-sender {
@@ -829,6 +854,12 @@ body {
     min-width: 200px;
 }
 
+@keyframes voiceWave {
+    0% { transform: scaleY(0.5); }
+    50% { transform: scaleY(1.5); }
+    100% { transform: scaleY(0.5); }
+}
+
 .voice-waveform {
     height: 30px;
     display: flex;
@@ -842,18 +873,13 @@ body {
     height: 15px;
     background: white;
     border-radius: 1px;
-    animation: waveform 1s infinite;
+    animation: voiceWave 1s infinite;
 }
 
 .voice-waveform span:nth-child(2) { animation-delay: 0.1s; height: 20px; }
 .voice-waveform span:nth-child(3) { animation-delay: 0.2s; height: 25px; }
 .voice-waveform span:nth-child(4) { animation-delay: 0.3s; height: 20px; }
 .voice-waveform span:nth-child(5) { animation-delay: 0.4s; height: 15px; }
-
-@keyframes waveform {
-    0%, 100% { transform: scaleY(0.5); }
-    50% { transform: scaleY(1.5); }
-}
 
 .voice-duration {
     font-size: 12px;
@@ -1015,12 +1041,6 @@ body {
     box-shadow: 0 0 20px rgba(233, 30, 99, 0.5);
 }
 
-@keyframes pulse {
-    0% { opacity: 0.8; transform: translateX(-50%) scale(1); }
-    50% { opacity: 1; transform: translateX(-50%) scale(1.05); }
-    100% { opacity: 0.8; transform: translateX(-50%) scale(1); }
-}
-
 .recording-timer {
     font-family: monospace;
     font-size: 16px;
@@ -1037,6 +1057,86 @@ body {
 
 .recording-stop:hover {
     transform: scale(1.2);
+}
+
+/* Индикатор набора текста */
+.typing-indicator {
+    display: flex;
+    gap: 3px;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    margin-bottom: 5px;
+    width: fit-content;
+}
+
+.typing-indicator span {
+    width: 6px;
+    height: 6px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-5px); opacity: 1; }
+}
+
+/* Уведомления */
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--accent-pink);
+    color: white;
+    font-size: 10px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    font-weight: bold;
+    box-shadow: 0 0 10px var(--accent-pink);
+}
+
+/* Чекбокс согласия */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+}
+
+.terms-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--accent-purple);
+}
+
+.terms-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.terms-label a {
+    color: var(--accent-blue);
+    text-decoration: none;
+}
+
+.terms-label a:hover {
+    text-decoration: underline;
+    color: var(--accent-pink);
 }
 
 /* Приветственный экран */
