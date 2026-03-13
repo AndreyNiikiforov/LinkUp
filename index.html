@@ -359,7 +359,7 @@
                 <button class="close-voice-recorder" id="closeVoiceRecorder">✕</button>
             </div>
             <div class="voice-recorder-body">
-                <div class="voice-wave" id="voiceWave"></div>
+                <div class="voice-wave" id="voiceWave">🎤</div>
                 <div class="voice-timer" id="voiceTimer">00:00</div>
                 <div class="voice-controls">
                     <button class="voice-control-btn" id="startRecordingBtn">⏺️ Начать запись</button>
@@ -447,6 +447,26 @@
         </div>
     </div>
 
+    <!-- МОДАЛКА ПРОСМОТРА ЧАТА ДЛЯ АДМИНА -->
+    <div class="admin-chat-view-modal" id="adminChatViewModal" style="display: none;">
+        <div class="admin-chat-view-content">
+            <div class="admin-chat-view-header">
+                <h2 id="adminChatViewTitle">Просмотр чата</h2>
+                <button class="close-admin-chat-view" id="closeAdminChatView">✕</button>
+            </div>
+            <div class="admin-chat-view-body">
+                <div class="admin-chat-info" id="adminChatInfo"></div>
+                <div class="admin-chat-messages" id="adminChatMessages"></div>
+            </div>
+            <div class="admin-chat-view-actions">
+                <button class="admin-chat-btn warn" id="adminChatWarnBtn">⚠️ Варн</button>
+                <button class="admin-chat-btn mute" id="adminChatMuteBtn">🔇 Мут</button>
+                <button class="admin-chat-btn kick" id="adminChatKickBtn">👢 Кик</button>
+                <button class="admin-chat-btn ban" id="adminChatBanBtn">🚫 Бан</button>
+            </div>
+        </div>
+    </div>
+
     <!-- АДМИН-ПАНЕЛЬ -->
     <div class="admin-modal" id="adminModal" style="display: none;">
         <div class="admin-modal-content">
@@ -487,23 +507,17 @@
             
             <!-- Вкладка Поддержка -->
             <div class="admin-tab-content" id="adminSupport">
-                <div class="support-list" id="supportList">
-                    <p class="no-data">Функция в разработке</p>
-                </div>
+                <div class="support-list" id="supportList"></div>
             </div>
             
             <!-- Вкладка Жалобы -->
             <div class="admin-tab-content" id="adminReports">
-                <div class="reports-list" id="reportsList">
-                    <p class="no-data">Функция в разработке</p>
-                </div>
+                <div class="reports-list" id="reportsList"></div>
             </div>
             
             <!-- Вкладка Каналы -->
             <div class="admin-tab-content" id="adminChannels">
-                <div class="channels-list" id="channelsList">
-                    <p class="no-data">Функция в разработке</p>
-                </div>
+                <div class="channels-list" id="channelsList"></div>
                 <button class="admin-action" id="createChannelBtn">➕ Создать канал</button>
             </div>
             

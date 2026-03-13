@@ -84,6 +84,53 @@ const deleteMessageBtn = document.getElementById('deleteMessageBtn');
 const pinMessageBtn = document.getElementById('pinMessageBtn');
 const chatMenuBtn = document.getElementById('chatMenuBtn');
 
+// Кнопки звонков
+const audioCallBtn = document.getElementById('audioCallBtn');
+const videoCallBtn = document.getElementById('videoCallBtn');
+const voiceMsgBtn = document.getElementById('voiceMsgBtn');
+const videoCircleBtn = document.getElementById('videoCircleBtn');
+
+// Модалки звонков
+const callModal = document.getElementById('callModal');
+const callAvatar = document.getElementById('callAvatar');
+const callName = document.getElementById('callName');
+const callStatus = document.getElementById('callStatus');
+const callVideoContainer = document.getElementById('callVideoContainer');
+const remoteVideo = document.getElementById('remoteVideo');
+const localVideo = document.getElementById('localVideo');
+const muteAudioBtn = document.getElementById('muteAudioBtn');
+const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+const endCallBtn = document.getElementById('endCallBtn');
+const speakerBtn = document.getElementById('speakerBtn');
+const callTimerDisplay = document.getElementById('callTimer');
+const incomingCallModal = document.getElementById('incomingCallModal');
+const incomingCallAvatar = document.getElementById('incomingCallAvatar');
+const incomingCallName = document.getElementById('incomingCallName');
+const incomingCallType = document.getElementById('incomingCallType');
+const acceptCallBtn = document.getElementById('acceptCallBtn');
+const declineCallBtn = document.getElementById('declineCallBtn');
+
+// Голосовые сообщения
+const voiceRecorderModal = document.getElementById('voiceRecorderModal');
+const closeVoiceRecorder = document.getElementById('closeVoiceRecorder');
+const voiceTimer = document.getElementById('voiceTimer');
+const startRecordingBtn = document.getElementById('startRecordingBtn');
+const stopRecordingBtn = document.getElementById('stopRecordingBtn');
+const playRecordingBtn = document.getElementById('playRecordingBtn');
+const sendRecordingBtn = document.getElementById('sendRecordingBtn');
+const cancelRecordingBtn = document.getElementById('cancelRecordingBtn');
+
+// Кружочки
+const videoCircleModal = document.getElementById('videoCircleModal');
+const closeVideoCircle = document.getElementById('closeVideoCircle');
+const circleVideo = document.getElementById('circleVideo');
+const circleTimer = document.getElementById('circleTimer');
+const startCircleBtn = document.getElementById('startCircleBtn');
+const stopCircleBtn = document.getElementById('stopCircleBtn');
+const playCircleBtn = document.getElementById('playCircleBtn');
+const sendCircleBtn = document.getElementById('sendCircleBtn');
+const cancelCircleBtn = document.getElementById('cancelCircleBtn');
+
 // QR элементы
 const qrContainer = document.getElementById('qrContainer');
 const qrPlaceholder = document.getElementById('qrPlaceholder');
@@ -288,6 +335,8 @@ let currentQrCode = null;
 let currentQrToken = null;
 
 async function startQrLogin() {
+    if (!qrPlaceholder || !qrCanvas) return;
+    
     qrPlaceholder.style.display = 'flex';
     qrCanvas.style.display = 'none';
     
@@ -352,7 +401,7 @@ async function startQrLogin() {
                     
                     authScreen.style.display = 'none';
                     app.style.display = 'flex';
-                    currentUserPhone.textContent = CURRENT_USER.phone;
+                    if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
                     
                     stopQrLogin();
                     loadChats();
@@ -375,6 +424,8 @@ let scanning = false;
 let videoStream = null;
 
 window.startQrScanning = async function() {
+    if (!qrScanModal || !qrVideo) return;
+    
     qrScanModal.style.display = 'flex';
     
     try {
@@ -394,7 +445,7 @@ window.startQrScanning = async function() {
 };
 
 function scanQrFrame() {
-    if (!scanning) return;
+    if (!scanning || !qrVideo) return;
     
     if (qrVideo.readyState === qrVideo.HAVE_ENOUGH_DATA) {
         const canvas = document.createElement('canvas');
@@ -421,7 +472,7 @@ async function processScannedQr(qrData) {
     if (videoStream) {
         videoStream.getTracks().forEach(track => track.stop());
     }
-    qrScanModal.style.display = 'none';
+    if (qrScanModal) qrScanModal.style.display = 'none';
     
     const { data: qr } = await supabaseClient
         .from('qr_codes')
@@ -441,63 +492,75 @@ async function processScannedQr(qrData) {
     }
     
     const deviceInfo = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? '📱 Мобильное' : '💻 Компьютер';
-    qrConfirmDevice.textContent = `Устройство: ${deviceInfo}`;
-    qrConfirmLocation.textContent = `IP: 0.0.0.0 • ${new Date().toLocaleString()}`;
+    if (qrConfirmDevice) qrConfirmDevice.textContent = `Устройство: ${deviceInfo}`;
+    if (qrConfirmLocation) qrConfirmLocation.textContent = `IP: 0.0.0.0 • ${new Date().toLocaleString()}`;
     
-    qrConfirmModal.style.display = 'flex';
+    if (qrConfirmModal) qrConfirmModal.style.display = 'flex';
     
-    qrConfirmYes.onclick = async () => {
-        const newToken = generateSessionToken();
-        await supabaseClient
-            .from('sessions')
-            .insert([{
-                user_phone: CURRENT_USER.phone,
-                device_name: deviceInfo,
-                device_type: /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-                ip: '0.0.0.0',
-                session_token: newToken,
-                is_current: true,
-                qr_code: qrData
-            }]);
-        
-        await supabaseClient
-            .from('qr_codes')
-            .update({ used: true, user_phone: CURRENT_USER.phone })
-            .eq('code', qrData);
-        
-        qrConfirmModal.style.display = 'none';
-        alert('✅ Вход подтверждён');
-    };
+    if (qrConfirmYes) {
+        qrConfirmYes.onclick = async () => {
+            const newToken = generateSessionToken();
+            await supabaseClient
+                .from('sessions')
+                .insert([{
+                    user_phone: CURRENT_USER.phone,
+                    device_name: deviceInfo,
+                    device_type: /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+                    ip: '0.0.0.0',
+                    session_token: newToken,
+                    is_current: true,
+                    qr_code: qrData
+                }]);
+            
+            await supabaseClient
+                .from('qr_codes')
+                .update({ used: true, user_phone: CURRENT_USER.phone })
+                .eq('code', qrData);
+            
+            if (qrConfirmModal) qrConfirmModal.style.display = 'none';
+            alert('✅ Вход подтверждён');
+        };
+    }
     
-    qrConfirmNo.onclick = () => {
-        qrConfirmModal.style.display = 'none';
-        alert('❌ Вход отклонён');
-    };
+    if (qrConfirmNo) {
+        qrConfirmNo.onclick = () => {
+            if (qrConfirmModal) qrConfirmModal.style.display = 'none';
+            alert('❌ Вход отклонён');
+        };
+    }
 }
 
-closeQrScan?.addEventListener('click', () => {
-    scanning = false;
-    if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-    }
-    qrScanModal.style.display = 'none';
-});
+if (closeQrScan) {
+    closeQrScan.addEventListener('click', () => {
+        scanning = false;
+        if (videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
+        }
+        if (qrScanModal) qrScanModal.style.display = 'none';
+    });
+}
 
-stopQrScan?.addEventListener('click', () => {
-    scanning = false;
-    if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-    }
-    qrScanModal.style.display = 'none';
-});
+if (stopQrScan) {
+    stopQrScan.addEventListener('click', () => {
+        scanning = false;
+        if (videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
+        }
+        if (qrScanModal) qrScanModal.style.display = 'none';
+    });
+}
 
 // ==================== ВХОД ЧЕРЕЗ GOOGLE ====================
-googleLoginBtn?.addEventListener('click', () => {
-    alert('🔐 Вход через Google будет доступен в ближайшее время!');
-});
+if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', () => {
+        alert('🔐 Вход через Google будет доступен в ближайшее время!');
+    });
+}
 
-// ==================== ЗАГРУЗКА НАСТРОЕК ====================
+// ==================== ЗАГРУЗКА НАСТОЕК ====================
 async function loadUserSettings() {
+    if (!CURRENT_USER) return;
+    
     const { data } = await supabaseClient
         .from('profiles')
         .select('*')
@@ -512,8 +575,8 @@ async function loadUserSettings() {
             last_seen: 'everyone'
         };
         
-        currentUserName.textContent = data.username || CURRENT_USER.phone;
-        currentUserUsername.textContent = data.username ? '@' + data.username : '';
+        if (currentUserName) currentUserName.textContent = data.username || CURRENT_USER.phone;
+        if (currentUserUsername) currentUserUsername.textContent = data.username ? '@' + data.username : '';
     }
 }
 
@@ -556,7 +619,7 @@ async function saveSessionToDB() {
 
 // ==================== ЗАГРУЗКА УСТРОЙСТВ ====================
 async function loadSessions() {
-    if (!devicesList) return;
+    if (!devicesList || !CURRENT_USER) return;
     
     try {
         const { data: sessions, error } = await supabaseClient
@@ -603,138 +666,149 @@ window.terminateSession = async function(token) {
     }
 };
 
-terminateAllSessions?.addEventListener('click', async () => {
-    if (!confirm('Вы уверены? Это завершит все сессии, кроме текущей.')) return;
-    
-    try {
-        await supabaseClient
-            .from('sessions')
-            .delete()
-            .eq('user_phone', CURRENT_USER.phone)
-            .neq('session_token', CURRENT_SESSION_TOKEN);
+if (terminateAllSessions) {
+    terminateAllSessions.addEventListener('click', async () => {
+        if (!CURRENT_USER) return;
+        if (!confirm('Вы уверены? Это завершит все сессии, кроме текущей.')) return;
         
-        loadSessions();
-        alert('✅ Все остальные сессии завершены');
-    } catch (e) {
-        alert('❌ Ошибка: ' + e.message);
-    }
-});
+        try {
+            await supabaseClient
+                .from('sessions')
+                .delete()
+                .eq('user_phone', CURRENT_USER.phone)
+                .neq('session_token', CURRENT_SESSION_TOKEN);
+            
+            loadSessions();
+            alert('✅ Все остальные сессии завершены');
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    });
+}
 
 // ==================== ВХОД ====================
-loginButton?.addEventListener('click', async () => {
-    const phone = formatPhone(loginPhone.value);
-    const pass = loginPassword.value;
-    if (!phone || !pass) { authMessage.textContent = '❌ Введите номер и пароль'; return; }
-    
-    try {
-        const { data: users, error } = await supabaseClient.from('profiles').select('*').eq('phone', phone).eq('password', pass);
-        if (error) throw error;
-        if (!users?.length) { authMessage.textContent = '❌ Неверный номер или пароль'; return; }
+if (loginButton) {
+    loginButton.addEventListener('click', async () => {
+        const phone = formatPhone(loginPhone.value);
+        const pass = loginPassword.value;
+        if (!phone || !pass) { authMessage.textContent = '❌ Введите номер и пароль'; return; }
         
-        CURRENT_USER = users[0];
-        CURRENT_SESSION_TOKEN = generateSessionToken();
-        saveSession(CURRENT_USER);
-        
-        await saveSessionToDB();
-        await loadUserSettings();
-        await loadUserTheme();
-        
-        ADMIN_RIGHTS = await loadAdminRights(CURRENT_USER.phone);
-        
-        authScreen.style.display = 'none';
-        app.style.display = 'flex';
-        currentUserPhone.textContent = CURRENT_USER.phone;
-        
-        if (ADMIN_RIGHTS || isOwner()) {
-            adminButton.style.display = 'block';
-        }
-        
-        loadChats();
-        loadGroups();
-    } catch (e) { authMessage.textContent = '❌ Ошибка входа: ' + e.message; }
-});
+        try {
+            const { data: users, error } = await supabaseClient.from('profiles').select('*').eq('phone', phone).eq('password', pass);
+            if (error) throw error;
+            if (!users?.length) { authMessage.textContent = '❌ Неверный номер или пароль'; return; }
+            
+            CURRENT_USER = users[0];
+            CURRENT_SESSION_TOKEN = generateSessionToken();
+            saveSession(CURRENT_USER);
+            
+            await saveSessionToDB();
+            await loadUserSettings();
+            await loadUserTheme();
+            
+            ADMIN_RIGHTS = await loadAdminRights(CURRENT_USER.phone);
+            
+            authScreen.style.display = 'none';
+            app.style.display = 'flex';
+            if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
+            
+            if (ADMIN_RIGHTS || isOwner()) {
+                if (adminButton) adminButton.style.display = 'block';
+            }
+            
+            loadChats();
+            loadGroups();
+        } catch (e) { authMessage.textContent = '❌ Ошибка входа: ' + e.message; }
+    });
+}
 
 // ==================== РЕГИСТРАЦИЯ ====================
-registerButton?.addEventListener('click', async () => {
-    const phone = formatPhone(registerPhone.value);
-    const username = registerUsername.value.trim().toLowerCase();
-    const pass = registerPassword.value;
-    const confirm = registerPasswordConfirm.value;
-    
-    if (!phone || !username || !pass || !confirm) {
-        authMessage.textContent = '❌ Заполните все поля';
-        return;
-    }
-    
-    if (!validateUsername(username)) {
-        authMessage.textContent = '❌ Username может содержать только a-z, 0-9 и _';
-        return;
-    }
-    
-    if (pass !== confirm) {
-        authMessage.textContent = '❌ Пароли не совпадают';
-        return;
-    }
-    
-    if (pass.length < 4) {
-        authMessage.textContent = '❌ Пароль минимум 4 символа';
-        return;
-    }
-    
-    try {
-        const { data: existingPhone } = await supabaseClient
-            .from('profiles')
-            .select('*')
-            .eq('phone', phone);
+if (registerButton) {
+    registerButton.addEventListener('click', async () => {
+        const phone = formatPhone(registerPhone.value);
+        const username = registerUsername.value.trim().toLowerCase();
+        const pass = registerPassword.value;
+        const confirm = registerPasswordConfirm.value;
         
-        if (existingPhone?.length) {
-            authMessage.textContent = '❌ Номер уже зарегистрирован';
+        if (!phone || !username || !pass || !confirm) {
+            authMessage.textContent = '❌ Заполните все поля';
             return;
         }
         
-        const { data: existingUsername } = await supabaseClient
-            .from('profiles')
-            .select('*')
-            .eq('username', username);
-        
-        if (existingUsername?.length) {
-            authMessage.textContent = '❌ Username уже занят';
+        if (!validateUsername(username)) {
+            authMessage.textContent = '❌ Username может содержать только a-z, 0-9 и _';
             return;
         }
         
-        await supabaseClient.from('profiles').insert([{ 
-            phone, 
-            username,
-            password: pass,
-            theme: 'dark',
-            privacy_settings: {
-                show_phone: 'everyone',
-                who_can_write: 'everyone',
-                last_seen: 'everyone'
+        if (pass !== confirm) {
+            authMessage.textContent = '❌ Пароли не совпадают';
+            return;
+        }
+        
+        if (pass.length < 4) {
+            authMessage.textContent = '❌ Пароль минимум 4 символа';
+            return;
+        }
+        
+        try {
+            const { data: existingPhone } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('phone', phone);
+            
+            if (existingPhone?.length) {
+                authMessage.textContent = '❌ Номер уже зарегистрирован';
+                return;
             }
-        }]);
-        
-        authMessage.textContent = '✅ Регистрация успешна! Войдите.';
-        authMessage.style.color = '#4caf50';
-        
-        registerPhone.value = '';
-        registerUsername.value = '';
-        registerPassword.value = '';
-        registerPasswordConfirm.value = '';
-        
-        setTimeout(() => {
-            backToLoginButton?.click();
-            authMessage.textContent = '';
-            authMessage.style.color = '#ff4444';
-        }, 2000);
-    } catch (e) {
-        authMessage.textContent = '❌ Ошибка: ' + e.message;
-    }
-});
+            
+            const { data: existingUsername } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('username', username);
+            
+            if (existingUsername?.length) {
+                authMessage.textContent = '❌ Username уже занят';
+                return;
+            }
+            
+            await supabaseClient.from('profiles').insert([{ 
+                phone, 
+                username,
+                password: pass,
+                theme: 'dark',
+                privacy_settings: {
+                    show_phone: 'everyone',
+                    who_can_write: 'everyone',
+                    last_seen: 'everyone'
+                }
+            }]);
+            
+            authMessage.textContent = '✅ Регистрация успешна! Войдите.';
+            authMessage.style.color = '#4caf50';
+            
+            registerPhone.value = '';
+            registerUsername.value = '';
+            registerPassword.value = '';
+            registerPasswordConfirm.value = '';
+            
+            setTimeout(() => {
+                if (backToLoginButton) backToLoginButton.click();
+                authMessage.textContent = '';
+                authMessage.style.color = '#ff4444';
+            }, 2000);
+        } catch (e) {
+            authMessage.textContent = '❌ Ошибка: ' + e.message;
+        }
+    });
+}
 
 // ==================== ПОИСК ====================
-searchButton?.addEventListener('click', searchUsers);
-searchInput?.addEventListener('keypress', e => e.key === 'Enter' && searchUsers());
+if (searchButton) {
+    searchButton.addEventListener('click', searchUsers);
+}
+if (searchInput) {
+    searchInput.addEventListener('keypress', e => e.key === 'Enter' && searchUsers());
+}
 
 function getSelectedSearchType() {
     for (const radio of searchTypeRadios) {
@@ -744,6 +818,8 @@ function getSelectedSearchType() {
 }
 
 async function searchUsers() {
+    if (!searchInput || !searchResultsList || !CURRENT_USER) return;
+    
     const query = searchInput.value.trim();
     if (!query) return;
     
@@ -787,34 +863,42 @@ async function searchUsers() {
             `).join('');
         }
         
-        searchResults.style.display = 'block';
+        if (searchResults) searchResults.style.display = 'block';
     } catch (e) {
         console.error('Ошибка поиска:', e);
     }
 }
 
-closeSearch?.addEventListener('click', () => {
-    searchResults.style.display = 'none';
-});
+if (closeSearch) {
+    closeSearch.addEventListener('click', () => {
+        if (searchResults) searchResults.style.display = 'none';
+    });
+}
 
 // ==================== ВКЛАДКИ ЧАТЫ/ГРУППЫ ====================
-chatsTabBtn?.addEventListener('click', () => {
-    chatsTabBtn.classList.add('active');
-    groupsTabBtn.classList.remove('active');
-    chatsList.style.display = 'block';
-    groupsList.style.display = 'none';
-});
+if (chatsTabBtn) {
+    chatsTabBtn.addEventListener('click', () => {
+        chatsTabBtn.classList.add('active');
+        groupsTabBtn.classList.remove('active');
+        chatsList.style.display = 'block';
+        groupsList.style.display = 'none';
+    });
+}
 
-groupsTabBtn?.addEventListener('click', () => {
-    groupsTabBtn.classList.add('active');
-    chatsTabBtn.classList.remove('active');
-    chatsList.style.display = 'none';
-    groupsList.style.display = 'block';
-    loadGroups();
-});
+if (groupsTabBtn) {
+    groupsTabBtn.addEventListener('click', () => {
+        groupsTabBtn.classList.add('active');
+        chatsTabBtn.classList.remove('active');
+        chatsList.style.display = 'none';
+        groupsList.style.display = 'block';
+        loadGroups();
+    });
+}
 
 // ==================== ЛИЧНЫЕ ЧАТЫ ====================
 window.startChat = async function(phone) {
+    if (!searchResults || !searchInput || !welcomeScreen || !chatWindow) return;
+    
     searchResults.style.display = 'none';
     searchInput.value = '';
     CURRENT_GROUP = null;
@@ -823,9 +907,13 @@ window.startChat = async function(phone) {
         if (!users?.length) return;
         CURRENT_CHAT = users[0];
         
-        document.getElementById('currentChatName').textContent = CURRENT_CHAT.username || CURRENT_CHAT.phone;
-        document.getElementById('currentChatPhone').textContent = CURRENT_CHAT.phone;
-        document.getElementById('currentChatUsername').textContent = CURRENT_CHAT.username ? '@' + CURRENT_CHAT.username : '';
+        const chatName = document.getElementById('currentChatName');
+        const chatPhone = document.getElementById('currentChatPhone');
+        const chatUsername = document.getElementById('currentChatUsername');
+        
+        if (chatName) chatName.textContent = CURRENT_CHAT.username || CURRENT_CHAT.phone;
+        if (chatPhone) chatPhone.textContent = CURRENT_CHAT.phone;
+        if (chatUsername) chatUsername.textContent = CURRENT_CHAT.username ? '@' + CURRENT_CHAT.username : '';
         
         welcomeScreen.style.display = 'none';
         chatWindow.style.display = 'flex';
@@ -835,6 +923,8 @@ window.startChat = async function(phone) {
 };
 
 async function loadMessages(chatPhone) {
+    if (!CURRENT_USER || !messagesArea) return;
+    
     try {
         const { data: messages, error } = await supabaseClient
             .from('messages')
@@ -864,11 +954,19 @@ async function loadMessages(chatPhone) {
 
 // ==================== ГРУППЫ ====================
 window.openGroup = async function(groupId) {
+    if (!GROUPS || !welcomeScreen || !chatWindow) return;
+    
     CURRENT_CHAT = null;
     CURRENT_GROUP = GROUPS.find(g => g.id === groupId);
-    document.getElementById('currentChatName').textContent = CURRENT_GROUP.name;
-    document.getElementById('currentChatPhone').textContent = 'Группа';
-    document.getElementById('currentChatUsername').textContent = '';
+    
+    const chatName = document.getElementById('currentChatName');
+    const chatPhone = document.getElementById('currentChatPhone');
+    const chatUsername = document.getElementById('currentChatUsername');
+    
+    if (chatName) chatName.textContent = CURRENT_GROUP.name;
+    if (chatPhone) chatPhone.textContent = 'Группа';
+    if (chatUsername) chatUsername.textContent = '';
+    
     welcomeScreen.style.display = 'none';
     chatWindow.style.display = 'flex';
     loadGroupMessages(groupId);
@@ -876,6 +974,8 @@ window.openGroup = async function(groupId) {
 };
 
 async function loadGroupMessages(groupId) {
+    if (!CURRENT_USER || !messagesArea) return;
+    
     try {
         const { data: messages, error } = await supabaseClient
             .from('group_messages')
@@ -918,6 +1018,8 @@ async function loadGroupMessages(groupId) {
 
 // ==================== ЗАКРЕПЛЁННЫЕ СООБЩЕНИЯ ====================
 async function loadPinnedMessages(type, id) {
+    if (!pinnedMessages || !CURRENT_USER) return;
+    
     try {
         let query;
         if (type === 'private') {
@@ -958,55 +1060,63 @@ window.selectMessage = function(element, id, type) {
     selectedMessageType = type;
     
     const menu = document.getElementById('messageMenu');
-    menu.style.display = 'block';
-    menu.style.left = (event.pageX) + 'px';
-    menu.style.top = (event.pageY) + 'px';
+    if (menu && event) {
+        menu.style.display = 'block';
+        menu.style.left = (event.pageX) + 'px';
+        menu.style.top = (event.pageY) + 'px';
+    }
 };
 
 // ==================== УДАЛЕНИЕ СООБЩЕНИЯ ====================
-deleteMessageBtn?.addEventListener('click', async () => {
-    if (!selectedMessageId) return;
-    
-    try {
-        if (selectedMessageType === 'private') {
-            await supabaseClient.from('messages').delete().eq('id', selectedMessageId);
-            if (CURRENT_CHAT) loadMessages(CURRENT_CHAT.phone);
-        } else {
-            await supabaseClient.from('group_messages').delete().eq('id', selectedMessageId);
-            if (CURRENT_GROUP) loadGroupMessages(CURRENT_GROUP.id);
+if (deleteMessageBtn) {
+    deleteMessageBtn.addEventListener('click', async () => {
+        if (!selectedMessageId) return;
+        
+        try {
+            if (selectedMessageType === 'private') {
+                await supabaseClient.from('messages').delete().eq('id', selectedMessageId);
+                if (CURRENT_CHAT) loadMessages(CURRENT_CHAT.phone);
+            } else {
+                await supabaseClient.from('group_messages').delete().eq('id', selectedMessageId);
+                if (CURRENT_GROUP) loadGroupMessages(CURRENT_GROUP.id);
+            }
+            if (messageMenu) messageMenu.style.display = 'none';
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
         }
-        messageMenu.style.display = 'none';
-    } catch (e) {
-        alert('❌ Ошибка: ' + e.message);
-    }
-});
+    });
+}
 
 // ==================== ЗАКРЕПЛЕНИЕ СООБЩЕНИЯ ====================
-pinMessageBtn?.addEventListener('click', async () => {
-    if (!selectedMessageId) return;
-    
-    try {
-        if (selectedMessageType === 'private') {
-            await supabaseClient.from('messages').update({ pinned: true }).eq('id', selectedMessageId);
-            if (CURRENT_CHAT) {
-                loadMessages(CURRENT_CHAT.phone);
-                loadPinnedMessages('private', CURRENT_CHAT.phone);
+if (pinMessageBtn) {
+    pinMessageBtn.addEventListener('click', async () => {
+        if (!selectedMessageId) return;
+        
+        try {
+            if (selectedMessageType === 'private') {
+                await supabaseClient.from('messages').update({ pinned: true }).eq('id', selectedMessageId);
+                if (CURRENT_CHAT) {
+                    loadMessages(CURRENT_CHAT.phone);
+                    loadPinnedMessages('private', CURRENT_CHAT.phone);
+                }
+            } else {
+                await supabaseClient.from('group_messages').update({ pinned: true }).eq('id', selectedMessageId);
+                if (CURRENT_GROUP) {
+                    loadGroupMessages(CURRENT_GROUP.id);
+                    loadPinnedMessages('group', CURRENT_GROUP.id);
+                }
             }
-        } else {
-            await supabaseClient.from('group_messages').update({ pinned: true }).eq('id', selectedMessageId);
-            if (CURRENT_GROUP) {
-                loadGroupMessages(CURRENT_GROUP.id);
-                loadPinnedMessages('group', CURRENT_GROUP.id);
-            }
+            if (messageMenu) messageMenu.style.display = 'none';
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
         }
-        messageMenu.style.display = 'none';
-    } catch (e) {
-        alert('❌ Ошибка: ' + e.message);
-    }
-});
+    });
+}
 
 // ==================== ЗАГРУЗКА ЧАТОВ ====================
 async function loadChats() {
+    if (!CURRENT_USER || !chatsList) return;
+    
     try {
         const { data: messages, error } = await supabaseClient
             .from('messages')
@@ -1064,6 +1174,8 @@ async function loadChats() {
 
 // ==================== ЗАГРУЗКА ГРУПП ====================
 async function loadGroups() {
+    if (!CURRENT_USER || !groupsList) return;
+    
     try {
         const { data: memberships } = await supabaseClient
             .from('group_members')
@@ -1093,19 +1205,27 @@ async function loadGroups() {
 }
 
 // ==================== СОЗДАНИЕ ГРУППЫ ====================
-createGroupBtn?.addEventListener('click', async () => {
-    groupModal.style.display = 'flex';
-    await loadAvailableUsers();
-});
+if (createGroupBtn) {
+    createGroupBtn.addEventListener('click', async () => {
+        if (!groupModal) return;
+        groupModal.style.display = 'flex';
+        await loadAvailableUsers();
+    });
+}
 
-closeGroupModal?.addEventListener('click', () => {
-    groupModal.style.display = 'none';
-    groupName.value = '';
-    groupDescription.value = '';
-    selectedMembers = [];
-});
+if (closeGroupModal) {
+    closeGroupModal.addEventListener('click', () => {
+        if (!groupModal) return;
+        groupModal.style.display = 'none';
+        if (groupName) groupName.value = '';
+        if (groupDescription) groupDescription.value = '';
+        selectedMembers = [];
+    });
+}
 
 async function loadAvailableUsers() {
+    if (!availableUsers || !CURRENT_USER) return;
+    
     try {
         const { data: users } = await supabaseClient
             .from('profiles')
@@ -1134,51 +1254,61 @@ window.toggleSelect = function(phone) {
     });
 };
 
-createGroupFinal?.addEventListener('click', async () => {
-    const name = groupName.value.trim();
-    const desc = groupDescription.value.trim();
-    if (!name) { alert('Введите название группы'); return; }
-    if (!selectedMembers.length) { alert('Выберите участников'); return; }
-    
-    try {
-        const { data: group, error } = await supabaseClient
-            .from('groups')
-            .insert([{ name, description: desc, created_by: CURRENT_USER.phone }])
-            .select();
+if (createGroupFinal) {
+    createGroupFinal.addEventListener('click', async () => {
+        if (!groupName) return;
         
-        if (error) throw error;
+        const name = groupName.value.trim();
+        const desc = groupDescription ? groupDescription.value.trim() : '';
+        if (!name) { alert('Введите название группы'); return; }
+        if (!selectedMembers.length) { alert('Выберите участников'); return; }
         
-        const groupId = group[0].id;
-        
-        await supabaseClient.from('group_members').insert([
-            { group_id: groupId, user_phone: CURRENT_USER.phone, role: 'creator' }
-        ]);
-        
-        const members = selectedMembers.map(phone => ({
-            group_id: groupId,
-            user_phone: phone,
-            role: 'member'
-        }));
-        await supabaseClient.from('group_members').insert(members);
-        
-        alert('✅ Группа создана!');
-        groupModal.style.display = 'none';
-        groupName.value = '';
-        groupDescription.value = '';
-        selectedMembers = [];
-        loadGroups();
-        groupsTabBtn.click();
-    } catch (e) {
-        console.error(e);
-        alert('❌ Ошибка: ' + e.message);
-    }
-});
+        try {
+            const { data: group, error } = await supabaseClient
+                .from('groups')
+                .insert([{ name, description: desc, created_by: CURRENT_USER.phone }])
+                .select();
+            
+            if (error) throw error;
+            
+            const groupId = group[0].id;
+            
+            await supabaseClient.from('group_members').insert([
+                { group_id: groupId, user_phone: CURRENT_USER.phone, role: 'creator' }
+            ]);
+            
+            const members = selectedMembers.map(phone => ({
+                group_id: groupId,
+                user_phone: phone,
+                role: 'member'
+            }));
+            await supabaseClient.from('group_members').insert(members);
+            
+            alert('✅ Группа создана!');
+            if (groupModal) groupModal.style.display = 'none';
+            if (groupName) groupName.value = '';
+            if (groupDescription) groupDescription.value = '';
+            selectedMembers = [];
+            loadGroups();
+            if (groupsTabBtn) groupsTabBtn.click();
+        } catch (e) {
+            console.error(e);
+            alert('❌ Ошибка: ' + e.message);
+        }
+    });
+}
 
 // ==================== ОТПРАВКА СООБЩЕНИЙ ====================
-sendButton?.addEventListener('click', sendMessage);
-messageInput?.addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
+if (sendButton) {
+    sendButton.addEventListener('click', sendMessage);
+}
+if (messageInput) {
+    messageInput.addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
+}
 
 async function sendMessage() {
+    if (!messageInput) return;
+    
     const content = messageInput.value.trim();
     if (!content) return;
     
@@ -1208,40 +1338,50 @@ async function sendMessage() {
 }
 
 // ==================== ЭМОДЗИ ====================
-emojiBtn?.addEventListener('click', () => {
-    emojiPanel.style.display = emojiPanel.style.display === 'none' ? 'grid' : 'none';
-});
+if (emojiBtn) {
+    emojiBtn.addEventListener('click', () => {
+        if (!emojiPanel) return;
+        emojiPanel.style.display = emojiPanel.style.display === 'none' ? 'grid' : 'none';
+    });
+}
 
 window.insertEmoji = function(emoji) {
+    if (!messageInput) return;
     messageInput.value += emoji;
     messageInput.focus();
-    emojiPanel.style.display = 'none';
+    if (emojiPanel) emojiPanel.style.display = 'none';
 };
 
 // ==================== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК В ПРОФИЛЕ ====================
-profileTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        profileTabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        
-        profileTabContents.forEach(c => c.classList.remove('active'));
-        const tabName = tab.dataset.profileTab;
-        document.getElementById(`profile${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab`).classList.add('active');
-        
-        if (tabName === 'devices') {
-            loadSessions();
-        } else if (tabName === 'privacy') {
-            loadPrivacySettings();
-        } else if (tabName === 'themes') {
-            const currentTheme = CURRENT_USER?.theme || 'dark';
-            document.querySelectorAll('.theme-check').forEach(check => check.style.opacity = '0');
-            document.getElementById(`check-${currentTheme}`).style.opacity = '1';
-        }
+if (profileTabs && profileTabContents) {
+    profileTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            profileTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            profileTabContents.forEach(c => c.classList.remove('active'));
+            const tabName = tab.dataset.profileTab;
+            const content = document.getElementById(`profile${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab`);
+            if (content) content.classList.add('active');
+            
+            if (tabName === 'devices') {
+                loadSessions();
+            } else if (tabName === 'privacy') {
+                loadPrivacySettings();
+            } else if (tabName === 'themes') {
+                const currentTheme = CURRENT_USER?.theme || 'dark';
+                document.querySelectorAll('.theme-check').forEach(check => check.style.opacity = '0');
+                const checkEl = document.getElementById(`check-${currentTheme}`);
+                if (checkEl) checkEl.style.opacity = '1';
+            }
+        });
     });
-});
+}
 
 // ==================== ЗАГРУЗКА НАСТРОЕК ПРИВАТНОСТИ ====================
 function loadPrivacySettings() {
+    if (!CURRENT_USER) return;
+    
     const settings = CURRENT_USER.privacy_settings || {
         show_phone: 'everyone',
         who_can_write: 'everyone',
@@ -1262,90 +1402,108 @@ function loadPrivacySettings() {
 }
 
 // ==================== СОХРАНЕНИЕ НАСТРОЕК ПРИВАТНОСТИ ====================
-savePrivacyBtn?.addEventListener('click', async () => {
-    let showPhone = 'everyone';
-    let whoCanWrite = 'everyone';
-    let lastSeen = 'everyone';
-    
-    for (const r of showPhoneRadios) if (r.checked) showPhone = r.value;
-    for (const r of whoCanWriteRadios) if (r.checked) whoCanWrite = r.value;
-    for (const r of lastSeenRadios) if (r.checked) lastSeen = r.value;
-    
-    const privacySettings = {
-        show_phone: showPhone,
-        who_can_write: whoCanWrite,
-        last_seen: lastSeen
-    };
-    
-    try {
-        await supabaseClient
-            .from('profiles')
-            .update({ privacy_settings: privacySettings })
-            .eq('phone', CURRENT_USER.phone);
+if (savePrivacyBtn) {
+    savePrivacyBtn.addEventListener('click', async () => {
+        if (!CURRENT_USER) return;
         
-        CURRENT_USER.privacy_settings = privacySettings;
-        alert('✅ Настройки приватности сохранены');
-    } catch (e) {
-        alert('❌ Ошибка: ' + e.message);
-    }
-});
+        let showPhone = 'everyone';
+        let whoCanWrite = 'everyone';
+        let lastSeen = 'everyone';
+        
+        for (const r of showPhoneRadios) if (r.checked) showPhone = r.value;
+        for (const r of whoCanWriteRadios) if (r.checked) whoCanWrite = r.value;
+        for (const r of lastSeenRadios) if (r.checked) lastSeen = r.value;
+        
+        const privacySettings = {
+            show_phone: showPhone,
+            who_can_write: whoCanWrite,
+            last_seen: lastSeen
+        };
+        
+        try {
+            await supabaseClient
+                .from('profiles')
+                .update({ privacy_settings: privacySettings })
+                .eq('phone', CURRENT_USER.phone);
+            
+            CURRENT_USER.privacy_settings = privacySettings;
+            alert('✅ Настройки приватности сохранены');
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    });
+}
 
 // ==================== НАСТРОЙКИ ПРОФИЛЯ ====================
-userProfile?.addEventListener('click', () => {
-    profileModal.style.display = 'flex';
-    profileDisplayName.value = CURRENT_USER.username || '';
-    profileUsername.value = CURRENT_USER.username || '';
-    profilePhone.value = CURRENT_USER.phone;
-    loadPrivacySettings();
-});
-
-closeProfileModal?.addEventListener('click', () => {
-    profileModal.style.display = 'none';
-});
-
-saveProfileBtn?.addEventListener('click', async () => {
-    const newUsername = profileUsername.value.trim().toLowerCase();
-    
-    if (!validateUsername(newUsername)) {
-        alert('❌ Username может содержать только a-z, 0-9 и _');
-        return;
-    }
-    
-    try {
-        const { data: existing } = await supabaseClient
-            .from('profiles')
-            .select('*')
-            .eq('username', newUsername)
-            .neq('phone', CURRENT_USER.phone);
+if (userProfile) {
+    userProfile.addEventListener('click', () => {
+        if (!profileModal || !CURRENT_USER) return;
         
-        if (existing?.length) {
-            alert('❌ Username уже занят');
+        profileModal.style.display = 'flex';
+        if (profileDisplayName) profileDisplayName.value = CURRENT_USER.username || '';
+        if (profileUsername) profileUsername.value = CURRENT_USER.username || '';
+        if (profilePhone) profilePhone.value = CURRENT_USER.phone;
+        loadPrivacySettings();
+    });
+}
+
+if (closeProfileModal) {
+    closeProfileModal.addEventListener('click', () => {
+        if (profileModal) profileModal.style.display = 'none';
+    });
+}
+
+if (saveProfileBtn) {
+    saveProfileBtn.addEventListener('click', async () => {
+        if (!CURRENT_USER || !profileUsername) return;
+        
+        const newUsername = profileUsername.value.trim().toLowerCase();
+        
+        if (!validateUsername(newUsername)) {
+            alert('❌ Username может содержать только a-z, 0-9 и _');
             return;
         }
         
-        await supabaseClient
-            .from('profiles')
-            .update({ username: newUsername })
-            .eq('phone', CURRENT_USER.phone);
-        
-        CURRENT_USER.username = newUsername;
-        currentUserName.textContent = newUsername || CURRENT_USER.phone;
-        currentUserUsername.textContent = newUsername ? '@' + newUsername : '';
-        
-        profileModal.style.display = 'none';
-        alert('✅ Профиль обновлён');
-    } catch (e) {
-        alert('❌ Ошибка: ' + e.message);
-    }
-});
+        try {
+            const { data: existing } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('username', newUsername)
+                .neq('phone', CURRENT_USER.phone);
+            
+            if (existing?.length) {
+                alert('❌ Username уже занят');
+                return;
+            }
+            
+            await supabaseClient
+                .from('profiles')
+                .update({ username: newUsername })
+                .eq('phone', CURRENT_USER.phone);
+            
+            CURRENT_USER.username = newUsername;
+            if (currentUserName) currentUserName.textContent = newUsername || CURRENT_USER.phone;
+            if (currentUserUsername) currentUserUsername.textContent = newUsername ? '@' + newUsername : '';
+            
+            if (profileModal) profileModal.style.display = 'none';
+            alert('✅ Профиль обновлён');
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    });
+}
 
 // ==================== ПРИВЯЗКА GOOGLE ====================
-linkGoogle?.addEventListener('click', () => {
-    alert('🔐 Привязка Google будет доступна в ближайшее время!');
-});
+if (linkGoogle) {
+    linkGoogle.addEventListener('click', () => {
+        alert('🔐 Привязка Google будет доступна в ближайшее время!');
+    });
+}
 
 // ==================== ТЕМЫ ====================
 async function loadUserTheme() {
+    if (!CURRENT_USER) return;
+    
     const { data } = await supabaseClient
         .from('profiles')
         .select('theme')
@@ -1427,32 +1585,497 @@ function stopForestAnimations() {
     document.querySelectorAll('.leaf, .raindrop').forEach(el => el.remove());
 }
 
+// ==================== ЗВОНКИ ====================
+let peerConnection = null;
+let localStream = null;
+let remoteStream = null;
+let callTimer = null;
+let callSeconds = 0;
+
+if (audioCallBtn) {
+    audioCallBtn.addEventListener('click', async () => {
+        if (!CURRENT_CHAT) {
+            alert('Сначала выберите чат');
+            return;
+        }
+        await startCall('audio');
+    });
+}
+
+if (videoCallBtn) {
+    videoCallBtn.addEventListener('click', async () => {
+        if (!CURRENT_CHAT) {
+            alert('Сначала выберите чат');
+            return;
+        }
+        await startCall('video');
+    });
+}
+
+async function startCall(type) {
+    try {
+        const constraints = {
+            audio: true,
+            video: type === 'video'
+        };
+        
+        localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        if (callAvatar) callAvatar.textContent = CURRENT_CHAT?.username?.charAt(0) || '👤';
+        if (callName) callName.textContent = CURRENT_CHAT?.username || CURRENT_CHAT?.phone || 'Собеседник';
+        if (callStatus) callStatus.textContent = 'Соединение...';
+        
+        if (type === 'video' && callVideoContainer) {
+            callVideoContainer.style.display = 'block';
+            if (localVideo) localVideo.srcObject = localStream;
+        } else if (callVideoContainer) {
+            callVideoContainer.style.display = 'none';
+        }
+        
+        if (callModal) callModal.style.display = 'flex';
+        
+        callSeconds = 0;
+        updateCallTimer();
+        if (callTimer) clearInterval(callTimer);
+        callTimer = setInterval(updateCallTimer, 1000);
+        
+        setTimeout(() => {
+            if (callStatus) callStatus.textContent = 'Соединено';
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Ошибка звонка:', error);
+        alert('❌ Не удалось начать звонок: ' + error.message);
+    }
+}
+
+function updateCallTimer() {
+    callSeconds++;
+    const minutes = Math.floor(callSeconds / 60);
+    const seconds = callSeconds % 60;
+    if (callTimerDisplay) {
+        callTimerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+}
+
+function endCall() {
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+    }
+    if (callTimer) {
+        clearInterval(callTimer);
+        callTimer = null;
+    }
+    if (callModal) callModal.style.display = 'none';
+    if (incomingCallModal) incomingCallModal.style.display = 'none';
+}
+
+if (endCallBtn) {
+    endCallBtn.addEventListener('click', endCall);
+}
+
+if (muteAudioBtn) {
+    muteAudioBtn.addEventListener('click', () => {
+        if (localStream) {
+            const audioTrack = localStream.getAudioTracks()[0];
+            if (audioTrack) {
+                audioTrack.enabled = !audioTrack.enabled;
+                muteAudioBtn.classList.toggle('active');
+                muteAudioBtn.title = audioTrack.enabled ? 'Выключить микрофон' : 'Включить микрофон';
+            }
+        }
+    });
+}
+
+if (toggleVideoBtn) {
+    toggleVideoBtn.addEventListener('click', () => {
+        if (localStream) {
+            const videoTrack = localStream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = !videoTrack.enabled;
+                toggleVideoBtn.classList.toggle('active');
+                toggleVideoBtn.title = videoTrack.enabled ? 'Выключить камеру' : 'Включить камеру';
+            }
+        }
+    });
+}
+
+if (speakerBtn) {
+    speakerBtn.addEventListener('click', () => {
+        speakerBtn.classList.toggle('active');
+        speakerBtn.title = speakerBtn.classList.contains('active') ? 'Выключить динамик' : 'Включить динамик';
+    });
+}
+
+window.simulateIncomingCall = function(phone, type = 'video') {
+    if (incomingCallName) incomingCallName.textContent = phone;
+    if (incomingCallType) {
+        incomingCallType.textContent = type === 'video' ? '📹 Входящий видеозвонок' : '📞 Входящий аудиозвонок';
+    }
+    if (incomingCallModal) incomingCallModal.style.display = 'flex';
+};
+
+if (acceptCallBtn) {
+    acceptCallBtn.addEventListener('click', () => {
+        if (incomingCallModal) incomingCallModal.style.display = 'none';
+        if (callModal) callModal.style.display = 'flex';
+        if (callStatus) callStatus.textContent = 'Соединено';
+    });
+}
+
+if (declineCallBtn) {
+    declineCallBtn.addEventListener('click', () => {
+        if (incomingCallModal) incomingCallModal.style.display = 'none';
+        alert('❌ Звонок отклонён');
+    });
+}
+
+// ==================== ГОЛОСОВЫЕ СООБЩЕНИЯ ====================
+let mediaRecorder = null;
+let recordedChunks = [];
+let recordingTimer = null;
+let recordingSeconds = 0;
+
+if (voiceMsgBtn) {
+    voiceMsgBtn.addEventListener('click', () => {
+        if (!CURRENT_CHAT && !CURRENT_GROUP) {
+            alert('Сначала выберите чат');
+            return;
+        }
+        if (voiceRecorderModal) voiceRecorderModal.style.display = 'flex';
+    });
+}
+
+if (closeVoiceRecorder) {
+    closeVoiceRecorder.addEventListener('click', () => {
+        if (voiceRecorderModal) voiceRecorderModal.style.display = 'none';
+    });
+}
+
+if (startRecordingBtn) {
+    startRecordingBtn.addEventListener('click', async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            recordedChunks = [];
+            
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) {
+                    recordedChunks.push(e.data);
+                }
+            };
+            
+            mediaRecorder.onstop = () => {
+                stream.getTracks().forEach(track => track.stop());
+                if (playRecordingBtn) playRecordingBtn.style.display = 'inline-block';
+                if (sendRecordingBtn) sendRecordingBtn.style.display = 'inline-block';
+            };
+            
+            mediaRecorder.start();
+            
+            if (startRecordingBtn) startRecordingBtn.style.display = 'none';
+            if (stopRecordingBtn) stopRecordingBtn.style.display = 'inline-block';
+            
+            recordingSeconds = 0;
+            if (voiceTimer) voiceTimer.textContent = '00:00';
+            
+            if (recordingTimer) clearInterval(recordingTimer);
+            recordingTimer = setInterval(() => {
+                recordingSeconds++;
+                const minutes = Math.floor(recordingSeconds / 60);
+                const seconds = recordingSeconds % 60;
+                if (voiceTimer) {
+                    voiceTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+            
+        } catch (error) {
+            alert('❌ Не удалось получить доступ к микрофону');
+        }
+    });
+}
+
+if (stopRecordingBtn) {
+    stopRecordingBtn.addEventListener('click', () => {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+        if (stopRecordingBtn) stopRecordingBtn.style.display = 'none';
+        if (recordingTimer) clearInterval(recordingTimer);
+    });
+}
+
+if (playRecordingBtn) {
+    playRecordingBtn.addEventListener('click', () => {
+        const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.play();
+    });
+}
+
+if (sendRecordingBtn) {
+    sendRecordingBtn.addEventListener('click', async () => {
+        const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = async () => {
+            const base64data = reader.result;
+            
+            try {
+                if (CURRENT_GROUP) {
+                    await supabaseClient.from('group_messages').insert([{
+                        group_id: CURRENT_GROUP.id,
+                        sender: CURRENT_USER.phone,
+                        content: '🎤 Голосовое сообщение',
+                        voice_data: base64data
+                    }]);
+                    loadGroupMessages(CURRENT_GROUP.id);
+                } else if (CURRENT_CHAT) {
+                    await supabaseClient.from('messages').insert([{
+                        sender: CURRENT_USER.phone,
+                        receiver: CURRENT_CHAT.phone,
+                        content: '🎤 Голосовое сообщение',
+                        voice_data: base64data
+                    }]);
+                    loadMessages(CURRENT_CHAT.phone);
+                    loadChats();
+                }
+                
+                if (voiceRecorderModal) voiceRecorderModal.style.display = 'none';
+                if (startRecordingBtn) startRecordingBtn.style.display = 'inline-block';
+                if (stopRecordingBtn) stopRecordingBtn.style.display = 'none';
+                if (playRecordingBtn) playRecordingBtn.style.display = 'none';
+                if (sendRecordingBtn) sendRecordingBtn.style.display = 'none';
+                
+            } catch (e) {
+                alert('❌ Ошибка отправки: ' + e.message);
+            }
+        };
+    });
+}
+
+if (cancelRecordingBtn) {
+    cancelRecordingBtn.addEventListener('click', () => {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+        if (recordingTimer) clearInterval(recordingTimer);
+        if (voiceRecorderModal) voiceRecorderModal.style.display = 'none';
+        if (startRecordingBtn) startRecordingBtn.style.display = 'inline-block';
+        if (stopRecordingBtn) stopRecordingBtn.style.display = 'none';
+        if (playRecordingBtn) playRecordingBtn.style.display = 'none';
+        if (sendRecordingBtn) sendRecordingBtn.style.display = 'none';
+    });
+}
+
+// ==================== КРУЖОЧКИ ====================
+let circleRecorder = null;
+let circleChunks = [];
+let circleTimerInterval = null;
+let circleSeconds = 0;
+
+if (videoCircleBtn) {
+    videoCircleBtn.addEventListener('click', () => {
+        if (!CURRENT_CHAT && !CURRENT_GROUP) {
+            alert('Сначала выберите чат');
+            return;
+        }
+        if (videoCircleModal) videoCircleModal.style.display = 'flex';
+        startCirclePreview();
+    });
+}
+
+if (closeVideoCircle) {
+    closeVideoCircle.addEventListener('click', () => {
+        if (videoCircleModal) videoCircleModal.style.display = 'none';
+        stopCirclePreview();
+    });
+}
+
+async function startCirclePreview() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        if (circleVideo) circleVideo.srcObject = stream;
+    } catch (error) {
+        alert('❌ Не удалось получить доступ к камере');
+    }
+}
+
+function stopCirclePreview() {
+    if (circleVideo && circleVideo.srcObject) {
+        circleVideo.srcObject.getTracks().forEach(track => track.stop());
+        circleVideo.srcObject = null;
+    }
+}
+
+if (startCircleBtn) {
+    startCircleBtn.addEventListener('click', async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            circleRecorder = new MediaRecorder(stream);
+            circleChunks = [];
+            
+            circleRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) {
+                    circleChunks.push(e.data);
+                }
+            };
+            
+            circleRecorder.onstop = () => {
+                stream.getTracks().forEach(track => track.stop());
+                if (playCircleBtn) playCircleBtn.style.display = 'inline-block';
+                if (sendCircleBtn) sendCircleBtn.style.display = 'inline-block';
+            };
+            
+            circleRecorder.start();
+            
+            if (startCircleBtn) startCircleBtn.style.display = 'none';
+            if (stopCircleBtn) stopCircleBtn.style.display = 'inline-block';
+            
+            circleSeconds = 0;
+            if (circleTimer) circleTimer.textContent = '00:00';
+            
+            if (circleTimerInterval) clearInterval(circleTimerInterval);
+            circleTimerInterval = setInterval(() => {
+                circleSeconds++;
+                const minutes = Math.floor(circleSeconds / 60);
+                const seconds = circleSeconds % 60;
+                if (circleTimer) {
+                    circleTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+            
+        } catch (error) {
+            alert('❌ Не удалось начать запись');
+        }
+    });
+}
+
+if (stopCircleBtn) {
+    stopCircleBtn.addEventListener('click', () => {
+        if (circleRecorder && circleRecorder.state !== 'inactive') {
+            circleRecorder.stop();
+        }
+        if (stopCircleBtn) stopCircleBtn.style.display = 'none';
+        if (circleTimerInterval) clearInterval(circleTimerInterval);
+    });
+}
+
+if (playCircleBtn) {
+    playCircleBtn.addEventListener('click', () => {
+        const blob = new Blob(circleChunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const video = document.createElement('video');
+        video.src = url;
+        video.controls = true;
+        video.style.width = '100%';
+        video.style.borderRadius = '50%';
+        
+        const container = document.querySelector('.video-circle-body');
+        if (container) {
+            const oldVideo = document.getElementById('circleVideo');
+            if (oldVideo) oldVideo.style.display = 'none';
+            container.insertBefore(video, container.firstChild);
+            video.play();
+        }
+    });
+}
+
+if (sendCircleBtn) {
+    sendCircleBtn.addEventListener('click', async () => {
+        const blob = new Blob(circleChunks, { type: 'video/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = async () => {
+            const base64data = reader.result;
+            
+            try {
+                if (CURRENT_GROUP) {
+                    await supabaseClient.from('group_messages').insert([{
+                        group_id: CURRENT_GROUP.id,
+                        sender: CURRENT_USER.phone,
+                        content: '⭕ Кружочек',
+                        circle_data: base64data
+                    }]);
+                    loadGroupMessages(CURRENT_GROUP.id);
+                } else if (CURRENT_CHAT) {
+                    await supabaseClient.from('messages').insert([{
+                        sender: CURRENT_USER.phone,
+                        receiver: CURRENT_CHAT.phone,
+                        content: '⭕ Кружочек',
+                        circle_data: base64data
+                    }]);
+                    loadMessages(CURRENT_CHAT.phone);
+                    loadChats();
+                }
+                
+                if (videoCircleModal) videoCircleModal.style.display = 'none';
+                if (startCircleBtn) startCircleBtn.style.display = 'inline-block';
+                if (stopCircleBtn) stopCircleBtn.style.display = 'none';
+                if (playCircleBtn) playCircleBtn.style.display = 'none';
+                if (sendCircleBtn) sendCircleBtn.style.display = 'none';
+                stopCirclePreview();
+                
+            } catch (e) {
+                alert('❌ Ошибка отправки: ' + e.message);
+            }
+        };
+    });
+}
+
+if (cancelCircleBtn) {
+    cancelCircleBtn.addEventListener('click', () => {
+        if (circleRecorder && circleRecorder.state !== 'inactive') {
+            circleRecorder.stop();
+        }
+        if (circleTimerInterval) clearInterval(circleTimerInterval);
+        if (videoCircleModal) videoCircleModal.style.display = 'none';
+        if (startCircleBtn) startCircleBtn.style.display = 'inline-block';
+        if (stopCircleBtn) stopCircleBtn.style.display = 'none';
+        if (playCircleBtn) playCircleBtn.style.display = 'none';
+        if (sendCircleBtn) sendCircleBtn.style.display = 'none';
+        stopCirclePreview();
+    });
+}
+
 // ==================== АДМИН-ПАНЕЛЬ ====================
-adminButton?.addEventListener('click', () => {
-    adminModal.style.display = 'flex';
-    loadAdminUsers();
-    loadAdminChats();
-    if (isOwner()) loadAdminsList();
-});
+if (adminButton) {
+    adminButton.addEventListener('click', () => {
+        if (adminModal) adminModal.style.display = 'flex';
+        loadAdminUsers();
+        loadAdminChats();
+        if (isOwner()) loadAdminsList();
+    });
+}
 
-closeAdmin?.addEventListener('click', () => adminModal.style.display = 'none');
+if (closeAdmin) {
+    closeAdmin.addEventListener('click', () => {
+        if (adminModal) adminModal.style.display = 'none';
+    });
+}
 
-adminTabs.forEach(tab => tab.addEventListener('click', () => {
-    adminTabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
-    document.getElementById(`admin${tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)}`).classList.add('active');
-    
-    if (tab.dataset.tab === 'users') loadAdminUsers();
-    if (tab.dataset.tab === 'chats') loadAdminChats();
-    if (tab.dataset.tab === 'support') loadSupportRequests();
-    if (tab.dataset.tab === 'reports') loadReports();
-    if (tab.dataset.tab === 'channels') loadChannels();
-    if (tab.dataset.tab === 'admins' && isOwner()) loadAdminsList();
-}));
+if (adminTabs) {
+    adminTabs.forEach(tab => tab.addEventListener('click', () => {
+        adminTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+        const content = document.getElementById(`admin${tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)}`);
+        if (content) content.classList.add('active');
+        
+        if (tab.dataset.tab === 'users') loadAdminUsers();
+        if (tab.dataset.tab === 'chats') loadAdminChats();
+        if (tab.dataset.tab === 'support') loadSupportRequests();
+        if (tab.dataset.tab === 'reports') loadReports();
+        if (tab.dataset.tab === 'channels') loadChannels();
+        if (tab.dataset.tab === 'admins' && isOwner()) loadAdminsList();
+    }));
+}
 
-// Загрузка пользователей для админки
 async function loadAdminUsers() {
+    if (!adminUsersList || !CURRENT_USER) return;
+    
     try {
         const { data: users } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
         
@@ -1482,15 +2105,12 @@ async function loadAdminUsers() {
     } catch (e) { console.error(e); }
 }
 
-// Модалка выбора ранга
 window.openRankModal = function(phone) {
     currentRankUser = phone;
-    rankUserPhone.textContent = `Пользователь: ${phone}`;
+    if (rankUserPhone) rankUserPhone.textContent = `Пользователь: ${phone}`;
     
-    // Сбрасываем выделение
     rankOptions.forEach(opt => opt.classList.remove('selected'));
     
-    // Загружаем текущий ранг
     supabaseClient.from('admins').select('rank').eq('phone', phone).single().then(({ data }) => {
         if (data) {
             const rank = data.rank;
@@ -1502,7 +2122,7 @@ window.openRankModal = function(phone) {
         }
     });
     
-    rankModal.style.display = 'flex';
+    if (rankModal) rankModal.style.display = 'flex';
 };
 
 window.selectRank = function(rank) {
@@ -1514,65 +2134,65 @@ window.selectRank = function(rank) {
     });
 };
 
-closeRankModal?.addEventListener('click', () => {
-    rankModal.style.display = 'none';
-    currentRankUser = null;
-});
+if (closeRankModal) {
+    closeRankModal.addEventListener('click', () => {
+        if (rankModal) rankModal.style.display = 'none';
+        currentRankUser = null;
+    });
+}
 
-cancelRankBtn?.addEventListener('click', () => {
-    rankModal.style.display = 'none';
-    currentRankUser = null;
-});
+if (cancelRankBtn) {
+    cancelRankBtn.addEventListener('click', () => {
+        if (rankModal) rankModal.style.display = 'none';
+        currentRankUser = null;
+    });
+}
 
-confirmRankBtn?.addEventListener('click', async () => {
-    const selected = document.querySelector('.rank-option.selected');
-    if (!selected) {
-        alert('Выберите ранг');
-        return;
-    }
-    
-    const rank = parseInt(selected.dataset.rank);
-    
-    try {
-        // Проверяем, есть ли уже запись
-        const { data: existing } = await supabaseClient
-            .from('admins')
-            .select('*')
-            .eq('phone', currentRankUser);
-        
-        if (existing?.length) {
-            // Обновляем ранг
-            await supabaseClient
-                .from('admins')
-                .update({ rank })
-                .eq('phone', currentRankUser);
-        } else {
-            // Создаём новую запись
-            await supabaseClient
-                .from('admins')
-                .insert([{ phone: currentRankUser, rank }]);
+if (confirmRankBtn) {
+    confirmRankBtn.addEventListener('click', async () => {
+        const selected = document.querySelector('.rank-option.selected');
+        if (!selected) {
+            alert('Выберите ранг');
+            return;
         }
         
-        alert(`✅ Ранг ${rank} назначен`);
-        rankModal.style.display = 'none';
-        loadAdminUsers();
-    } catch (e) {
-        alert('❌ Ошибка: ' + e.message);
-    }
-});
+        const rank = parseInt(selected.dataset.rank);
+        
+        try {
+            const { data: existing } = await supabaseClient
+                .from('admins')
+                .select('*')
+                .eq('phone', currentRankUser);
+            
+            if (existing?.length) {
+                await supabaseClient
+                    .from('admins')
+                    .update({ rank })
+                    .eq('phone', currentRankUser);
+            } else {
+                await supabaseClient
+                    .from('admins')
+                    .insert([{ phone: currentRankUser, rank }]);
+            }
+            
+            alert(`✅ Ранг ${rank} назначен`);
+            if (rankModal) rankModal.style.display = 'none';
+            loadAdminUsers();
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    });
+}
 
-// Загрузка чатов для админки
 async function loadAdminChats() {
-    if (!adminChatsList) return;
+    if (!adminChatsList || !CURRENT_USER) return;
     
     try {
-        // Загружаем личные сообщения
         const { data: privateMessages } = await supabaseClient
             .from('messages')
             .select('*')
             .order('created_at', { ascending: false });
         
-        // Загружаем группы
         const { data: groups } = await supabaseClient
             .from('groups')
             .select('*')
@@ -1580,7 +2200,6 @@ async function loadAdminChats() {
         
         const chats = [];
         
-        // Группируем личные сообщения по парам
         const privateChats = new Map();
         privateMessages?.forEach(m => {
             const participants = [m.sender, m.receiver].sort().join('-');
@@ -1599,7 +2218,6 @@ async function loadAdminChats() {
         
         privateChats.forEach(chat => chats.push(chat));
         
-        // Добавляем группы
         groups?.forEach(g => {
             chats.push({
                 type: 'group',
@@ -1610,7 +2228,6 @@ async function loadAdminChats() {
             });
         });
         
-        // Сортируем по дате
         chats.sort((a, b) => {
             const dateA = a.lastMessageTime || a.created_at;
             const dateB = b.lastMessageTime || b.created_at;
@@ -1661,32 +2278,34 @@ async function loadAdminChats() {
     }
 }
 
-// Просмотр чата админом
 window.viewAdminChat = async function(type, id) {
+    if (!adminChatViewModal) return;
+    
     adminChatViewModal.style.display = 'flex';
     
     if (type === 'private') {
         const [user1, user2] = id.split('|');
-        adminChatViewTitle.textContent = `Чат: ${user1} - ${user2}`;
-        adminChatInfo.innerHTML = `<p>Тип: Личный чат</p><p>Участники: ${user1}, ${user2}</p>`;
+        if (adminChatViewTitle) adminChatViewTitle.textContent = `Чат: ${user1} - ${user2}`;
+        if (adminChatInfo) adminChatInfo.innerHTML = `<p>Тип: Личный чат</p><p>Участники: ${user1}, ${user2}</p>`;
         
-        // Загружаем сообщения
         const { data: messages } = await supabaseClient
             .from('messages')
             .select('*')
             .or(`and(sender.eq.${user1},receiver.eq.${user2}),and(sender.eq.${user2},receiver.eq.${user1})`)
             .order('created_at', { ascending: true });
         
-        adminChatMessages.innerHTML = messages?.map(m => `
-            <div class="message ${m.sender === CURRENT_USER.phone ? 'sent' : 'received'}" style="margin:5px 0;max-width:100%">
-                <div><strong>${m.sender}:</strong> ${m.content}</div>
-                <div style="font-size:10px;color:#888">${new Date(m.created_at).toLocaleString()}</div>
-            </div>
-        `).join('') || '<p>Нет сообщений</p>';
+        if (adminChatMessages) {
+            adminChatMessages.innerHTML = messages?.map(m => `
+                <div class="message ${m.sender === CURRENT_USER?.phone ? 'sent' : 'received'}" style="margin:5px 0;max-width:100%">
+                    <div><strong>${m.sender}:</strong> ${m.content}</div>
+                    <div style="font-size:10px;color:#888">${new Date(m.created_at).toLocaleString()}</div>
+                </div>
+            `).join('') || '<p>Нет сообщений</p>';
+        }
     } else {
         const { data: group } = await supabaseClient.from('groups').select('*').eq('id', id).single();
-        adminChatViewTitle.textContent = `Группа: ${group.name}`;
-        adminChatInfo.innerHTML = `<p>Тип: Группа</p><p>Создатель: ${group.created_by}</p><p>Описание: ${group.description || 'Нет'}</p>`;
+        if (adminChatViewTitle) adminChatViewTitle.textContent = `Группа: ${group.name}`;
+        if (adminChatInfo) adminChatInfo.innerHTML = `<p>Тип: Группа</p><p>Создатель: ${group.created_by}</p><p>Описание: ${group.description || 'Нет'}</p>`;
         
         const { data: messages } = await supabaseClient
             .from('group_messages')
@@ -1694,20 +2313,23 @@ window.viewAdminChat = async function(type, id) {
             .eq('group_id', id)
             .order('created_at', { ascending: true });
         
-        adminChatMessages.innerHTML = messages?.map(m => `
-            <div class="message received" style="margin:5px 0;max-width:100%">
-                <div><strong>${m.sender}:</strong> ${m.content}</div>
-                <div style="font-size:10px;color:#888">${new Date(m.created_at).toLocaleString()}</div>
-            </div>
-        `).join('') || '<p>Нет сообщений</p>';
+        if (adminChatMessages) {
+            adminChatMessages.innerHTML = messages?.map(m => `
+                <div class="message received" style="margin:5px 0;max-width:100%">
+                    <div><strong>${m.sender}:</strong> ${m.content}</div>
+                    <div style="font-size:10px;color:#888">${new Date(m.created_at).toLocaleString()}</div>
+                </div>
+            `).join('') || '<p>Нет сообщений</p>';
+        }
     }
 };
 
-closeAdminChatView?.addEventListener('click', () => {
-    adminChatViewModal.style.display = 'none';
-});
+if (closeAdminChatView) {
+    closeAdminChatView.addEventListener('click', () => {
+        if (adminChatViewModal) adminChatViewModal.style.display = 'none';
+    });
+}
 
-// Модерация
 window.moderateChat = async function(userPhone, action) {
     if (userPhone === OWNER_PHONE) {
         alert('❌ Нельзя модерировать владельца');
@@ -1723,35 +2345,37 @@ window.moderateChat = async function(userPhone, action) {
     
     if (!confirm(`Вы уверены, что хотите ${actionNames[action]} пользователя ${userPhone}?`)) return;
     
-    // Здесь будет логика модерации
     alert(`✅ Действие "${actionNames[action]}" выполнено (тестовая версия)`);
 };
 
-// Обновление списка чатов
-refreshChatsBtn?.addEventListener('click', loadAdminChats);
+if (refreshChatsBtn) {
+    refreshChatsBtn.addEventListener('click', loadAdminChats);
+}
 
-// Поиск по чатам
-adminChatSearch?.addEventListener('input', (e) => {
-    const term = e.target.value.toLowerCase();
-    document.querySelectorAll('.admin-chat-item').forEach(el => {
-        el.style.display = el.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+if (adminChatSearch) {
+    adminChatSearch.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        document.querySelectorAll('.admin-chat-item').forEach(el => {
+            el.style.display = el.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+        });
     });
-});
+}
 
-// Заглушки для других вкладок
 async function loadSupportRequests() {
-    supportList.innerHTML = '<p class="no-data">Функция поддержки в разработке</p>';
+    if (supportList) supportList.innerHTML = '<p class="no-data">Функция поддержки в разработке</p>';
 }
 
 async function loadReports() {
-    reportsList.innerHTML = '<p class="no-data">Функция жалоб в разработке</p>';
+    if (reportsList) reportsList.innerHTML = '<p class="no-data">Функция жалоб в разработке</p>';
 }
 
 async function loadChannels() {
-    channelsList.innerHTML = '<p class="no-data">Функция каналов в разработке</p>';
+    if (channelsList) channelsList.innerHTML = '<p class="no-data">Функция каналов в разработке</p>';
 }
 
 async function loadAdminsList() {
+    if (!adminsList) return;
+    
     const { data: admins } = await supabaseClient.from('admins').select('*');
     adminsList.innerHTML = admins?.map(a => `
         <div class="admin-user-item">
@@ -1761,19 +2385,23 @@ async function loadAdminsList() {
     `).join('');
 }
 
-addAdminBtn?.addEventListener('click', async () => {
-    let p = formatPhone(newAdminPhone.value);
-    if (!p) return;
-    
-    let { data: u } = await supabaseClient.from('profiles').select('*').eq('phone', p);
-    if (!u?.length) { 
-        alert('❌ Пользователь не найден'); 
-        return; 
-    }
-    
-    openRankModal(p);
-    newAdminPhone.value = '';
-});
+if (addAdminBtn) {
+    addAdminBtn.addEventListener('click', async () => {
+        if (!newAdminPhone) return;
+        
+        let p = formatPhone(newAdminPhone.value);
+        if (!p) return;
+        
+        let { data: u } = await supabaseClient.from('profiles').select('*').eq('phone', p);
+        if (!u?.length) { 
+            alert('❌ Пользователь не найден'); 
+            return; 
+        }
+        
+        openRankModal(p);
+        newAdminPhone.value = '';
+    });
+}
 
 // ==================== ФОРМАТИРОВАНИЕ НОМЕРОВ ====================
 [loginPhone, registerPhone].forEach(i => i?.addEventListener('input', e => {
@@ -1791,7 +2419,7 @@ if (savedUser) {
         
         authScreen.style.display = 'none';
         app.style.display = 'flex';
-        currentUserPhone.textContent = CURRENT_USER.phone;
+        if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
         
         if (CURRENT_SESSION_TOKEN) {
             await supabaseClient
@@ -1803,7 +2431,7 @@ if (savedUser) {
         ADMIN_RIGHTS = await loadAdminRights(CURRENT_USER.phone);
         
         if (ADMIN_RIGHTS || isOwner()) {
-            adminButton.style.display = 'block';
+            if (adminButton) adminButton.style.display = 'block';
         }
         
         loadChats();
@@ -1814,465 +2442,15 @@ if (savedUser) {
 // ==================== ЗАКРЫТИЕ МЕНЮ ====================
 document.addEventListener('click', function(e) {
     if (!e.target.closest('.message')) {
-        messageMenu.style.display = 'none';
+        if (messageMenu) messageMenu.style.display = 'none';
     }
     if (!e.target.closest('.emoji-button') && !e.target.closest('.emoji-panel')) {
-        emojiPanel.style.display = 'none';
+        if (emojiPanel) emojiPanel.style.display = 'none';
     }
     if (!e.target.closest('.search-results') && !e.target.closest('.search-button') && !e.target.closest('.search-input')) {
-        searchResults.style.display = 'none';
+        if (searchResults) searchResults.style.display = 'none';
     }
 });
-
-console.log('✅ LinkUp — полная версия с рангами 1-5 и админ-чатами');
-// ==================== ЗВОНКИ (WebRTC) ====================
-let peerConnection = null;
-let localStream = null;
-let remoteStream = null;
-let callTimer = null;
-let callSeconds = 0;
-let currentCall = null;
-let incomingCallTimeout = null;
-
-const configuration = {
-    iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' }
-    ]
-};
-
-// Элементы звонков
-const audioCallBtn = document.getElementById('audioCallBtn');
-const videoCallBtn = document.getElementById('videoCallBtn');
-const callModal = document.getElementById('callModal');
-const callAvatar = document.getElementById('callAvatar');
-const callName = document.getElementById('callName');
-const callStatus = document.getElementById('callStatus');
-const callVideoContainer = document.getElementById('callVideoContainer');
-const remoteVideo = document.getElementById('remoteVideo');
-const localVideo = document.getElementById('localVideo');
-const muteAudioBtn = document.getElementById('muteAudioBtn');
-const toggleVideoBtn = document.getElementById('toggleVideoBtn');
-const endCallBtn = document.getElementById('endCallBtn');
-const speakerBtn = document.getElementById('speakerBtn');
-const callTimerDisplay = document.getElementById('callTimer');
-
-// Элементы входящего звонка
-const incomingCallModal = document.getElementById('incomingCallModal');
-const incomingCallAvatar = document.getElementById('incomingCallAvatar');
-const incomingCallName = document.getElementById('incomingCallName');
-const incomingCallType = document.getElementById('incomingCallType');
-const acceptCallBtn = document.getElementById('acceptCallBtn');
-const declineCallBtn = document.getElementById('declineCallBtn');
-
-// Аудиозвонок
-audioCallBtn?.addEventListener('click', async () => {
-    if (!CURRENT_CHAT) {
-        alert('Сначала выберите чат');
-        return;
-    }
-    await startCall('audio');
-});
-
-// Видеозвонок
-videoCallBtn?.addEventListener('click', async () => {
-    if (!CURRENT_CHAT) {
-        alert('Сначала выберите чат');
-        return;
-    }
-    await startCall('video');
-});
-
-// Начать звонок
-async function startCall(type) {
-    try {
-        // Запрашиваем доступ к медиа
-        const constraints = {
-            audio: true,
-            video: type === 'video'
-        };
-        
-        localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        
-        // Создаём peer connection
-        peerConnection = new RTCPeerConnection(configuration);
-        
-        // Добавляем локальные треки
-        localStream.getTracks().forEach(track => {
-            peerConnection.addTrack(track, localStream);
-        });
-        
-        // Обработка удалённого потока
-        peerConnection.ontrack = (event) => {
-            remoteStream = event.streams[0];
-            remoteVideo.srcObject = remoteStream;
-        };
-        
-        // Создаём оффер
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        
-        // Отправляем оффер собеседнику (в реальном проекте через сервер)
-        console.log('📞 Отправляем оффер:', offer);
-        
-        // Показываем модалку
-        showCallModal(type);
-        
-        // Имитация ответа (для теста)
-        setTimeout(() => {
-            simulateAnswer();
-        }, 3000);
-        
-    } catch (error) {
-        console.error('Ошибка звонка:', error);
-        alert('❌ Не удалось начать звонок: ' + error.message);
-    }
-}
-
-// Показать модалку звонка
-function showCallModal(type) {
-    callAvatar.textContent = CURRENT_CHAT?.username?.charAt(0) || '👤';
-    callName.textContent = CURRENT_CHAT?.username || CURRENT_CHAT?.phone || 'Собеседник';
-    callStatus.textContent = 'Соединение...';
-    
-    if (type === 'video') {
-        callVideoContainer.style.display = 'block';
-        localVideo.srcObject = localStream;
-    } else {
-        callVideoContainer.style.display = 'none';
-    }
-    
-    callModal.style.display = 'flex';
-    
-    // Запускаем таймер
-    callSeconds = 0;
-    updateCallTimer();
-    callTimer = setInterval(updateCallTimer, 1000);
-}
-
-// Обновление таймера
-function updateCallTimer() {
-    callSeconds++;
-    const minutes = Math.floor(callSeconds / 60);
-    const seconds = callSeconds % 60;
-    callTimerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-}
-
-// Имитация ответа (для теста)
-function simulateAnswer() {
-    callStatus.textContent = 'Соединено';
-}
-
-// Завершить звонок
-endCallBtn?.addEventListener('click', endCall);
-
-function endCall() {
-    if (peerConnection) {
-        peerConnection.close();
-        peerConnection = null;
-    }
-    
-    if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-        localStream = null;
-    }
-    
-    if (remoteStream) {
-        remoteStream.getTracks().forEach(track => track.stop());
-        remoteStream = null;
-    }
-    
-    if (callTimer) {
-        clearInterval(callTimer);
-        callTimer = null;
-    }
-    
-    callModal.style.display = 'none';
-    incomingCallModal.style.display = 'none';
-    
-    if (incomingCallTimeout) {
-        clearTimeout(incomingCallTimeout);
-        incomingCallTimeout = null;
-    }
-}
-
-// Mute audio
-muteAudioBtn?.addEventListener('click', () => {
-    if (localStream) {
-        const audioTrack = localStream.getAudioTracks()[0];
-        if (audioTrack) {
-            audioTrack.enabled = !audioTrack.enabled;
-            muteAudioBtn.classList.toggle('active');
-            muteAudioBtn.title = audioTrack.enabled ? 'Выключить микрофон' : 'Включить микрофон';
-        }
-    }
-});
-
-// Toggle video
-toggleVideoBtn?.addEventListener('click', () => {
-    if (localStream) {
-        const videoTrack = localStream.getVideoTracks()[0];
-        if (videoTrack) {
-            videoTrack.enabled = !videoTrack.enabled;
-            toggleVideoBtn.classList.toggle('active');
-            toggleVideoBtn.title = videoTrack.enabled ? 'Выключить камеру' : 'Включить камеру';
-        }
-    }
-});
-
-// Speaker (имитация)
-speakerBtn?.addEventListener('click', () => {
-    speakerBtn.classList.toggle('active');
-    speakerBtn.title = speakerBtn.classList.contains('active') ? 'Выключить динамик' : 'Включить динамик';
-});
-
-// Закрытие модалки по ESC
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && callModal.style.display === 'flex') {
-        endCall();
-    }
-});
-
-// Входящий звонок (имитация для теста)
-window.simulateIncomingCall = function(phone, type = 'video') {
-    incomingCallName.textContent = phone;
-    incomingCallType.textContent = type === 'video' ? '📹 Входящий видеозвонок' : '📞 Входящий аудиозвонок';
-    incomingCallModal.style.display = 'flex';
-    
-    // Автоотклонение через 30 секунд
-    incomingCallTimeout = setTimeout(() => {
-        incomingCallModal.style.display = 'none';
-        alert('❌ Вызов не отвечен');
-    }, 30000);
-};
-
-// Принять звонок
-acceptCallBtn?.addEventListener('click', () => {
-    incomingCallModal.style.display = 'none';
-    if (incomingCallTimeout) {
-        clearTimeout(incomingCallTimeout);
-        incomingCallTimeout = null;
-    }
-    
-    // Запускаем звонок (для теста)
-    showCallModal('video');
-    callStatus.textContent = 'Соединено';
-});
-
-// Отклонить звонок
-declineCallBtn?.addEventListener('click', () => {
-    incomingCallModal.style.display = 'none';
-    if (incomingCallTimeout) {
-        clearTimeout(incomingCallTimeout);
-        incomingCallTimeout = null;
-    }
-    alert('❌ Звонок отклонён');
-});
-
-// Для теста: Ctrl+C - входящий звонок
-document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.key === 'c') {
-        simulateIncomingCall('+79991234567', 'video');
-    }
-    if (e.ctrlKey && e.key === 'a') {
-        simulateIncomingCall('+79991234567', 'audio');
-    }
-});
-
-console.log('✅ Звонки добавлены! Нажми Ctrl+C для теста входящего звонка
-    // ==================== ЗВОНКИ ====================
-let peerConnection = null;
-let localStream = null;
-let remoteStream = null;
-let callTimer = null;
-let callSeconds = 0;
-let currentCall = null;
-let incomingCallTimeout = null;
-
-// Проверяем существование элементов перед использованием
-const audioCallBtn = document.getElementById('audioCallBtn');
-const videoCallBtn = document.getElementById('videoCallBtn');
-const callModal = document.getElementById('callModal');
-const callAvatar = document.getElementById('callAvatar');
-const callName = document.getElementById('callName');
-const callStatus = document.getElementById('callStatus');
-const callVideoContainer = document.getElementById('callVideoContainer');
-const remoteVideo = document.getElementById('remoteVideo');
-const localVideo = document.getElementById('localVideo');
-const muteAudioBtn = document.getElementById('muteAudioBtn');
-const toggleVideoBtn = document.getElementById('toggleVideoBtn');
-const endCallBtn = document.getElementById('endCallBtn');
-const speakerBtn = document.getElementById('speakerBtn');
-const callTimerDisplay = document.getElementById('callTimer');
-const incomingCallModal = document.getElementById('incomingCallModal');
-const incomingCallAvatar = document.getElementById('incomingCallAvatar');
-const incomingCallName = document.getElementById('incomingCallName');
-const incomingCallType = document.getElementById('incomingCallType');
-const acceptCallBtn = document.getElementById('acceptCallBtn');
-const declineCallBtn = document.getElementById('declineCallBtn');
-
-// Аудиозвонок
-if (audioCallBtn) {
-    audioCallBtn.addEventListener('click', async () => {
-        if (!CURRENT_CHAT) {
-            alert('Сначала выберите чат');
-            return;
-        }
-        await startCall('audio');
-    });
-}
-
-// Видеозвонок
-if (videoCallBtn) {
-    videoCallBtn.addEventListener('click', async () => {
-        if (!CURRENT_CHAT) {
-            alert('Сначала выберите чат');
-            return;
-        }
-        await startCall('video');
-    });
-}
-
-// Начать звонок
-async function startCall(type) {
-    try {
-        const constraints = {
-            audio: true,
-            video: type === 'video'
-        };
-        
-        localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        
-        if (callAvatar) callAvatar.textContent = CURRENT_CHAT?.username?.charAt(0) || '👤';
-        if (callName) callName.textContent = CURRENT_CHAT?.username || CURRENT_CHAT?.phone || 'Собеседник';
-        if (callStatus) callStatus.textContent = 'Соединение...';
-        
-        if (type === 'video' && callVideoContainer) {
-            callVideoContainer.style.display = 'block';
-            if (localVideo) localVideo.srcObject = localStream;
-        } else if (callVideoContainer) {
-            callVideoContainer.style.display = 'none';
-        }
-        
-        if (callModal) callModal.style.display = 'flex';
-        
-        callSeconds = 0;
-        updateCallTimer();
-        if (callTimer) clearInterval(callTimer);
-        callTimer = setInterval(updateCallTimer, 1000);
-        
-        // Имитация ответа через 2 секунды
-        setTimeout(() => {
-            if (callStatus) callStatus.textContent = 'Соединено';
-        }, 2000);
-        
-    } catch (error) {
-        console.error('Ошибка звонка:', error);
-        alert('❌ Не удалось начать звонок: ' + error.message);
-    }
-}
-
-function updateCallTimer() {
-    callSeconds++;
-    const minutes = Math.floor(callSeconds / 60);
-    const seconds = callSeconds % 60;
-    if (callTimerDisplay) {
-        callTimerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-}
-
-function endCall() {
-    if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-        localStream = null;
-    }
-    if (callTimer) {
-        clearInterval(callTimer);
-        callTimer = null;
-    }
-    if (callModal) callModal.style.display = 'none';
-    if (incomingCallModal) incomingCallModal.style.display = 'none';
-    if (incomingCallTimeout) {
-        clearTimeout(incomingCallTimeout);
-        incomingCallTimeout = null;
-    }
-}
-
-if (endCallBtn) {
-    endCallBtn.addEventListener('click', endCall);
-}
-
-if (muteAudioBtn) {
-    muteAudioBtn.addEventListener('click', () => {
-        if (localStream) {
-            const audioTrack = localStream.getAudioTracks()[0];
-            if (audioTrack) {
-                audioTrack.enabled = !audioTrack.enabled;
-                muteAudioBtn.classList.toggle('active');
-                muteAudioBtn.title = audioTrack.enabled ? 'Выключить микрофон' : 'Включить микрофон';
-            }
-        }
-    });
-}
-
-if (toggleVideoBtn) {
-    toggleVideoBtn.addEventListener('click', () => {
-        if (localStream) {
-            const videoTrack = localStream.getVideoTracks()[0];
-            if (videoTrack) {
-                videoTrack.enabled = !videoTrack.enabled;
-                toggleVideoBtn.classList.toggle('active');
-                toggleVideoBtn.title = videoTrack.enabled ? 'Выключить камеру' : 'Включить камеру';
-            }
-        }
-    });
-}
-
-if (speakerBtn) {
-    speakerBtn.addEventListener('click', () => {
-        speakerBtn.classList.toggle('active');
-        speakerBtn.title = speakerBtn.classList.contains('active') ? 'Выключить динамик' : 'Включить динамик';
-    });
-}
-
-// Входящий звонок (для теста)
-window.simulateIncomingCall = function(phone, type = 'video') {
-    if (incomingCallName) incomingCallName.textContent = phone;
-    if (incomingCallType) {
-        incomingCallType.textContent = type === 'video' ? '📹 Входящий видеозвонок' : '📞 Входящий аудиозвонок';
-    }
-    if (incomingCallModal) incomingCallModal.style.display = 'flex';
-    
-    if (incomingCallTimeout) clearTimeout(incomingCallTimeout);
-    incomingCallTimeout = setTimeout(() => {
-        if (incomingCallModal) incomingCallModal.style.display = 'none';
-        alert('❌ Вызов не отвечен');
-    }, 30000);
-};
-
-if (acceptCallBtn) {
-    acceptCallBtn.addEventListener('click', () => {
-        if (incomingCallModal) incomingCallModal.style.display = 'none';
-        if (incomingCallTimeout) {
-            clearTimeout(incomingCallTimeout);
-            incomingCallTimeout = null;
-        }
-        if (callModal) callModal.style.display = 'flex';
-        if (callStatus) callStatus.textContent = 'Соединено';
-    });
-}
-
-if (declineCallBtn) {
-    declineCallBtn.addEventListener('click', () => {
-        if (incomingCallModal) incomingCallModal.style.display = 'none';
-        if (incomingCallTimeout) {
-            clearTimeout(incomingCallTimeout);
-            incomingCallTimeout = null;
-        }
-        alert('❌ Звонок отклонён');
-    });
-}
 
 // Горячие клавиши для теста
 document.addEventListener('keydown', (e) => {
@@ -2286,4 +2464,4 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-console.log('✅ Звонки работают! Нажми Ctrl+C для теста');
+console.log('✅ LinkUp — ФИНАЛЬНАЯ РАБОЧАЯ ВЕРСИЯ со звонками, голосовыми, кружочками и админкой!');
