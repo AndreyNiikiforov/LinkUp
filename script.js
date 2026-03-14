@@ -20,38 +20,13 @@ let leafInterval = null;
 let rainInterval = null;
 let currentRankUser = null;
 
-// Расширенные описания рангов
+// Описания рангов
 const RANGS = {
-    1: { 
-        name: 'Младший модератор', 
-        desc: 'Мут, варны, предупреждения', 
-        color: '#cd7f32',
-        permissions: ['warn', 'mute', 'view']
-    },
-    2: { 
-        name: 'Старший модератор', 
-        desc: 'Кик, чистка чата, мут', 
-        color: '#c0c0c0',
-        permissions: ['warn', 'mute', 'kick', 'clean', 'view']
-    },
-    3: { 
-        name: 'Младший администратор', 
-        desc: 'Настройки чата, фильтры, безопасность', 
-        color: '#ffd700',
-        permissions: ['warn', 'mute', 'kick', 'clean', 'settings', 'filters', 'view']
-    },
-    4: { 
-        name: 'Старший администратор', 
-        desc: 'Назначение модераторов, правила, приветствия', 
-        color: '#00bfff',
-        permissions: ['warn', 'mute', 'kick', 'clean', 'settings', 'filters', 'assign_mods', 'rules', 'view']
-    },
-    5: { 
-        name: 'Заместитель владельца', 
-        desc: 'Все функции, кроме удаления владельца', 
-        color: '#ff1493',
-        permissions: ['warn', 'mute', 'kick', 'clean', 'settings', 'filters', 'assign_mods', 'rules', 'full', 'manage_admins', 'view']
-    }
+    1: { name: 'Младший модератор', desc: 'Мут и варны', color: '#cd7f32' },
+    2: { name: 'Старший модератор', desc: 'Кик, чистка чата', color: '#c0c0c0' },
+    3: { name: 'Младший администратор', desc: 'Настройки чата, фильтры', color: '#ffd700' },
+    4: { name: 'Старший администратор', desc: 'Назначение модераторов', color: '#00bfff' },
+    5: { name: 'Заместитель владельца', desc: 'Все функции, кроме удаления владельца', color: '#ff1493' }
 };
 
 // ==================== DOM ЭЛЕМЕНТЫ ====================
@@ -110,55 +85,6 @@ const deleteMessageBtn = document.getElementById('deleteMessageBtn');
 const pinMessageBtn = document.getElementById('pinMessageBtn');
 const chatMenuBtn = document.getElementById('chatMenuBtn');
 
-// Кнопки звонков и медиа
-const audioCallBtn = document.getElementById('audioCallBtn');
-const videoCallBtn = document.getElementById('videoCallBtn');
-const groupCallBtn = document.getElementById('groupCallBtn');
-const voiceMsgBtn = document.getElementById('voiceMsgBtn');
-const videoCircleBtn = document.getElementById('videoCircleBtn');
-const attachBtn = document.getElementById('attachBtn');
-
-// Модалки звонков
-const callModal = document.getElementById('callModal');
-const callAvatar = document.getElementById('callAvatar');
-const callName = document.getElementById('callName');
-const callStatus = document.getElementById('callStatus');
-const callVideoContainer = document.getElementById('callVideoContainer');
-const remoteVideo = document.getElementById('remoteVideo');
-const localVideo = document.getElementById('localVideo');
-const muteAudioBtn = document.getElementById('muteAudioBtn');
-const toggleVideoBtn = document.getElementById('toggleVideoBtn');
-const endCallBtn = document.getElementById('endCallBtn');
-const speakerBtn = document.getElementById('speakerBtn');
-const callTimerDisplay = document.getElementById('callTimer');
-const incomingCallModal = document.getElementById('incomingCallModal');
-const incomingCallAvatar = document.getElementById('incomingCallAvatar');
-const incomingCallName = document.getElementById('incomingCallName');
-const incomingCallType = document.getElementById('incomingCallType');
-const acceptCallBtn = document.getElementById('acceptCallBtn');
-const declineCallBtn = document.getElementById('declineCallBtn');
-
-// Голосовые сообщения
-const voiceRecorderModal = document.getElementById('voiceRecorderModal');
-const closeVoiceRecorder = document.getElementById('closeVoiceRecorder');
-const voiceTimer = document.getElementById('voiceTimer');
-const startRecordingBtn = document.getElementById('startRecordingBtn');
-const stopRecordingBtn = document.getElementById('stopRecordingBtn');
-const playRecordingBtn = document.getElementById('playRecordingBtn');
-const sendRecordingBtn = document.getElementById('sendRecordingBtn');
-const cancelRecordingBtn = document.getElementById('cancelRecordingBtn');
-
-// Кружочки
-const videoCircleModal = document.getElementById('videoCircleModal');
-const closeVideoCircle = document.getElementById('closeVideoCircle');
-const circleVideo = document.getElementById('circleVideo');
-const circleTimer = document.getElementById('circleTimer');
-const startCircleBtn = document.getElementById('startCircleBtn');
-const stopCircleBtn = document.getElementById('stopCircleBtn');
-const playCircleBtn = document.getElementById('playCircleBtn');
-const sendCircleBtn = document.getElementById('sendCircleBtn');
-const cancelCircleBtn = document.getElementById('cancelCircleBtn');
-
 // QR элементы
 const qrContainer = document.getElementById('qrContainer');
 const qrPlaceholder = document.getElementById('qrPlaceholder');
@@ -194,9 +120,6 @@ const savePrivacyBtn = document.getElementById('savePrivacyBtn');
 const devicesList = document.getElementById('devicesList');
 const terminateAllSessions = document.getElementById('terminateAllSessions');
 
-// Привязки
-const linkGoogle = document.getElementById('linkGoogle');
-
 // Админка
 const adminModal = document.getElementById('adminModal');
 const closeAdmin = document.getElementById('closeAdmin');
@@ -212,11 +135,6 @@ const adminsList = document.getElementById('adminsList');
 const addAdminBtn = document.getElementById('addAdminBtn');
 const newAdminPhone = document.getElementById('newAdminPhone');
 
-// Админ-чаты
-const adminChatsList = document.getElementById('adminChatsList');
-const refreshChatsBtn = document.getElementById('refreshChatsBtn');
-const adminChatSearch = document.getElementById('adminChatSearch');
-
 // Модалка рангов
 const rankModal = document.getElementById('rankModal');
 const closeRankModal = document.getElementById('closeRankModal');
@@ -224,17 +142,6 @@ const rankUserPhone = document.getElementById('rankUserPhone');
 const rankOptions = document.querySelectorAll('.rank-option');
 const confirmRankBtn = document.getElementById('confirmRankBtn');
 const cancelRankBtn = document.getElementById('cancelRankBtn');
-
-// Модалка просмотра чата
-const adminChatViewModal = document.getElementById('adminChatViewModal');
-const closeAdminChatView = document.getElementById('closeAdminChatView');
-const adminChatViewTitle = document.getElementById('adminChatViewTitle');
-const adminChatInfo = document.getElementById('adminChatInfo');
-const adminChatMessages = document.getElementById('adminChatMessages');
-const adminChatWarnBtn = document.getElementById('adminChatWarnBtn');
-const adminChatMuteBtn = document.getElementById('adminChatMuteBtn');
-const adminChatKickBtn = document.getElementById('adminChatKickBtn');
-const adminChatBanBtn = document.getElementById('adminChatBanBtn');
 
 // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
 function formatPhone(number) {
@@ -292,8 +199,7 @@ function getUserRank(phone) {
 function canUserDo(phone, action) {
     const rank = getUserRank(phone);
     if (rank >= 5) return true;
-    if (rank === 0) return false;
-    return RANGS[rank]?.permissions?.includes(action) || false;
+    return false;
 }
 
 // ==================== ВЫХОД ИЗ ПРОФИЛЯ ====================
@@ -372,7 +278,7 @@ if (backFromQrBtn) {
     });
 }
 
-// ==================== QR-ВХОД (КАК В TELEGRAM) ====================
+// ==================== QR-ВХОД ====================
 let currentQrCode = null;
 let currentQrToken = null;
 let qrCheckInterval = null;
@@ -383,20 +289,17 @@ async function startQrLogin() {
     qrPlaceholder.style.display = 'flex';
     qrCanvas.style.display = 'none';
     
-    // Генерируем уникальный токен для QR
     currentQrToken = generateQrCode();
     currentQrCode = currentQrToken;
     
-    // Сохраняем QR код в БД
     await supabaseClient
         .from('qr_codes')
         .insert([{
             code: currentQrToken,
-            expires_at: new Date(Date.now() + 2 * 60 * 1000), // 2 минуты на сканирование
+            expires_at: new Date(Date.now() + 2 * 60 * 1000),
             used: false
         }]);
     
-    // Генерируем QR код на canvas
     QRCode.toCanvas(qrCanvas, currentQrToken, {
         width: 250,
         margin: 2,
@@ -413,11 +316,9 @@ async function startQrLogin() {
         qrCanvas.style.display = 'block';
     });
     
-    // Очищаем предыдущий интервал
     if (qrCheckInterval) clearInterval(qrCheckInterval);
     if (QR_POLLING_INTERVAL) clearInterval(QR_POLLING_INTERVAL);
     
-    // Опрашиваем статус QR каждые 2 секунды
     QR_POLLING_INTERVAL = setInterval(async () => {
         const { data } = await supabaseClient
             .from('qr_codes')
@@ -427,7 +328,6 @@ async function startQrLogin() {
             .single();
         
         if (data) {
-            // QR отсканирован, получаем сессию
             const { data: session } = await supabaseClient
                 .from('sessions')
                 .select('*')
@@ -442,7 +342,6 @@ async function startQrLogin() {
                     .single();
                 
                 if (user) {
-                    // Входим в аккаунт
                     CURRENT_USER = user;
                     CURRENT_SESSION_TOKEN = generateSessionToken();
                     saveSession(CURRENT_USER);
@@ -467,10 +366,8 @@ async function startQrLogin() {
         }
     }, 2000);
     
-    // Автообновление QR каждые 2 минуты
     qrCheckInterval = setInterval(() => {
         if (qrLoginForm.style.display === 'block') {
-            // Обновляем QR код
             stopQrLogin();
             startQrLogin();
         }
@@ -488,11 +385,10 @@ function stopQrLogin() {
     }
 }
 
-// ==================== СКАНИРОВАНИЕ QR (ДЛЯ ТЕЛЕФОНА) ====================
+// ==================== СКАНИРОВАНИЕ QR ====================
 let scanning = false;
 let videoStream = null;
 
-// Функция для запуска сканирования QR (вызывается из меню)
 window.startQrScanning = async function() {
     if (!qrScanModal || !qrVideo) return;
     
@@ -538,14 +434,12 @@ function scanQrFrame() {
 async function processScannedQr(qrData) {
     if (!qrData.startsWith('qr_')) return;
     
-    // Останавливаем сканирование
     scanning = false;
     if (videoStream) {
         videoStream.getTracks().forEach(track => track.stop());
     }
     qrScanModal.style.display = 'none';
     
-    // Проверяем QR код в БД
     const { data: qr } = await supabaseClient
         .from('qr_codes')
         .select('*')
@@ -563,16 +457,13 @@ async function processScannedQr(qrData) {
         return;
     }
     
-    // Показываем подтверждение входа
     const deviceInfo = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? '📱 Мобильное' : '💻 Компьютер';
     qrConfirmDevice.textContent = `Устройство: ${deviceInfo}`;
     qrConfirmLocation.textContent = `IP: 0.0.0.0 • ${new Date().toLocaleString()}`;
     
     qrConfirmModal.style.display = 'flex';
     
-    // Обработчик подтверждения
     qrConfirmYes.onclick = async () => {
-        // Создаём сессию для нового устройства
         const newToken = generateSessionToken();
         await supabaseClient
             .from('sessions')
@@ -586,14 +477,13 @@ async function processScannedQr(qrData) {
                 qr_code: qrData
             }]);
         
-        // Отмечаем QR как использованный
         await supabaseClient
             .from('qr_codes')
             .update({ used: true, user_phone: CURRENT_USER.phone })
             .eq('code', qrData);
         
         qrConfirmModal.style.display = 'none';
-        alert('✅ Вход подтверждён! Теперь вы можете пользоваться LinkUp на новом устройстве.');
+        alert('✅ Вход подтверждён!');
     };
     
     qrConfirmNo.onclick = () => {
@@ -602,7 +492,6 @@ async function processScannedQr(qrData) {
     };
 }
 
-// Закрытие сканирования
 if (closeQrScan) {
     closeQrScan.addEventListener('click', () => {
         scanning = false;
@@ -759,20 +648,18 @@ if (terminateAllSessions) {
     });
 }
 
-// ==================== ВХОД (ИСПРАВЛЕННЫЙ) ====================
+// ==================== ВХОД ====================
 if (loginButton) {
     loginButton.addEventListener('click', async () => {
         const phone = formatPhone(loginPhone.value);
         const pass = loginPassword.value;
         
-        // Проверка на пустые поля
         if (!phone || !pass) { 
             authMessage.textContent = '❌ Введите номер и пароль'; 
             return; 
         }
         
         try {
-            // Ищем пользователя в базе
             const { data: users, error } = await supabaseClient
                 .from('profiles')
                 .select('*')
@@ -781,13 +668,11 @@ if (loginButton) {
             
             if (error) throw error;
             
-            // Если пользователь не найден
             if (!users || users.length === 0) { 
                 authMessage.textContent = '❌ Неверный номер или пароль'; 
                 return; 
             }
             
-            // Успешный вход
             CURRENT_USER = users[0];
             CURRENT_SESSION_TOKEN = generateSessionToken();
             saveSession(CURRENT_USER);
@@ -823,7 +708,6 @@ if (registerButton) {
         const pass = registerPassword.value;
         const confirm = registerPasswordConfirm.value;
         
-        // Проверка чекбокса
         const termsCheckbox = document.getElementById('termsCheckbox');
         if (!termsCheckbox || !termsCheckbox.checked) {
             authMessage.textContent = '❌ Необходимо принять условия';
@@ -1040,36 +924,6 @@ async function loadMessages(chatPhone) {
         } else {
             messagesArea.innerHTML = messages.map(m => {
                 const isSent = m.sender === CURRENT_USER.phone;
-                
-                // Голосовое сообщение
-                if (m.voice_data) {
-                    return `
-                    <div class="message ${isSent ? 'sent' : 'received'} voice-message" 
-                         data-id="${m.id}" 
-                         data-type="private"
-                         onclick="playVoiceMessage('${m.voice_data}')">
-                        <span>🎤</span>
-                        <div class="voice-waveform">
-                            <span></span><span></span><span></span><span></span><span></span>
-                        </div>
-                        <span class="voice-duration">${formatDuration(m.voice_duration)}</span>
-                    </div>`;
-                }
-                
-                // Кружочек
-                if (m.circle_data) {
-                    return `
-                    <div class="message ${isSent ? 'sent' : 'received'} video-circle-message" 
-                         data-id="${m.id}" 
-                         data-type="private"
-                         onclick="playCircleMessage('${m.circle_data}')">
-                        <video src="${m.circle_data}" style="display:none;"></video>
-                        <span class="play-icon">▶️</span>
-                        <span class="voice-duration" style="position:absolute;bottom:5px;right:5px;">${formatDuration(m.circle_duration)}</span>
-                    </div>`;
-                }
-                
-                // Обычное сообщение
                 return `
                 <div class="message ${isSent ? 'sent' : 'received'} ${m.pinned ? 'pinned' : ''}" 
                      data-id="${m.id}" 
@@ -1133,35 +987,6 @@ async function loadGroupMessages(groupId) {
                 const isSent = m.sender === CURRENT_USER.phone;
                 const senderName = isSent ? 'Вы' : (senderNames[m.sender] || m.sender);
                 
-                // Голосовое сообщение
-                if (m.voice_data) {
-                    return `
-                    <div class="message ${isSent ? 'sent' : 'received'} voice-message" 
-                         data-id="${m.id}" 
-                         data-type="group"
-                         onclick="playVoiceMessage('${m.voice_data}')">
-                        <span>🎤</span>
-                        <div class="voice-waveform">
-                            <span></span><span></span><span></span><span></span><span></span>
-                        </div>
-                        <span class="voice-duration">${formatDuration(m.voice_duration)}</span>
-                    </div>`;
-                }
-                
-                // Кружочек
-                if (m.circle_data) {
-                    return `
-                    <div class="message ${isSent ? 'sent' : 'received'} video-circle-message" 
-                         data-id="${m.id}" 
-                         data-type="group"
-                         onclick="playCircleMessage('${m.circle_data}')">
-                        <video src="${m.circle_data}" style="display:none;"></video>
-                        <span class="play-icon">▶️</span>
-                        <span class="voice-duration" style="position:absolute;bottom:5px;right:5px;">${formatDuration(m.circle_duration)}</span>
-                    </div>`;
-                }
-                
-                // Обычное сообщение
                 return `
                 <div class="message ${isSent ? 'sent' : 'received'} ${m.pinned ? 'pinned' : ''}"
                      data-id="${m.id}"
@@ -1653,13 +1478,6 @@ if (saveProfileBtn) {
     });
 }
 
-// ==================== ПРИВЯЗКА GOOGLE ====================
-if (linkGoogle) {
-    linkGoogle.addEventListener('click', () => {
-        alert('🔐 Привязка Google будет доступна в ближайшее время!');
-    });
-}
-
 // ==================== ТЕМЫ ====================
 async function loadUserTheme() {
     if (!CURRENT_USER) return;
@@ -1745,76 +1563,182 @@ function stopForestAnimations() {
     document.querySelectorAll('.leaf, .raindrop').forEach(el => el.remove());
 }
 
-// ==================== ЗВОНКИ (УПРОЩЁННАЯ ВЕРСИЯ ДЛЯ ТЕСТА) ====================
-let callTimer = null;
-let callSeconds = 0;
-let callState = {
-    isCalling: false,
-    targetUser: null,
-    callType: null
+// ==================== АДМИН-ПАНЕЛЬ ====================
+if (adminButton) {
+    adminButton.addEventListener('click', () => {
+        if (adminModal) adminModal.style.display = 'flex';
+        loadAdminUsers();
+        if (isOwner()) loadAdminsList();
+    });
+}
+
+if (closeAdmin) {
+    closeAdmin.addEventListener('click', () => {
+        if (adminModal) adminModal.style.display = 'none';
+    });
+}
+
+if (adminTabs) {
+    adminTabs.forEach(tab => tab.addEventListener('click', () => {
+        adminTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+        const content = document.getElementById(`admin${tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)}`);
+        if (content) content.classList.add('active');
+        
+        if (tab.dataset.tab === 'users') loadAdminUsers();
+        if (tab.dataset.tab === 'admins' && isOwner()) loadAdminsList();
+    }));
+}
+
+async function loadAdminUsers() {
+    if (!adminUsersList || !CURRENT_USER) return;
+    
+    try {
+        const { data: users } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
+        
+        const { data: admins } = await supabaseClient.from('admins').select('phone, rank');
+        const adminMap = {};
+        admins?.forEach(a => adminMap[a.phone] = a.rank || 1);
+        
+        adminUsersList.innerHTML = users?.map(u => {
+            const rank = u.phone === OWNER_PHONE ? 5 : (adminMap[u.phone] || 0);
+            return `
+            <div class="admin-user-item">
+                <div>
+                    <strong>${u.username || u.phone}</strong>
+                    <div style="color:#888;font-size:12px;">${u.phone}</div>
+                    ${rank > 0 ? `<div style="color:${RANGS[rank]?.color}">Ранг ${rank}: ${RANGS[rank]?.name}</div>` : ''}
+                </div>
+                <div class="admin-user-actions">
+                    ${isOwner() && u.phone !== OWNER_PHONE ? `
+                        <button class="admin-user-btn make-admin" onclick="openRankModal('${u.phone}')">
+                            ${rank > 0 ? '👑 Изменить ранг' : '👑 Назначить'}
+                        </button>
+                    ` : ''}
+                    ${u.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
+                </div>
+            </div>`;
+        }).join('') || '<p class="no-data">Нет пользователей</p>';
+    } catch (e) { console.error(e); }
+}
+
+window.openRankModal = function(phone) {
+    if (!isOwner()) {
+        alert('❌ Недостаточно прав');
+        return;
+    }
+    
+    currentRankUser = phone;
+    if (rankUserPhone) rankUserPhone.textContent = `Пользователь: ${phone}`;
+    
+    rankOptions.forEach(opt => opt.classList.remove('selected'));
+    
+    supabaseClient.from('admins').select('rank').eq('phone', phone).single().then(({ data }) => {
+        if (data) {
+            const rank = data.rank;
+            rankOptions.forEach(opt => {
+                if (opt.dataset.rank == rank) {
+                    opt.classList.add('selected');
+                }
+            });
+        }
+    });
+    
+    if (rankModal) rankModal.style.display = 'flex';
 };
 
-if (audioCallBtn) {
-    audioCallBtn.addEventListener('click', async () => {
-        if (!CURRENT_CHAT) {
-            alert('Сначала выберите чат');
-            return;
+window.selectRank = function(rank) {
+    rankOptions.forEach(opt => opt.classList.remove('selected'));
+    rankOptions.forEach(opt => {
+        if (opt.dataset.rank == rank) {
+            opt.classList.add('selected');
         }
-        
-        if (CURRENT_CHAT.phone === CURRENT_USER.phone) {
-            alert('Нельзя позвонить самому себе');
-            return;
-        }
-        
-        if (callState.isCalling) {
-            alert('Уже есть активный звонок');
-            return;
-        }
-        
-        alert('📞 Функция звонков в разработке');
+    });
+};
+
+if (closeRankModal) {
+    closeRankModal.addEventListener('click', () => {
+        if (rankModal) rankModal.style.display = 'none';
+        currentRankUser = null;
     });
 }
 
-if (videoCallBtn) {
-    videoCallBtn.addEventListener('click', async () => {
-        if (!CURRENT_CHAT) {
-            alert('Сначала выберите чат');
-            return;
-        }
-        
-        if (CURRENT_CHAT.phone === CURRENT_USER.phone) {
-            alert('Нельзя позвонить самому себе');
-            return;
-        }
-        
-        if (callState.isCalling) {
-            alert('Уже есть активный звонок');
-            return;
-        }
-        
-        alert('📹 Функция видеозвонков в разработке');
+if (cancelRankBtn) {
+    cancelRankBtn.addEventListener('click', () => {
+        if (rankModal) rankModal.style.display = 'none';
+        currentRankUser = null;
     });
 }
 
-// ==================== ГОЛОСОВЫЕ СООБЩЕНИЯ (УПРОЩЁННЫЕ) ====================
-if (voiceMsgBtn) {
-    voiceMsgBtn.addEventListener('click', () => {
-        if (!CURRENT_CHAT && !CURRENT_GROUP) {
-            alert('Сначала выберите чат');
+if (confirmRankBtn) {
+    confirmRankBtn.addEventListener('click', async () => {
+        if (!isOwner()) {
+            alert('❌ Недостаточно прав');
             return;
         }
-        alert('🎤 Функция голосовых сообщений в разработке');
+        
+        const selected = document.querySelector('.rank-option.selected');
+        if (!selected) {
+            alert('Выберите ранг');
+            return;
+        }
+        
+        const rank = parseInt(selected.dataset.rank);
+        
+        try {
+            const { data: existing } = await supabaseClient
+                .from('admins')
+                .select('*')
+                .eq('phone', currentRankUser);
+            
+            if (existing?.length) {
+                await supabaseClient
+                    .from('admins')
+                    .update({ rank })
+                    .eq('phone', currentRankUser);
+            } else {
+                await supabaseClient
+                    .from('admins')
+                    .insert([{ phone: currentRankUser, rank }]);
+            }
+            
+            alert(`✅ Ранг ${rank} назначен`);
+            if (rankModal) rankModal.style.display = 'none';
+            loadAdminUsers();
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
     });
 }
 
-// ==================== КРУЖОЧКИ (УПРОЩЁННЫЕ) ====================
-if (videoCircleBtn) {
-    videoCircleBtn.addEventListener('click', () => {
-        if (!CURRENT_CHAT && !CURRENT_GROUP) {
-            alert('Сначала выберите чат');
-            return;
+async function loadAdminsList() {
+    if (!adminsList) return;
+    
+    const { data: admins } = await supabaseClient.from('admins').select('*');
+    adminsList.innerHTML = admins?.map(a => `
+        <div class="admin-user-item">
+            <div>${a.phone} - Ранг ${a.rank || 1}</div>
+            ${a.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
+        </div>
+    `).join('');
+}
+
+if (addAdminBtn) {
+    addAdminBtn.addEventListener('click', async () => {
+        if (!newAdminPhone) return;
+        
+        let p = formatPhone(newAdminPhone.value);
+        if (!p) return;
+        
+        let { data: u } = await supabaseClient.from('profiles').select('*').eq('phone', p);
+        if (!u?.length) { 
+            alert('❌ Пользователь не найден'); 
+            return; 
         }
-        alert('⭕ Функция кружочков в разработке');
+        
+        openRankModal(p);
+        newAdminPhone.value = '';
     });
 }
 
@@ -1867,11 +1791,4 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// ==================== ПРИЛОЖЕНИЕ ====================
-if (attachBtn) {
-    attachBtn.addEventListener('click', () => {
-        alert('📎 Прикрепление файлов будет доступно в следующем обновлении!');
-    });
-}
-
-console.log('✅ LinkUp — ФИНАЛЬНАЯ РАБОЧАЯ ВЕРСИЯ 5.0 (КНОПКА ВОЙТИ И QR ИСПРАВЛЕНЫ)');
+console.log('✅ LinkUp — БАЗОВАЯ РАБОЧАЯ ВЕРСИЯ (QR и Админка работают)');
