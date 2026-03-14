@@ -23,7 +23,9 @@
                 </div>
                 <button class="auth-button" id="loginButton">Войти</button>
                 <div class="auth-links">
-                    <a href="#" id="forgotPasswordLink">Забыли пароль?</a>
+                    <a href="privacy.html" target="_blank">Политика конфиденциальности</a>
+                    <span class="auth-separator">|</span>
+                    <a href="terms.html" target="_blank">Пользовательское соглашение</a>
                     <span class="auth-separator">|</span>
                     <a href="#" id="showQrLogin">Вход по QR</a>
                 </div>
@@ -366,6 +368,48 @@
         </div>
     </div>
 
+    <!-- МОДАЛКА ЗАПИСИ ГОЛОСА -->
+    <div class="voice-recorder-modal" id="voiceRecorderModal" style="display: none;">
+        <div class="voice-recorder-content">
+            <div class="voice-recorder-header">
+                <h2>🎤 Запись голосового сообщения</h2>
+                <button class="close-voice-recorder" id="closeVoiceRecorder">✕</button>
+            </div>
+            <div class="voice-recorder-body">
+                <div class="voice-wave" id="voiceWave">🎤</div>
+                <div class="voice-timer" id="voiceTimer">00:00</div>
+                <div class="voice-controls">
+                    <button class="voice-control-btn" id="startRecordingBtn">⏺️ Начать запись</button>
+                    <button class="voice-control-btn" id="stopRecordingBtn" style="display: none;">⏹️ Остановить</button>
+                    <button class="voice-control-btn" id="playRecordingBtn" style="display: none;">▶️ Прослушать</button>
+                    <button class="voice-control-btn" id="sendRecordingBtn" style="display: none;">📤 Отправить</button>
+                    <button class="voice-control-btn" id="cancelRecordingBtn">❌ Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ЗАПИСИ КРУЖОЧКА -->
+    <div class="video-circle-modal" id="videoCircleModal" style="display: none;">
+        <div class="video-circle-content">
+            <div class="video-circle-header">
+                <h2>⭕ Запись кружочка</h2>
+                <button class="close-video-circle" id="closeVideoCircle">✕</button>
+            </div>
+            <div class="video-circle-body">
+                <video id="circleVideo" autoplay playsinline muted></video>
+                <div class="circle-timer" id="circleTimer">00:00</div>
+                <div class="circle-controls">
+                    <button class="circle-control-btn" id="startCircleBtn">⏺️ Начать запись</button>
+                    <button class="circle-control-btn" id="stopCircleBtn" style="display: none;">⏹️ Остановить</button>
+                    <button class="circle-control-btn" id="playCircleBtn" style="display: none;">▶️ Просмотреть</button>
+                    <button class="circle-control-btn" id="sendCircleBtn" style="display: none;">📤 Отправить</button>
+                    <button class="circle-control-btn" id="cancelCircleBtn">❌ Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- МОДАЛКА НАЗНАЧЕНИЯ РАНГА -->
     <div class="rank-modal" id="rankModal" style="display: none;">
         <div class="rank-modal-content">
@@ -380,28 +424,28 @@
                         <div class="rank-badge rank-1">1</div>
                         <div class="rank-info">
                             <span class="rank-name">Младший модератор</span>
-                            <span class="rank-desc">Мут и варны</span>
+                            <span class="rank-desc">Мут, варны, предупреждения</span>
                         </div>
                     </div>
                     <div class="rank-option" data-rank="2" onclick="selectRank(2)">
                         <div class="rank-badge rank-2">2</div>
                         <div class="rank-info">
                             <span class="rank-name">Старший модератор</span>
-                            <span class="rank-desc">Кик, чистка чата</span>
+                            <span class="rank-desc">Кик, чистка чата, мут</span>
                         </div>
                     </div>
                     <div class="rank-option" data-rank="3" onclick="selectRank(3)">
                         <div class="rank-badge rank-3">3</div>
                         <div class="rank-info">
                             <span class="rank-name">Младший администратор</span>
-                            <span class="rank-desc">Настройки чата, фильтры</span>
+                            <span class="rank-desc">Настройки чата, фильтры, безопасность</span>
                         </div>
                     </div>
                     <div class="rank-option" data-rank="4" onclick="selectRank(4)">
                         <div class="rank-badge rank-4">4</div>
                         <div class="rank-info">
                             <span class="rank-name">Старший администратор</span>
-                            <span class="rank-desc">Назначение модераторов</span>
+                            <span class="rank-desc">Назначение модераторов, правила, приветствия</span>
                         </div>
                     </div>
                     <div class="rank-option" data-rank="5" onclick="selectRank(5)">

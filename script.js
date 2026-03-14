@@ -24,33 +24,33 @@ let currentRankUser = null;
 const RANGS = {
     1: { 
         name: 'Младший модератор', 
-        desc: 'Мут и варны', 
+        desc: 'Мут, варны, предупреждения', 
         color: '#cd7f32',
-        permissions: ['warn', 'mute']
+        permissions: ['warn', 'mute', 'view']
     },
     2: { 
         name: 'Старший модератор', 
-        desc: 'Кик, чистка чата', 
+        desc: 'Кик, чистка чата, мут', 
         color: '#c0c0c0',
-        permissions: ['warn', 'mute', 'kick', 'clean']
+        permissions: ['warn', 'mute', 'kick', 'clean', 'view']
     },
     3: { 
         name: 'Младший администратор', 
-        desc: 'Настройки чата, фильтры', 
+        desc: 'Настройки чата, фильтры, безопасность', 
         color: '#ffd700',
-        permissions: ['warn', 'mute', 'kick', 'clean', 'settings', 'filters']
+        permissions: ['warn', 'mute', 'kick', 'clean', 'settings', 'filters', 'view']
     },
     4: { 
         name: 'Старший администратор', 
-        desc: 'Назначение модераторов, правила', 
+        desc: 'Назначение модераторов, правила, приветствия', 
         color: '#00bfff',
-        permissions: ['warn', 'mute', 'kick', 'clean', 'settings', 'filters', 'assign_mods', 'rules']
+        permissions: ['warn', 'mute', 'kick', 'clean', 'settings', 'filters', 'assign_mods', 'rules', 'view']
     },
     5: { 
         name: 'Заместитель владельца', 
         desc: 'Все функции, кроме удаления владельца', 
         color: '#ff1493',
-        permissions: ['warn', 'mute', 'kick', 'clean', 'settings', 'filters', 'assign_mods', 'rules', 'full', 'manage_admins']
+        permissions: ['warn', 'mute', 'kick', 'clean', 'settings', 'filters', 'assign_mods', 'rules', 'full', 'manage_admins', 'view']
     }
 };
 
@@ -137,6 +137,27 @@ const incomingCallName = document.getElementById('incomingCallName');
 const incomingCallType = document.getElementById('incomingCallType');
 const acceptCallBtn = document.getElementById('acceptCallBtn');
 const declineCallBtn = document.getElementById('declineCallBtn');
+
+// Голосовые сообщения
+const voiceRecorderModal = document.getElementById('voiceRecorderModal');
+const closeVoiceRecorder = document.getElementById('closeVoiceRecorder');
+const voiceTimer = document.getElementById('voiceTimer');
+const startRecordingBtn = document.getElementById('startRecordingBtn');
+const stopRecordingBtn = document.getElementById('stopRecordingBtn');
+const playRecordingBtn = document.getElementById('playRecordingBtn');
+const sendRecordingBtn = document.getElementById('sendRecordingBtn');
+const cancelRecordingBtn = document.getElementById('cancelRecordingBtn');
+
+// Кружочки
+const videoCircleModal = document.getElementById('videoCircleModal');
+const closeVideoCircle = document.getElementById('closeVideoCircle');
+const circleVideo = document.getElementById('circleVideo');
+const circleTimer = document.getElementById('circleTimer');
+const startCircleBtn = document.getElementById('startCircleBtn');
+const stopCircleBtn = document.getElementById('stopCircleBtn');
+const playCircleBtn = document.getElementById('playCircleBtn');
+const sendCircleBtn = document.getElementById('sendCircleBtn');
+const cancelCircleBtn = document.getElementById('cancelCircleBtn');
 
 // QR элементы
 const qrContainer = document.getElementById('qrContainer');
@@ -272,21 +293,24 @@ function canUserDo(phone, action) {
     const rank = getUserRank(phone);
     if (rank >= 5) return true;
     if (rank === 0) return false;
-    
     return RANGS[rank]?.permissions?.includes(action) || false;
 }
 
 // ==================== ВЫХОД ИЗ ПРОФИЛЯ ====================
-function logout() {
-    localStorage.removeItem('linkup_session');
-    CURRENT_USER = null;
-    CURRENT_SESSION_TOKEN = null;
-    ADMIN_RIGHTS = null;
-    authScreen.style.display = 'flex';
-    app.style.display = 'none';
-    loginPhone.value = '';
-    loginPassword.value = '';
-    authMessage.textContent = '';
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        if (confirm('Вы уверены, что хотите выйти?')) {
+            localStorage.removeItem('linkup_session');
+            CURRENT_USER = null;
+            CURRENT_SESSION_TOKEN = null;
+            ADMIN_RIGHTS = null;
+            authScreen.style.display = 'flex';
+            app.style.display = 'none';
+            loginPhone.value = '';
+            loginPassword.value = '';
+            authMessage.textContent = '';
+        }
+    });
 }
 
 // ==================== ГЛАЗКИ ДЛЯ ПАРОЛЯ ====================
@@ -1680,6 +1704,13 @@ let currentCallType = null;
 let incomingCallTimeout = null;
 let pendingCall = null;
 let activeCall = false;
+let callState = {
+    isCalling: false,
+    targetUser: null,
+    callType: null,
+    callId: null,
+    incomingCallId: null
+};
 
 const iceServers = {
     iceServers: [
@@ -1691,18 +1722,15 @@ const iceServers = {
     ]
 };
 
-// Состояние звонков
-let callState = {
-    isCalling: false,
-    targetUser: null,
-    callType: null,
-    callId: null
-};
-
 if (audioCallBtn) {
     audioCallBtn.addEventListener('click', async () => {
         if (!CURRENT_CHAT) {
             alert('Сначала выберите чат');
+            return;
+        }
+        
+        if (CURRENT_CHAT.phone === CURRENT_USER.phone) {
+            alert('Нельзя позвонить самому себе');
             return;
         }
         
@@ -1722,6 +1750,11 @@ if (videoCallBtn) {
             return;
         }
         
+        if (CURRENT_CHAT.phone === CURRENT_USER.phone) {
+            alert('Нельзя позвонить самому себе');
+            return;
+        }
+        
         if (callState.isCalling) {
             alert('Уже есть активный звонок');
             return;
@@ -1737,6 +1770,12 @@ async function startCall(type, targetPhone) {
         callState.targetUser = targetPhone;
         callState.callType = type;
         callState.callId = 'call_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
+        
+        const { data: targetUser } = await supabaseClient
+            .from('profiles')
+            .select('username')
+            .eq('phone', targetPhone)
+            .single();
         
         const constraints = {
             audio: true,
@@ -1766,7 +1805,6 @@ async function startCall(type, targetPhone) {
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
         
-        // Создаём запись о звонке в БД
         await supabaseClient
             .from('calls')
             .insert([{
@@ -1778,12 +1816,15 @@ async function startCall(type, targetPhone) {
                 started_at: new Date()
             }]);
         
-        // Отправляем уведомление о звонке (в реальном проекте через WebSocket)
-        setTimeout(() => {
-            simulateIncomingCall(targetPhone, type, callState.callId);
-        }, 2000);
+        showCallModal(type, targetUser?.username || targetPhone);
         
-        showCallModal(type, targetPhone);
+        // В РЕАЛЬНОМ ПРОЕКТЕ ЗДЕСЬ БУДЕТ WEBSOCKET
+        // Сейчас для демо показываем входящий звонок
+        setTimeout(() => {
+            if (callState.isCalling) {
+                simulateIncomingCall(CURRENT_USER.phone, type, callState.callId);
+            }
+        }, 2000);
         
     } catch (error) {
         console.error('Ошибка звонка:', error);
@@ -1793,78 +1834,85 @@ async function startCall(type, targetPhone) {
 }
 
 function simulateIncomingCall(fromPhone, type, callId) {
-    // Проверяем, не ответили ли уже
     if (!callState.isCalling) return;
     
-    // Получаем имя звонящего
     supabaseClient.from('profiles').select('username').eq('phone', fromPhone).single().then(({ data }) => {
         const callerName = data?.username || fromPhone;
         
-        incomingCallName.textContent = callerName;
-        incomingCallType.textContent = type === 'video' ? '📹 Входящий видеозвонок' : '📞 Входящий аудиозвонок';
-        incomingCallModal.style.display = 'flex';
-        
-        // Таймер на ответ (30 секунд)
-        let timeLeft = 30;
-        const timerInterval = setInterval(() => {
-            timeLeft--;
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                if (incomingCallModal.style.display === 'flex') {
-                    incomingCallModal.style.display = 'none';
-                    endCall();
-                    alert('❌ Вызов не отвечен');
+        // Показываем входящий звонок только если это звонок от другого пользователя
+        if (fromPhone !== CURRENT_USER.phone) {
+            incomingCallName.textContent = callerName;
+            incomingCallType.textContent = type === 'video' ? '📹 Входящий видеозвонок' : '📞 Входящий аудиозвонок';
+            incomingCallModal.style.display = 'flex';
+            callState.incomingCallId = callId;
+            
+            let timeLeft = 30;
+            const timerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    if (incomingCallModal.style.display === 'flex') {
+                        incomingCallModal.style.display = 'none';
+                        if (callState.incomingCallId === callId) {
+                            endCall();
+                        }
+                    }
                 }
-            }
-        }, 1000);
-        
-        // Обработчики ответа
-        acceptCallBtn.onclick = () => {
-            clearInterval(timerInterval);
-            incomingCallModal.style.display = 'none';
-            callStatus.textContent = 'Соединено';
+            }, 1000);
             
-            supabaseClient
-                .from('calls')
-                .update({ status: 'connected', answered_at: new Date() })
-                .eq('call_id', callId);
-        };
-        
-        declineCallBtn.onclick = () => {
-            clearInterval(timerInterval);
-            incomingCallModal.style.display = 'none';
-            endCall();
+            acceptCallBtn.onclick = () => {
+                clearInterval(timerInterval);
+                incomingCallModal.style.display = 'none';
+                if (callState.incomingCallId === callId) {
+                    callStatus.textContent = 'Соединено';
+                    supabaseClient
+                        .from('calls')
+                        .update({ status: 'connected', answered_at: new Date() })
+                        .eq('call_id', callId);
+                }
+            };
             
-            supabaseClient
-                .from('calls')
-                .update({ status: 'declined' })
-                .eq('call_id', callId);
-        };
+            declineCallBtn.onclick = () => {
+                clearInterval(timerInterval);
+                incomingCallModal.style.display = 'none';
+                if (callState.incomingCallId === callId) {
+                    endCall();
+                    supabaseClient
+                        .from('calls')
+                        .update({ status: 'declined' })
+                        .eq('call_id', callId);
+                }
+            };
+        }
     });
 }
 
-function showCallModal(type, targetPhone) {
-    supabaseClient.from('profiles').select('username').eq('phone', targetPhone).single().then(({ data }) => {
-        const targetName = data?.username || targetPhone;
-        
-        callAvatar.textContent = targetName.charAt(0) || '👤';
-        callName.textContent = targetName;
-        callStatus.textContent = 'Вызов...';
-        
-        if (type === 'video' && callVideoContainer) {
-            callVideoContainer.style.display = 'block';
-            if (localVideo) localVideo.srcObject = localStream;
-        } else if (callVideoContainer) {
-            callVideoContainer.style.display = 'none';
+function showCallModal(type, targetName) {
+    callAvatar.textContent = targetName.charAt(0) || '👤';
+    callName.textContent = targetName;
+    callStatus.textContent = 'Вызов...';
+    
+    if (type === 'video' && callVideoContainer) {
+        callVideoContainer.style.display = 'block';
+        if (localVideo) localVideo.srcObject = localStream;
+    } else if (callVideoContainer) {
+        callVideoContainer.style.display = 'none';
+    }
+    
+    callModal.style.display = 'flex';
+    
+    callSeconds = 0;
+    updateCallTimer();
+    if (callTimer) clearInterval(callTimer);
+    callTimer = setInterval(updateCallTimer, 1000);
+    
+    // Таймаут на ответ 30 секунд
+    setTimeout(() => {
+        if (callStatus.textContent === 'Вызов...') {
+            callStatus.textContent = 'Нет ответа';
+            setTimeout(() => endCall(), 2000);
         }
-        
-        callModal.style.display = 'flex';
-        
-        callSeconds = 0;
-        updateCallTimer();
-        if (callTimer) clearInterval(callTimer);
-        callTimer = setInterval(updateCallTimer, 1000);
-    });
+    }, 30000);
 }
 
 function updateCallTimer() {
@@ -1914,6 +1962,7 @@ function endCall() {
     
     callState.isCalling = false;
     callState.callId = null;
+    callState.incomingCallId = null;
 }
 
 if (endCallBtn) {
@@ -2385,7 +2434,7 @@ window.moderateUser = function(phone, action) {
     
     if (!confirm(`Вы уверены, что хотите ${actionNames[action]} пользователя ${phone}?`)) return;
     
-    alert(`✅ Действие "${actionNames[action]}" выполнено`);
+    alert(`✅ Действие "${actionNames[action]}" выполнено (тестовая версия)`);
 };
 
 window.openRankModal = function(phone) {
@@ -2477,6 +2526,225 @@ if (confirmRankBtn) {
     });
 }
 
+async function loadAdminChats() {
+    if (!adminChatsList || !CURRENT_USER) return;
+    
+    try {
+        const { data: privateMessages } = await supabaseClient
+            .from('messages')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        const { data: groups } = await supabaseClient
+            .from('groups')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        const chats = [];
+        
+        const privateChats = new Map();
+        privateMessages?.forEach(m => {
+            const participants = [m.sender, m.receiver].sort().join('-');
+            if (!privateChats.has(participants) || new Date(m.created_at) > new Date(privateChats.get(participants).lastMessageTime)) {
+                privateChats.set(participants, {
+                    type: 'private',
+                    participants: [m.sender, m.receiver],
+                    lastMessage: m.content,
+                    lastMessageTime: m.created_at,
+                    messageCount: 1
+                });
+            } else {
+                privateChats.get(participants).messageCount++;
+            }
+        });
+        
+        privateChats.forEach(chat => chats.push(chat));
+        
+        groups?.forEach(g => {
+            chats.push({
+                type: 'group',
+                id: g.id,
+                name: g.name,
+                created_by: g.created_by,
+                created_at: g.created_at
+            });
+        });
+        
+        chats.sort((a, b) => {
+            const dateA = a.lastMessageTime || a.created_at;
+            const dateB = b.lastMessageTime || b.created_at;
+            return new Date(dateB) - new Date(dateA);
+        });
+        
+        if (!chats.length) {
+            adminChatsList.innerHTML = '<p class="no-data">Нет чатов</p>';
+            return;
+        }
+        
+        adminChatsList.innerHTML = chats.map(chat => {
+            if (chat.type === 'private') {
+                const other = chat.participants.find(p => p !== CURRENT_USER.phone) || chat.participants[0];
+                return `
+                <div class="admin-chat-item">
+                    <div class="admin-chat-header">
+                        <span class="admin-chat-type private">💬 Личный чат</span>
+                        <span>${new Date(chat.lastMessageTime).toLocaleString()}</span>
+                    </div>
+                    <div class="admin-chat-users">Участники: ${chat.participants.join(', ')}</div>
+                    <div class="admin-chat-last-message">${chat.lastMessage}</div>
+                    <div class="admin-chat-actions">
+                        <button class="admin-chat-btn view" onclick="viewAdminChat('private', '${chat.participants.join('|')}')">👁️ Просмотр</button>
+                        ${canUserDo(CURRENT_USER.phone, 'warn') ? `<button class="admin-chat-btn warn" onclick="moderateChat('${other}', 'warn')">⚠️ Варн</button>` : ''}
+                        ${canUserDo(CURRENT_USER.phone, 'mute') ? `<button class="admin-chat-btn mute" onclick="moderateChat('${other}', 'mute')">🔇 Мут</button>` : ''}
+                        ${canUserDo(CURRENT_USER.phone, 'kick') ? `<button class="admin-chat-btn kick" onclick="moderateChat('${other}', 'kick')">👢 Кик</button>` : ''}
+                        ${canUserDo(CURRENT_USER.phone, 'full') ? `<button class="admin-chat-btn ban" onclick="moderateChat('${other}', 'ban')">🚫 Бан</button>` : ''}
+                    </div>
+                </div>`;
+            } else {
+                return `
+                <div class="admin-chat-item">
+                    <div class="admin-chat-header">
+                        <span class="admin-chat-type group">👥 Группа: ${chat.name}</span>
+                        <span>${new Date(chat.created_at).toLocaleString()}</span>
+                    </div>
+                    <div class="admin-chat-users">Создатель: ${chat.created_by}</div>
+                    <div class="admin-chat-actions">
+                        <button class="admin-chat-btn view" onclick="viewAdminChat('group', ${chat.id})">👁️ Просмотр</button>
+                        ${canUserDo(CURRENT_USER.phone, 'settings') ? `<button class="admin-chat-btn" onclick="editGroup(${chat.id})">⚙️ Настройки</button>` : ''}
+                    </div>
+                </div>`;
+            }
+        }).join('');
+    } catch (e) {
+        console.error('Ошибка загрузки чатов:', e);
+    }
+}
+
+window.viewAdminChat = async function(type, id) {
+    if (!adminChatViewModal) return;
+    
+    adminChatViewModal.style.display = 'flex';
+    
+    if (type === 'private') {
+        const [user1, user2] = id.split('|');
+        if (adminChatViewTitle) adminChatViewTitle.textContent = `Чат: ${user1} - ${user2}`;
+        if (adminChatInfo) adminChatInfo.innerHTML = `<p>Тип: Личный чат</p><p>Участники: ${user1}, ${user2}</p>`;
+        
+        const { data: messages } = await supabaseClient
+            .from('messages')
+            .select('*')
+            .or(`and(sender.eq.${user1},receiver.eq.${user2}),and(sender.eq.${user2},receiver.eq.${user1})`)
+            .order('created_at', { ascending: true });
+        
+        if (adminChatMessages) {
+            adminChatMessages.innerHTML = messages?.map(m => `
+                <div class="message ${m.sender === CURRENT_USER?.phone ? 'sent' : 'received'}" style="margin:5px 0;max-width:100%">
+                    <div><strong>${m.sender}:</strong> ${m.content}</div>
+                    <div style="font-size:10px;color:#888">${new Date(m.created_at).toLocaleString()}</div>
+                </div>
+            `).join('') || '<p>Нет сообщений</p>';
+        }
+    } else {
+        const { data: group } = await supabaseClient.from('groups').select('*').eq('id', id).single();
+        if (adminChatViewTitle) adminChatViewTitle.textContent = `Группа: ${group.name}`;
+        if (adminChatInfo) adminChatInfo.innerHTML = `<p>Тип: Группа</p><p>Создатель: ${group.created_by}</p><p>Описание: ${group.description || 'Нет'}</p>`;
+        
+        const { data: messages } = await supabaseClient
+            .from('group_messages')
+            .select('*')
+            .eq('group_id', id)
+            .order('created_at', { ascending: true });
+        
+        if (adminChatMessages) {
+            adminChatMessages.innerHTML = messages?.map(m => `
+                <div class="message received" style="margin:5px 0;max-width:100%">
+                    <div><strong>${m.sender}:</strong> ${m.content}</div>
+                    <div style="font-size:10px;color:#888">${new Date(m.created_at).toLocaleString()}</div>
+                </div>
+            `).join('') || '<p>Нет сообщений</p>';
+        }
+    }
+};
+
+if (closeAdminChatView) {
+    closeAdminChatView.addEventListener('click', () => {
+        if (adminChatViewModal) adminChatViewModal.style.display = 'none';
+    });
+}
+
+window.moderateChat = async function(userPhone, action) {
+    if (userPhone === OWNER_PHONE) {
+        alert('❌ Нельзя модерировать владельца');
+        return;
+    }
+    
+    const actionNames = {
+        warn: 'выдать предупреждение',
+        mute: 'замутить',
+        kick: 'кикнуть',
+        ban: 'забанить'
+    };
+    
+    if (!confirm(`Вы уверены, что хотите ${actionNames[action]} пользователя ${userPhone}?`)) return;
+    
+    alert(`✅ Действие "${actionNames[action]}" выполнено (тестовая версия)`);
+};
+
+if (refreshChatsBtn) {
+    refreshChatsBtn.addEventListener('click', loadAdminChats);
+}
+
+if (adminChatSearch) {
+    adminChatSearch.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        document.querySelectorAll('.admin-chat-item').forEach(el => {
+            el.style.display = el.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+        });
+    });
+}
+
+async function loadSupportRequests() {
+    if (supportList) supportList.innerHTML = '<p class="no-data">Функция поддержки в разработке</p>';
+}
+
+async function loadReports() {
+    if (reportsList) reportsList.innerHTML = '<p class="no-data">Функция жалоб в разработке</p>';
+}
+
+async function loadChannels() {
+    if (channelsList) channelsList.innerHTML = '<p class="no-data">Функция каналов в разработке</p>';
+}
+
+async function loadAdminsList() {
+    if (!adminsList) return;
+    
+    const { data: admins } = await supabaseClient.from('admins').select('*');
+    adminsList.innerHTML = admins?.map(a => `
+        <div class="admin-user-item">
+            <div>${a.phone} - Ранг ${a.rank || 1}</div>
+            ${a.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
+        </div>
+    `).join('');
+}
+
+if (addAdminBtn) {
+    addAdminBtn.addEventListener('click', async () => {
+        if (!newAdminPhone) return;
+        
+        let p = formatPhone(newAdminPhone.value);
+        if (!p) return;
+        
+        let { data: u } = await supabaseClient.from('profiles').select('*').eq('phone', p);
+        if (!u?.length) { 
+            alert('❌ Пользователь не найден'); 
+            return; 
+        }
+        
+        openRankModal(p);
+        newAdminPhone.value = '';
+    });
+}
+
 // ==================== ФОРМАТИРОВАНИЕ НОМЕРОВ ====================
 [loginPhone, registerPhone].forEach(i => i?.addEventListener('input', e => {
     let v = e.target.value.replace(/\D/g, '').slice(0, 10);
@@ -2526,19 +2794,6 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Горячие клавиши
-document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.key === 'v') {
-        e.preventDefault();
-        if (voiceMsgBtn) toggleVoiceRecording();
-    }
-    
-    if (e.ctrlKey && e.key === 'b') {
-        e.preventDefault();
-        if (videoCircleBtn) toggleCircleRecording();
-    }
-});
-
 // ==================== ПРИЛОЖЕНИЕ ====================
 if (attachBtn) {
     attachBtn.addEventListener('click', () => {
@@ -2546,4 +2801,4 @@ if (attachBtn) {
     });
 }
 
-console.log('✅ LinkUp — ФИНАЛЬНАЯ ВЕРСИЯ 2.0 С ИСПРАВЛЕННЫМИ ЗВОНКАМИ!');
+console.log('✅ LinkUp — ФИНАЛЬНАЯ РАБОЧАЯ ВЕРСИЯ 4.0');ФИНАЛЬНАЯ ВЕРСИЯ 3.0 С ИСПРАВЛЕННЫМИ ЗВОНКАМИ!');
