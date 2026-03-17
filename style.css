@@ -1,1402 +1,1832 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-:root {
-    --bg-dark: #0a0a0f;
-    --bg-sidebar: #121217;
-    --accent-pink: #ff1493;
-    --accent-blue: #00bfff;
-    --accent-purple: #7c3aed;
-    --text-primary: #fff;
-    --text-secondary: #888;
-    --border-color: rgba(255, 255, 255, 0.1);
-    --input-bg: rgba(255, 255, 255, 0.05);
-    --success: #4caf50;
-    --danger: #ff4444;
-}
-
-body {
-    background: var(--bg-dark);
-    height: 100vh;
-    color: var(--text-primary);
-}
-
-/* ==================== ЭКРАН ВХОДА ==================== */
-.auth-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--bg-dark);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-    backdrop-filter: blur(10px);
-}
-
-.auth-card {
-    background: rgba(18, 18, 24, 0.8);
-    backdrop-filter: blur(20px);
-    padding: 40px;
-    border-radius: 30px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 0 100px rgba(124, 58, 237, 0.3);
-    width: 90%;
-    max-width: 400px;
-    animation: cardAppear 0.5s ease;
-}
-
-@keyframes cardAppear {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-.auth-title {
-    font-size: 52px;
-    font-weight: 800;
-    margin-bottom: 30px;
-    background: linear-gradient(135deg, #ff1493, #00bfff, #7c3aed, #ff1493);
-    background-size: 300% 300%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-align: center;
-    animation: gradientFlow 8s ease infinite;
-}
-
-@keyframes gradientFlow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-.auth-subtitle {
-    color: var(--text-secondary);
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.phone-input-container,
-.username-input-container,
-.password-input-container {
-    display: flex;
-    align-items: center;
-    background: var(--input-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 15px;
-    padding: 5px 15px;
-    margin-bottom: 15px;
-    transition: all 0.3s;
-    position: relative;
-}
-
-.phone-input-container:focus-within,
-.username-input-container:focus-within,
-.password-input-container:focus-within {
-    border-color: var(--accent-pink);
-    box-shadow: 0 0 30px rgba(255, 20, 147, 0.2);
-}
-
-.phone-prefix {
-    font-size: 18px;
-    color: #fff;
-    font-weight: 500;
-    padding-right: 10px;
-    opacity: 0.7;
-}
-
-.phone-input,
-.username-input,
-.password-input {
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 18px;
-    padding: 15px 0;
-    width: 100%;
-    outline: none;
-}
-
-.phone-input::placeholder,
-.username-input::placeholder,
-.password-input::placeholder {
-    color: #444;
-}
-
-.username-hint {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-top: -10px;
-    margin-bottom: 15px;
-    padding-left: 5px;
-}
-
-.password-input {
-    padding-right: 40px;
-}
-
-.password-toggle {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    opacity: 0.5;
-    transition: all 0.3s;
-    font-size: 20px;
-    z-index: 10;
-}
-
-.password-toggle:hover {
-    opacity: 1;
-    transform: translateY(-50%) scale(1.1);
-}
-
-.auth-button {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
-    border: none;
-    border-radius: 15px;
-    color: white;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 0 30px rgba(255, 20, 147, 0.3);
-    margin-bottom: 10px;
-}
-
-.auth-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 50px rgba(255, 20, 147, 0.5);
-}
-
-.auth-button.secondary {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    box-shadow: none;
-}
-
-.auth-button.secondary:hover {
-    border-color: var(--accent-purple);
-    background: rgba(124, 58, 237, 0.1);
-}
-
-.auth-divider {
-    text-align: center;
-    color: #666;
-    margin: 20px 0;
-    position: relative;
-}
-
-.auth-divider::before,
-.auth-divider::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    width: 30%;
-    height: 1px;
-    background: var(--border-color);
-}
-
-.auth-divider::before { left: 0; }
-.auth-divider::after { right: 0; }
-
-.auth-links {
-    text-align: center;
-    margin: 10px 0;
-}
-
-.auth-links a {
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-size: 14px;
-    margin: 0 5px;
-}
-
-.auth-links a:hover {
-    color: var(--accent-blue);
-}
-
-.auth-note {
-    text-align: center;
-    color: var(--danger);
-    font-size: 14px;
-    margin-top: 20px;
-    min-height: 20px;
-}
-
-/* ==================== ОСНОВНОЕ ПРИЛОЖЕНИЕ ==================== */
-.app {
-    display: flex;
-    height: 100vh;
-}
-
-/* Левая панель */
-.sidebar {
-    width: 320px;
-    background: var(--bg-sidebar);
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    position: relative;
-}
-
-.user-profile {
-    display: flex;
-    align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid var(--border-color);
-    background: rgba(0, 0, 0, 0.2);
-    position: relative;
-    cursor: pointer;
-}
-
-.avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    margin-right: 15px;
-    box-shadow: 0 0 20px rgba(255, 20, 147, 0.3);
-}
-
-.user-info {
-    flex: 1;
-}
-
-.user-name {
-    font-weight: 600;
-    font-size: 16px;
-    display: block;
-}
-
-.user-phone {
-    font-size: 13px;
-    color: var(--text-secondary);
-    display: block;
-}
-
-.user-username {
-    font-size: 12px;
-    color: var(--accent-purple);
-    display: block;
-}
-
-.profile-edit-icon {
-    opacity: 0.5;
-    font-size: 18px;
-    transition: opacity 0.3s;
-}
-
-.user-profile:hover .profile-edit-icon {
-    opacity: 1;
-}
-
-/* Кнопка выхода */
-.logout-btn {
-    margin: 10px 15px;
-    padding: 10px;
-    background: rgba(255, 68, 68, 0.2);
-    border: 1px solid var(--danger);
-    border-radius: 20px;
-    color: var(--danger);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.logout-btn:hover {
-    background: var(--danger);
-    color: #fff;
-    transform: translateY(-2px);
-}
-
-/* Поиск */
-.search-container {
-    display: flex;
-    padding: 15px;
-    gap: 10px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.search-input {
-    flex: 1;
-    padding: 12px 15px;
-    background: var(--input-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 25px;
-    color: #fff;
-    font-size: 14px;
-    outline: none;
-}
-
-.search-input:focus {
-    border-color: var(--accent-pink);
-    box-shadow: 0 0 20px rgba(255, 20, 147, 0.2);
-}
-
-.search-button {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
-    border: none;
-    color: #fff;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.search-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(255, 20, 147, 0.4);
-}
-
-.search-results {
-    position: absolute;
-    top: 200px;
-    left: 20px;
-    right: 20px;
-    background: #1a1a24;
-    border-radius: 15px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    z-index: 100;
-    overflow: hidden;
-}
-
-.search-results-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.3);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.close-search {
-    background: none;
-    border: none;
-    color: #888;
-    font-size: 18px;
-    cursor: pointer;
-}
-
-.close-search:hover {
-    color: #fff;
-}
-
-.search-results-list {
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.search-result-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 15px;
-    cursor: pointer;
-    transition: all 0.3s;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.search-result-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    transform: translateX(5px);
-}
-
-.search-result-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 12px;
-}
-
-.search-result-info {
-    flex: 1;
-}
-
-.search-result-name {
-    font-weight: 600;
-    margin-bottom: 4px;
-}
-
-.search-result-username {
-    font-size: 11px;
-    color: var(--accent-purple);
-}
-
-.search-result-phone {
-    font-size: 11px;
-    color: var(--text-secondary);
-}
-
-.search-result-add {
-    color: var(--accent-blue);
-    font-size: 24px;
-}
-
-/* Вкладки Чаты / Группы */
-.chat-tabs {
-    display: flex;
-    padding: 10px 15px;
-    gap: 10px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.chat-tab {
-    flex: 1;
-    padding: 8px;
-    background: none;
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.chat-tab:hover {
-    border-color: var(--accent-purple);
-    color: #fff;
-}
-
-.chat-tab.active {
-    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
-    color: #fff;
-    border: none;
-}
-
-/* Списки */
-.chats-list,
-.groups-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
-}
-
-.chat-item,
-.group-item {
-    display: flex;
-    flex-direction: column;
-    padding: 12px 15px;
-    margin-bottom: 5px;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.chat-item:hover,
-.group-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(124, 58, 237, 0.3);
-    transform: translateX(8px);
-}
-
-.chat-name,
-.group-name {
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: #fff;
-}
-
-.chat-preview,
-.group-preview {
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
-.create-group-btn {
-    margin: 15px;
-    padding: 12px;
-    background: linear-gradient(135deg, #00bfff, #7c3aed);
-    border: none;
-    border-radius: 25px;
-    color: #fff;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.create-group-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 30px rgba(124, 58, 237, 0.5);
-}
-
-/* Правая панель */
-.chat-window {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: #0f0f0f;
-}
-
-.chat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    background: rgba(18, 18, 24, 0.8);
-    border-bottom: 1px solid var(--border-color);
-    backdrop-filter: blur(10px);
-}
-
-.chat-header-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.chat-header-name {
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.chat-header-phone {
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
-.chat-header-username {
-    font-size: 12px;
-    color: var(--accent-purple);
-}
-
-.chat-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.call-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    font-size: 20px;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.call-btn:hover {
-    transform: scale(1.1);
-    background: var(--accent-purple);
-}
-
-.call-btn.audio-call:hover {
-    background: #4caf50;
-}
-
-.call-btn.video-call:hover {
-    background: var(--accent-blue);
-}
-
-.chat-header-menu {
-    font-size: 24px;
-    cursor: pointer;
-    opacity: 0.7;
-    transition: all 0.3s;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.chat-header-menu:hover {
-    opacity: 1;
-    transform: scale(1.2);
-}
-
-/* Закреплённые сообщения */
-.pinned-messages {
-    background: rgba(124, 58, 237, 0.1);
-    border-bottom: 1px solid rgba(124, 58, 237, 0.3);
-    padding: 10px 20px;
-    max-height: 100px;
-    overflow-y: auto;
-}
-
-.pinned-message {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 5px 10px;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 8px;
-    margin-bottom: 5px;
-    font-size: 13px;
-    border-left: 3px solid var(--accent-purple);
-}
-
-.pinned-close {
-    cursor: pointer;
-    opacity: 0.5;
-    padding: 0 5px;
-}
-
-.pinned-close:hover {
-    opacity: 1;
-}
-
-/* Сообщения */
-.messages-area {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column-reverse;
-    gap: 10px;
-}
-
-.message {
-    max-width: 60%;
-    padding: 12px 16px;
-    border-radius: 18px;
-    font-size: 14px;
-    line-height: 1.4;
-    position: relative;
-    animation: messageAppear 0.3s;
-    cursor: pointer;
-}
-
-@keyframes messageAppear {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.message.sent {
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
-    align-self: flex-end;
-    border-bottom-right-radius: 5px;
-}
-
-.message.received {
-    background: #2a2a2a;
-    align-self: flex-start;
-    border-bottom-left-radius: 5px;
-}
-
-.message-sender {
-    font-size: 12px;
-    color: var(--accent-pink);
-    margin-bottom: 4px;
-    font-weight: 600;
-}
-
-.message-content {
-    word-break: break-word;
-}
-
-.message-time {
-    font-size: 10px;
-    color: rgba(255, 255, 255, 0.5);
-    margin-top: 5px;
-    text-align: right;
-}
-
-.message.pinned {
-    border: 2px solid gold;
-}
-
-.message.selected {
-    border: 2px solid var(--accent-pink);
-}
-
-/* Голосовые сообщения */
-.message.voice-message {
-    background: linear-gradient(135deg, #ff9800, #ff5722);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 200px;
-}
-
-.voice-waveform {
-    height: 30px;
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    flex: 1;
-}
-
-.voice-waveform span {
-    width: 3px;
-    height: 15px;
-    background: white;
-    border-radius: 1px;
-    animation: waveform 1s infinite;
-}
-
-.voice-waveform span:nth-child(2) { animation-delay: 0.1s; height: 20px; }
-.voice-waveform span:nth-child(3) { animation-delay: 0.2s; height: 25px; }
-.voice-waveform span:nth-child(4) { animation-delay: 0.3s; height: 20px; }
-.voice-waveform span:nth-child(5) { animation-delay: 0.4s; height: 15px; }
-
-@keyframes waveform {
-    0%, 100% { transform: scaleY(0.5); }
-    50% { transform: scaleY(1.5); }
-}
-
-.voice-duration {
-    font-size: 12px;
-    color: rgba(255,255,255,0.8);
-}
-
-/* Кружочки */
-.message.video-circle-message {
-    background: linear-gradient(135deg, #e91e63, #9c27b0);
-    border-radius: 50%;
-    width: 150px;
-    height: 150px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    position: relative;
-}
-
-.message.video-circle-message video {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.message.video-circle-message .play-icon {
-    position: absolute;
-    font-size: 40px;
-    color: white;
-    text-shadow: 0 0 10px rgba(0,0,0,0.5);
-    opacity: 0.8;
-}
-
-.message.video-circle-message:hover .play-icon {
-    opacity: 1;
-    transform: scale(1.1);
-}
-
-/* Фото в сообщениях */
-.message-image {
-    max-width: 200px;
-    max-height: 200px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: transform 0.3s;
-}
-
-.message-image:hover {
-    transform: scale(1.05);
-}
-
-.message-file {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    cursor: pointer;
-}
-
-.message-file:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-/* Ввод сообщения */
-.message-input-area {
-    display: flex;
-    padding: 20px;
-    background: rgba(18, 18, 24, 0.8);
-    border-top: 1px solid var(--border-color);
-    gap: 8px;
-    backdrop-filter: blur(10px);
-    position: relative;
-}
-
-.attach-btn, .voice-msg-btn, .video-circle-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    font-size: 20px;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.attach-btn:hover {
-    background: var(--accent-purple);
-    transform: scale(1.1);
-}
-
-.voice-msg-btn:hover {
-    background: #ff9800;
-    transform: scale(1.1);
-}
-
-.video-circle-btn:hover {
-    background: #e91e63;
-    transform: scale(1.1);
-}
-
-.message-input {
-    flex: 1;
-    padding: 12px 20px;
-    background: var(--input-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 30px;
-    color: #fff;
-    font-size: 14px;
-    outline: none;
-}
-
-.message-input:focus {
-    border-color: var(--accent-pink);
-    box-shadow: 0 0 30px rgba(255, 20, 147, 0.2);
-}
-
-.emoji-button {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: none;
-    color: #fff;
-    font-size: 24px;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.emoji-button:hover {
-    transform: scale(1.2);
-}
-
-.send-button {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
-    border: none;
-    color: #fff;
-    font-size: 20px;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 0 20px rgba(255, 20, 147, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.send-button:hover {
-    transform: scale(1.05) rotate(90deg);
-    box-shadow: 0 0 40px rgba(255, 20, 147, 0.6);
-}
-
-/* Индикатор записи */
-.recording-indicator {
-    position: fixed;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(135deg, #ff9800, #ff5722);
-    color: white;
-    padding: 15px 25px;
-    border-radius: 50px;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    z-index: 9000;
-    box-shadow: 0 0 30px rgba(255, 152, 0, 0.7);
-    animation: recordingPulse 1s infinite;
-}
-
-.recording-indicator.circle {
-    background: linear-gradient(135deg, #e91e63, #9c27b0);
-    box-shadow: 0 0 30px rgba(233, 30, 99, 0.7);
-}
-
-@keyframes recordingPulse {
-    0% { transform: translateX(-50%) scale(1); }
-    50% { transform: translateX(-50%) scale(1.05); }
-    100% { transform: translateX(-50%) scale(1); }
-}
-
-.recording-timer {
-    font-family: monospace;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-.recording-stop {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 5px 10px;
-    border-radius: 30px;
-    transition: all 0.3s;
-}
-
-.recording-stop:hover {
-    background: rgba(255, 255, 255, 0.4);
-    transform: scale(1.1);
-}
-
-/* Меню сообщения */
-.message-menu {
-    position: fixed;
-    background: #1a1a24;
-    border-radius: 10px;
-    padding: 5px;
-    z-index: 6000;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    border: 1px solid var(--border-color);
-}
-
-.message-menu button {
-    display: block;
-    width: 100%;
-    padding: 8px 15px;
-    background: none;
-    border: none;
-    color: #fff;
-    text-align: left;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: all 0.3s;
-}
-
-.message-menu button:hover {
-    background: rgba(255,255,255,0.1);
-}
-
-/* Панель эмодзи */
-.emoji-panel {
-    position: absolute;
-    bottom: 80px;
-    right: 20px;
-    background: #1a1a24;
-    border-radius: 20px;
-    padding: 10px;
-    display: grid;
-    grid-template-columns: repeat(3, 40px);
-    gap: 5px;
-    z-index: 6000;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 0 30px rgba(124,58,237,0.3);
-}
-
-.emoji-panel button {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 10px;
-    transition: all 0.3s;
-}
-
-.emoji-panel button:hover {
-    background: rgba(255,255,255,0.1);
-    transform: scale(1.2);
-}
-
-/* Меню чата (три точки) */
-.chat-menu-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 7000;
-    backdrop-filter: blur(10px);
-}
-
-.chat-menu-content {
-    width: 90%;
-    max-width: 400px;
-    background: #1a1a24;
-    border-radius: 20px;
-    padding: 20px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 0 50px rgba(124, 58, 237, 0.3);
-}
-
-.chat-menu-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.close-chat-menu {
-    background: none;
-    border: none;
-    color: #888;
-    font-size: 24px;
-    cursor: pointer;
-}
-
-.chat-menu-item {
-    width: 100%;
-    padding: 15px;
-    background: rgba(255, 68, 68, 0.2);
-    border: 1px solid var(--danger);
-    border-radius: 10px;
-    color: var(--danger);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-align: left;
-}
-
-.chat-menu-item:hover {
-    background: var(--danger);
-    color: #fff;
-}
-
-/* Модалка звонка */
-.call-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.95);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 8000;
-    backdrop-filter: blur(10px);
-}
-
-.call-modal-content {
-    width: 90%;
-    max-width: 800px;
-    background: #1a1a24;
-    border-radius: 30px;
-    padding: 20px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 0 50px rgba(124, 58, 237, 0.5);
-}
-
-.call-header {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.call-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 40px;
-}
-
-.call-info {
-    flex: 1;
-}
-
-.call-name {
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 5px;
-}
-
-.call-status {
-    color: var(--text-secondary);
-}
-
-.call-video {
-    position: relative;
-    width: 100%;
-    height: 400px;
-    background: #000;
-    border-radius: 15px;
-    overflow: hidden;
-    margin-bottom: 20px;
-}
-
-#remoteVideo {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-#localVideo {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    width: 150px;
-    height: 100px;
-    border-radius: 10px;
-    border: 2px solid var(--accent-purple);
-    object-fit: cover;
-}
-
-.call-controls {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-.call-control-btn {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    font-size: 24px;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.call-control-btn:hover {
-    transform: scale(1.1);
-}
-
-.call-control-btn.mute.active {
-    background: var(--danger);
-}
-
-.call-control-btn.video.active {
-    background: var(--danger);
-}
-
-.call-control-btn.end-call {
-    background: var(--danger);
-}
-
-.call-control-btn.end-call:hover {
-    background: #ff6666;
-}
-
-.call-timer {
-    text-align: center;
-    font-size: 20px;
-    color: var(--text-secondary);
-}
-
-/* Входящий звонок */
-.incoming-call-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 8000;
-}
-
-.incoming-call-content {
-    width: 300px;
-    background: #1a1a24;
-    border-radius: 20px;
-    padding: 20px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 0 50px rgba(124, 58, 237, 0.5);
-    animation: incomingPulse 2s infinite;
-}
-
-@keyframes incomingPulse {
-    0% { box-shadow: 0 0 30px rgba(124, 58, 237, 0.5); }
-    50% { box-shadow: 0 0 60px rgba(255, 20, 147, 0.8); }
-    100% { box-shadow: 0 0 30px rgba(124, 58, 237, 0.5); }
-}
-
-.incoming-call-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.incoming-call-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 30px;
-}
-
-.incoming-call-info {
-    flex: 1;
-}
-
-.incoming-call-name {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 5px;
-}
-
-.incoming-call-type {
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
-.incoming-call-controls {
-    display: flex;
-    gap: 10px;
-}
-
-.incoming-call-btn {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.incoming-call-btn.accept {
-    background: var(--success);
-    color: #fff;
-}
-
-.incoming-call-btn.accept:hover {
-    background: #5dc15d;
-    transform: translateY(-2px);
-}
-
-.incoming-call-btn.decline {
-    background: var(--danger);
-    color: #fff;
-}
-
-.incoming-call-btn.decline:hover {
-    background: #ff6666;
-    transform: translateY(-2px);
-}
-
-/* Чекбокс */
-.checkbox-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 15px 0;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 10px;
-}
-
-.terms-checkbox {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: var(--accent-purple);
-}
-
-.terms-label {
-    font-size: 13px;
-    color: var(--text-secondary);
-    line-height: 1.4;
-}
-
-.terms-label a {
-    color: var(--accent-blue);
-    text-decoration: none;
-}
-
-.terms-label a:hover {
-    text-decoration: underline;
-    color: var(--accent-pink);
-}
-
-/* Приветственный экран */
-.welcome-screen {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.3);
-}
-
-.welcome-content {
-    text-align: center;
-}
-
-.welcome-title {
-    font-size: 48px;
-    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 20px;
-    animation: glowPulse 3s infinite;
-}
-
-@keyframes glowPulse {
-    0% { filter: drop-shadow(0 0 20px rgba(255, 20, 147, 0.3)); }
-    50% { filter: drop-shadow(0 0 40px rgba(0, 191, 255, 0.5)); }
-    100% { filter: drop-shadow(0 0 20px rgba(124, 58, 237, 0.3)); }
-}
-
-.welcome-text {
-    color: var(--text-secondary);
-    font-size: 16px;
-}
-
-/* Скроллбары */
-::-webkit-scrollbar {
-    width: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
-}
-
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
-    border-radius: 3px;
-}
+// ==================== ПОДКЛЮЧЕНИЕ К SUPABASE ====================
+const SUPABASE_URL = 'https://zrqaiwobrkzilfwhtkvs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpycWFpd29icmt6aWxmd2h0a3ZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNDc0MDgsImV4cCI6MjA4ODcyMzQwOH0.3PeA7LCedWW8YmiSKW_hqv8Lv227Rk_QrAxFJTFeSpw';
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ==================== КОНСТАНТЫ ====================
+const OWNER_PHONE = '+79224030705';
+let CURRENT_USER = null;
+let CURRENT_CHAT = null;
+let CURRENT_GROUP = null;
+let GROUPS = [];
+let selectedMembers = [];
+let selectedMessageId = null;
+let selectedMessageType = null;
+let ADMIN_RIGHTS = null;
+let CURRENT_SESSION_TOKEN = null;
+let OWNER_SETTINGS = {
+    showBadge: true
+};
+
+// ==================== DOM ЭЛЕМЕНТЫ ====================
+const authScreen = document.getElementById('authScreen');
+const app = document.getElementById('app');
+const authMessage = document.getElementById('authMessage');
+const welcomeScreen = document.getElementById('welcomeScreen');
+const chatWindow = document.getElementById('chatWindow');
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+const showRegisterButton = document.getElementById('showRegisterButton');
+const backToLoginButton = document.getElementById('backToLoginButton');
+const loginPhone = document.getElementById('loginPhone');
+const loginPassword = document.getElementById('loginPassword');
+const registerPhone = document.getElementById('registerPhone');
+const registerUsername = document.getElementById('registerUsername');
+const registerPassword = document.getElementById('registerPassword');
+const registerPasswordConfirm = document.getElementById('registerPasswordConfirm');
+const loginButton = document.getElementById('loginButton');
+const registerButton = document.getElementById('registerButton');
+const currentUserPhone = document.getElementById('currentUserPhone');
+const currentUserName = document.getElementById('currentUserName');
+const currentUserUsername = document.getElementById('currentUserUsername');
+const adminButton = document.getElementById('adminButton');
+const logoutBtn = document.getElementById('logoutBtn');
+const searchInput = document.getElementById('searchInput');
+const searchButton = document.getElementById('searchButton');
+const searchResults = document.getElementById('searchResults');
+const searchResultsList = document.getElementById('searchResultsList');
+const closeSearch = document.getElementById('closeSearch');
+const chatsList = document.getElementById('chatsList');
+const groupsList = document.getElementById('groupsList');
+const chatsTabBtn = document.getElementById('chatsTabBtn');
+const groupsTabBtn = document.getElementById('groupsTabBtn');
+const createGroupBtn = document.getElementById('createGroupBtn');
+const groupModal = document.getElementById('groupModal');
+const closeGroupModal = document.getElementById('closeGroupModal');
+const groupName = document.getElementById('groupName');
+const groupDescription = document.getElementById('groupDescription');
+const availableUsers = document.getElementById('availableUsers');
+const createGroupFinal = document.getElementById('createGroupFinal');
+const pinnedMessages = document.getElementById('pinnedMessages');
+const messagesArea = document.getElementById('messagesArea');
+const messageInput = document.getElementById('messageInput');
+const sendButton = document.getElementById('sendButton');
+const emojiBtn = document.getElementById('emojiBtn');
+const emojiPanel = document.getElementById('emojiPanel');
+const messageMenu = document.getElementById('messageMenu');
+const deleteMessageBtn = document.getElementById('deleteMessageBtn');
+const pinMessageBtn = document.getElementById('pinMessageBtn');
+const chatMenuBtn = document.getElementById('chatMenuBtn');
+
+// Кнопки звонков и медиа
+const audioCallBtn = document.getElementById('audioCallBtn');
+const videoCallBtn = document.getElementById('videoCallBtn');
+const voiceMsgBtn = document.getElementById('voiceMsgBtn');
+const videoCircleBtn = document.getElementById('videoCircleBtn');
+const attachBtn = document.getElementById('attachBtn');
+
+// Модалки звонков
+const callModal = document.getElementById('callModal');
+const callAvatar = document.getElementById('callAvatar');
+const callName = document.getElementById('callName');
+const callStatus = document.getElementById('callStatus');
+const callVideoContainer = document.getElementById('callVideoContainer');
+const remoteVideo = document.getElementById('remoteVideo');
+const localVideo = document.getElementById('localVideo');
+const muteAudioBtn = document.getElementById('muteAudioBtn');
+const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+const endCallBtn = document.getElementById('endCallBtn');
+const speakerBtn = document.getElementById('speakerBtn');
+const callTimerDisplay = document.getElementById('callTimer');
+const incomingCallModal = document.getElementById('incomingCallModal');
+const incomingCallAvatar = document.getElementById('incomingCallAvatar');
+const incomingCallName = document.getElementById('incomingCallName');
+const incomingCallType = document.getElementById('incomingCallType');
+const acceptCallBtn = document.getElementById('acceptCallBtn');
+const declineCallBtn = document.getElementById('declineCallBtn');
+
+// Меню чата (три точки)
+const chatMenuModal = document.getElementById('chatMenuModal');
+const closeChatMenu = document.getElementById('closeChatMenu');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+// Админ-панель
+const adminModal = document.getElementById('adminModal');
+const closeAdmin = document.getElementById('closeAdmin');
+const adminTabs = document.querySelectorAll('.admin-tab');
+const adminsTab = document.getElementById('adminsTab');
+const adminUsersList = document.getElementById('adminUsersList');
+const adminUserSearch = document.getElementById('adminUserSearch');
+
+// Модалка рангов
+const rankModal = document.getElementById('rankModal');
+const closeRankModal = document.getElementById('closeRankModal');
+const rankUserPhone = document.getElementById('rankUserPhone');
+const rankOptions = document.querySelectorAll('.rank-option');
+const confirmRankBtn = document.getElementById('confirmRankBtn');
+const cancelRankBtn = document.getElementById('cancelRankBtn');
+
+// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+function formatPhone(number) {
+    let cleaned = number.replace(/\D/g, '');
+    if (!cleaned) return '';
+    if (cleaned.startsWith('8')) cleaned = '7' + cleaned.substring(1);
+    if (!cleaned.startsWith('7')) cleaned = '7' + cleaned;
+    cleaned = cleaned.substring(0, 11);
+    return '+' + cleaned;
+}
+
+function validateUsername(username) {
+    const regex = /^[a-z0-9_]+$/;
+    return regex.test(username);
+}
+
+function generateSessionToken() {
+    return 'sess_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+}
+
+function saveSession(user) {
+    localStorage.setItem('linkup_session', JSON.stringify({ 
+        user, 
+        token: CURRENT_SESSION_TOKEN,
+        timestamp: Date.now() 
+    }));
+}
+
+function loadSession() {
+    const s = localStorage.getItem('linkup_session');
+    if (s) try {
+        const d = JSON.parse(s);
+        if (Date.now() - d.timestamp < 30 * 24 * 60 * 60 * 1000) {
+            CURRENT_SESSION_TOKEN = d.token;
+            return d.user;
+        }
+    } catch (e) {}
+    return null;
+}
+
+function isOwner() {
+    return CURRENT_USER?.phone === OWNER_PHONE;
+}
+
+function formatDuration(seconds) {
+    if (!seconds) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function getRankColor(rank) {
+    const colors = ['#888', '#cd7f32', '#c0c0c0', '#ffd700', '#00bfff', '#ff1493'];
+    return colors[rank] || '#888';
+}
+
+// ==================== ВЫХОД ИЗ ПРОФИЛЯ ====================
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        if (confirm('Вы уверены, что хотите выйти?')) {
+            localStorage.removeItem('linkup_session');
+            CURRENT_USER = null;
+            CURRENT_SESSION_TOKEN = null;
+            ADMIN_RIGHTS = null;
+            authScreen.style.display = 'flex';
+            app.style.display = 'none';
+            loginPhone.value = '';
+            loginPassword.value = '';
+            authMessage.textContent = '';
+        }
+    });
+}
+
+// ==================== ГЛАЗКИ ДЛЯ ПАРОЛЯ ====================
+function addPasswordToggle(input) {
+    const container = input.parentElement;
+    const btn = document.createElement('span');
+    btn.className = 'password-toggle';
+    btn.innerHTML = '👁️';
+    btn.onclick = () => {
+        input.type = input.type === 'password' ? 'text' : 'password';
+        btn.innerHTML = input.type === 'password' ? '👁️' : '🔓';
+    };
+    container.style.position = 'relative';
+    input.style.paddingRight = '40px';
+    container.appendChild(btn);
+}
+
+[loginPassword, registerPassword, registerPasswordConfirm].forEach(i => i && addPasswordToggle(i));
+
+// ==================== ПЕРЕКЛЮЧЕНИЕ ФОРМ ====================
+if (showRegisterButton) {
+    showRegisterButton.addEventListener('click', () => {
+        loginForm.style.display = 'none';
+        showRegisterButton.style.display = 'none';
+        registerForm.style.display = 'block';
+        authMessage.textContent = '';
+    });
+}
+
+if (backToLoginButton) {
+    backToLoginButton.addEventListener('click', () => {
+        loginForm.style.display = 'block';
+        showRegisterButton.style.display = 'block';
+        registerForm.style.display = 'none';
+        authMessage.textContent = '';
+    });
+}
+
+// ==================== ЗАГРУЗКА НАСТРОЕК ====================
+async function loadUserSettings() {
+    if (!CURRENT_USER) return;
+    
+    const { data } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('phone', CURRENT_USER.phone)
+        .single();
+    
+    if (data) {
+        CURRENT_USER.username = data.username;
+        if (currentUserName) currentUserName.textContent = data.username || CURRENT_USER.phone;
+        if (currentUserUsername) currentUserUsername.textContent = data.username ? '@' + data.username : '';
+    }
+}
+
+// ==================== ЗАГРУЗКА ПРАВ АДМИНА ====================
+async function loadAdminRights(phone) {
+    if (phone === OWNER_PHONE) {
+        return { 
+            rank: 5, 
+            is_owner: true,
+            can_manage_admins: true,
+            can_ban_users: true,
+            can_manage_groups: true,
+            can_view_reports: true
+        };
+    }
+    
+    try {
+        const { data, error } = await supabaseClient
+            .from('admins')
+            .select('*')
+            .eq('phone', phone)
+            .maybeSingle();
+        
+        if (error) throw error;
+        return data;
+    } catch (e) {
+        console.error('Ошибка загрузки прав:', e);
+        return null;
+    }
+}
+
+// ==================== СТАТУС ВЛАДЕЛЬЦА ====================
+async function loadOwnerSettings() {
+    if (!isOwner()) return;
+    
+    try {
+        const { data } = await supabaseClient
+            .from('user_settings')
+            .select('owner_settings')
+            .eq('phone', CURRENT_USER.phone)
+            .maybeSingle();
+        
+        if (data?.owner_settings) {
+            OWNER_SETTINGS = data.owner_settings;
+        }
+        
+        updateOwnerBadge();
+    } catch (e) {
+        console.error('Ошибка загрузки настроек:', e);
+    }
+}
+
+async function saveOwnerSettings() {
+    if (!isOwner()) return;
+    
+    await supabaseClient
+        .from('user_settings')
+        .upsert({
+            phone: CURRENT_USER.phone,
+            owner_settings: OWNER_SETTINGS
+        });
+}
+
+function updateOwnerBadge() {
+    const ownerBadge = document.getElementById('ownerBadge');
+    const toggle = document.getElementById('showOwnerBadge');
+    
+    if (ownerBadge) {
+        ownerBadge.style.display = OWNER_SETTINGS.showBadge ? 'inline-block' : 'none';
+    }
+    if (toggle) {
+        toggle.checked = OWNER_SETTINGS.showBadge;
+    }
+}
+
+// Обработчик чекбокса
+const showOwnerBadge = document.getElementById('showOwnerBadge');
+if (showOwnerBadge) {
+    showOwnerBadge.addEventListener('change', (e) => {
+        OWNER_SETTINGS.showBadge = e.target.checked;
+        updateOwnerBadge();
+        saveOwnerSettings();
+    });
+}
+
+// ==================== ВХОД ====================
+if (loginButton) {
+    loginButton.addEventListener('click', async () => {
+        const phone = formatPhone(loginPhone.value);
+        const pass = loginPassword.value;
+        
+        if (!phone || !pass) { 
+            authMessage.textContent = '❌ Введите номер и пароль'; 
+            return; 
+        }
+        
+        try {
+            const { data: users, error } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('phone', phone)
+                .eq('password', pass);
+            
+            if (error) throw error;
+            
+            if (!users || users.length === 0) { 
+                authMessage.textContent = '❌ Неверный номер или пароль'; 
+                return; 
+            }
+            
+            CURRENT_USER = users[0];
+            CURRENT_SESSION_TOKEN = generateSessionToken();
+            saveSession(CURRENT_USER);
+            
+            await loadUserSettings();
+            
+            ADMIN_RIGHTS = await loadAdminRights(CURRENT_USER.phone);
+            console.log('Права админа:', ADMIN_RIGHTS);
+            
+            authScreen.style.display = 'none';
+            app.style.display = 'flex';
+            if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
+            
+            if (ADMIN_RIGHTS) {
+                if (adminButton) adminButton.style.display = 'block';
+                
+                if (isOwner()) {
+                    const ownerStatusToggle = document.getElementById('ownerStatusToggle');
+                    if (ownerStatusToggle) ownerStatusToggle.style.display = 'block';
+                    loadOwnerSettings();
+                }
+            }
+            
+            loadChats();
+            loadGroups();
+            
+        } catch (e) { 
+            authMessage.textContent = '❌ Ошибка входа: ' + e.message; 
+        }
+    });
+}
+
+// ==================== РЕГИСТРАЦИЯ ====================
+if (registerButton) {
+    registerButton.addEventListener('click', async () => {
+        const phone = formatPhone(registerPhone.value);
+        const username = registerUsername.value.trim().toLowerCase();
+        const pass = registerPassword.value;
+        const confirm = registerPasswordConfirm.value;
+        
+        const termsCheckbox = document.getElementById('termsCheckbox');
+        if (!termsCheckbox || !termsCheckbox.checked) {
+            authMessage.textContent = '❌ Необходимо принять условия';
+            return;
+        }
+        
+        if (!phone || !username || !pass || !confirm) {
+            authMessage.textContent = '❌ Заполните все поля';
+            return;
+        }
+        
+        if (!validateUsername(username)) {
+            authMessage.textContent = '❌ Username может содержать только a-z, 0-9 и _';
+            return;
+        }
+        
+        if (pass !== confirm) {
+            authMessage.textContent = '❌ Пароли не совпадают';
+            return;
+        }
+        
+        if (pass.length < 4) {
+            authMessage.textContent = '❌ Пароль минимум 4 символа';
+            return;
+        }
+        
+        try {
+            const { data: existingPhone } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('phone', phone);
+            
+            if (existingPhone?.length) {
+                authMessage.textContent = '❌ Номер уже зарегистрирован';
+                return;
+            }
+            
+            const { data: existingUsername } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('username', username);
+            
+            if (existingUsername?.length) {
+                authMessage.textContent = '❌ Username уже занят';
+                return;
+            }
+            
+            await supabaseClient.from('profiles').insert([{ 
+                phone, 
+                username,
+                password: pass
+            }]);
+            
+            authMessage.textContent = '✅ Регистрация успешна! Войдите.';
+            authMessage.style.color = '#4caf50';
+            
+            registerPhone.value = '';
+            registerUsername.value = '';
+            registerPassword.value = '';
+            registerPasswordConfirm.value = '';
+            if (termsCheckbox) termsCheckbox.checked = false;
+            
+            setTimeout(() => {
+                if (backToLoginButton) backToLoginButton.click();
+                authMessage.textContent = '';
+                authMessage.style.color = '#ff4444';
+            }, 2000);
+        } catch (e) {
+            authMessage.textContent = '❌ Ошибка: ' + e.message;
+        }
+    });
+}
+
+// ==================== ПОИСК ====================
+if (searchButton) {
+    searchButton.addEventListener('click', searchUsers);
+}
+if (searchInput) {
+    searchInput.addEventListener('keypress', e => e.key === 'Enter' && searchUsers());
+}
+
+async function searchUsers() {
+    if (!searchInput || !searchResultsList || !CURRENT_USER) return;
+    
+    const query = searchInput.value.trim();
+    if (!query) return;
+    
+    try {
+        const { data: users, error } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .neq('phone', CURRENT_USER.phone)
+            .or(`phone.ilike.%${query}%,username.ilike.%${query}%`);
+        
+        if (error) throw error;
+        
+        if (!users?.length) {
+            searchResultsList.innerHTML = '<p class="no-data">Пользователи не найдены</p>';
+        } else {
+            searchResultsList.innerHTML = users.map(u => `
+                <div class="search-result-item" onclick="startChat('${u.phone}')">
+                    <div class="search-result-avatar">👤</div>
+                    <div class="search-result-info">
+                        <div class="search-result-name">${u.username || u.phone}</div>
+                        ${u.username ? `<div class="search-result-username">@${u.username}</div>` : ''}
+                        <div class="search-result-phone">${u.phone}</div>
+                    </div>
+                    <div class="search-result-add">+</div>
+                </div>
+            `).join('');
+        }
+        
+        if (searchResults) searchResults.style.display = 'block';
+    } catch (e) {
+        console.error('Ошибка поиска:', e);
+    }
+}
+
+if (closeSearch) {
+    closeSearch.addEventListener('click', () => {
+        if (searchResults) searchResults.style.display = 'none';
+    });
+}
+
+// ==================== ВКЛАДКИ ЧАТЫ/ГРУППЫ ====================
+if (chatsTabBtn) {
+    chatsTabBtn.addEventListener('click', () => {
+        chatsTabBtn.classList.add('active');
+        groupsTabBtn.classList.remove('active');
+        chatsList.style.display = 'block';
+        groupsList.style.display = 'none';
+    });
+}
+
+if (groupsTabBtn) {
+    groupsTabBtn.addEventListener('click', () => {
+        groupsTabBtn.classList.add('active');
+        chatsTabBtn.classList.remove('active');
+        chatsList.style.display = 'none';
+        groupsList.style.display = 'block';
+        loadGroups();
+    });
+}
+
+// ==================== ЛИЧНЫЕ ЧАТЫ ====================
+window.startChat = async function(phone) {
+    if (!searchResults || !searchInput || !welcomeScreen || !chatWindow) return;
+    
+    searchResults.style.display = 'none';
+    searchInput.value = '';
+    CURRENT_GROUP = null;
+    try {
+        const { data: users } = await supabaseClient.from('profiles').select('*').eq('phone', phone);
+        if (!users?.length) return;
+        CURRENT_CHAT = users[0];
+        
+        const chatName = document.getElementById('currentChatName');
+        const chatPhone = document.getElementById('currentChatPhone');
+        const chatUsername = document.getElementById('currentChatUsername');
+        
+        if (chatName) chatName.textContent = CURRENT_CHAT.username || CURRENT_CHAT.phone;
+        if (chatPhone) chatPhone.textContent = CURRENT_CHAT.phone;
+        if (chatUsername) chatUsername.textContent = CURRENT_CHAT.username ? '@' + CURRENT_CHAT.username : '';
+        
+        welcomeScreen.style.display = 'none';
+        chatWindow.style.display = 'flex';
+        loadMessages(phone);
+        loadPinnedMessages('private', phone);
+    } catch (e) { console.error(e); }
+};
+
+async function loadMessages(chatPhone) {
+    if (!CURRENT_USER || !messagesArea) return;
+    
+    try {
+        const { data: messages, error } = await supabaseClient
+            .from('messages')
+            .select('*')
+            .or(`sender.eq.${CURRENT_USER.phone},receiver.eq.${CURRENT_USER.phone}`)
+            .or(`sender.eq.${chatPhone},receiver.eq.${chatPhone}`)
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        
+        if (!messages?.length) {
+            messagesArea.innerHTML = '<div class="message received">Начните общение</div>';
+        } else {
+            messagesArea.innerHTML = messages.map(m => {
+                const isSent = m.sender === CURRENT_USER.phone;
+                
+                if (m.voice_data) {
+                    return `
+                    <div class="message ${isSent ? 'sent' : 'received'} voice-message" 
+                         data-id="${m.id}" 
+                         data-type="private"
+                         onclick="playVoiceMessage('${m.voice_data}')">
+                        <span>🎤</span>
+                        <div class="voice-waveform">
+                            <span></span><span></span><span></span><span></span><span></span>
+                        </div>
+                        <span class="voice-duration">${formatDuration(m.voice_duration)}</span>
+                    </div>`;
+                }
+                
+                if (m.circle_data) {
+                    return `
+                    <div class="message ${isSent ? 'sent' : 'received'} video-circle-message" 
+                         data-id="${m.id}" 
+                         data-type="private"
+                         onclick="playCircleMessage('${m.circle_data}')">
+                        <video src="${m.circle_data}" style="display:none;"></video>
+                        <span class="play-icon">▶️</span>
+                        <span class="voice-duration" style="position:absolute;bottom:5px;right:5px;">${formatDuration(m.circle_duration)}</span>
+                    </div>`;
+                }
+                
+                if (m.file_data) {
+                    if (m.file_type?.startsWith('image/')) {
+                        return `
+                        <div class="message ${isSent ? 'sent' : 'received'}" 
+                             data-id="${m.id}" 
+                             data-type="private">
+                            <img src="${m.file_data}" class="message-image" onclick="viewImage('${m.file_data}')">
+                            <div class="message-time">${new Date(m.created_at).toLocaleTimeString().slice(0, -3)}</div>
+                        </div>`;
+                    } else {
+                        return `
+                        <div class="message ${isSent ? 'sent' : 'received'}" 
+                             data-id="${m.id}" 
+                             data-type="private"
+                             onclick="downloadFile('${m.file_data}', '${m.file_name || 'file'}')">
+                            <div class="message-file">
+                                <span class="file-icon">📎</span>
+                                <span>${m.file_name || 'Файл'}</span>
+                            </div>
+                            <div class="message-time">${new Date(m.created_at).toLocaleTimeString().slice(0, -3)}</div>
+                        </div>`;
+                    }
+                }
+                
+                return `
+                <div class="message ${isSent ? 'sent' : 'received'} ${m.pinned ? 'pinned' : ''}" 
+                     data-id="${m.id}" 
+                     data-type="private"
+                     onclick="selectMessage(this, '${m.id}', 'private')">
+                    <div class="message-content">${m.content}</div>
+                    <div class="message-time">${new Date(m.created_at).toLocaleTimeString().slice(0, -3)}</div>
+                </div>`;
+            }).join('');
+        }
+    } catch (e) { console.error(e); }
+}
+
+// ==================== ГРУППЫ ====================
+window.openGroup = async function(groupId) {
+    if (!GROUPS || !welcomeScreen || !chatWindow) return;
+    
+    CURRENT_CHAT = null;
+    CURRENT_GROUP = GROUPS.find(g => g.id === groupId);
+    
+    const chatName = document.getElementById('currentChatName');
+    const chatPhone = document.getElementById('currentChatPhone');
+    const chatUsername = document.getElementById('currentChatUsername');
+    
+    if (chatName) chatName.textContent = CURRENT_GROUP.name;
+    if (chatPhone) chatPhone.textContent = 'Группа';
+    if (chatUsername) chatUsername.textContent = '';
+    
+    welcomeScreen.style.display = 'none';
+    chatWindow.style.display = 'flex';
+    loadGroupMessages(groupId);
+    loadPinnedMessages('group', groupId);
+};
+
+async function loadGroupMessages(groupId) {
+    if (!CURRENT_USER || !messagesArea) return;
+    
+    try {
+        const { data: messages, error } = await supabaseClient
+            .from('group_messages')
+            .select('*')
+            .eq('group_id', groupId)
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        
+        if (!messages?.length) {
+            messagesArea.innerHTML = '<div class="message received">Начните общение в группе</div>';
+        } else {
+            const senderPhones = [...new Set(messages.map(m => m.sender))];
+            const { data: profiles } = await supabaseClient
+                .from('profiles')
+                .select('phone, username')
+                .in('phone', senderPhones);
+            
+            const senderNames = {};
+            profiles?.forEach(p => {
+                senderNames[p.phone] = p.username || p.phone;
+            });
+            
+            messagesArea.innerHTML = messages.map(m => {
+                const isSent = m.sender === CURRENT_USER.phone;
+                const senderName = isSent ? 'Вы' : (senderNames[m.sender] || m.sender);
+                
+                if (m.voice_data) {
+                    return `
+                    <div class="message ${isSent ? 'sent' : 'received'} voice-message" 
+                         data-id="${m.id}" 
+                         data-type="group"
+                         onclick="playVoiceMessage('${m.voice_data}')">
+                        <span>🎤</span>
+                        <div class="voice-waveform">
+                            <span></span><span></span><span></span><span></span><span></span>
+                        </div>
+                        <span class="voice-duration">${formatDuration(m.voice_duration)}</span>
+                    </div>`;
+                }
+                
+                if (m.circle_data) {
+                    return `
+                    <div class="message ${isSent ? 'sent' : 'received'} video-circle-message" 
+                         data-id="${m.id}" 
+                         data-type="group"
+                         onclick="playCircleMessage('${m.circle_data}')">
+                        <video src="${m.circle_data}" style="display:none;"></video>
+                        <span class="play-icon">▶️</span>
+                        <span class="voice-duration" style="position:absolute;bottom:5px;right:5px;">${formatDuration(m.circle_duration)}</span>
+                    </div>`;
+                }
+                
+                return `
+                <div class="message ${isSent ? 'sent' : 'received'} ${m.pinned ? 'pinned' : ''}"
+                     data-id="${m.id}"
+                     data-type="group"
+                     onclick="selectMessage(this, '${m.id}', 'group')">
+                    ${!isSent ? `<div class="message-sender">${senderName}</div>` : ''}
+                    <div class="message-content">${m.content}</div>
+                    <div class="message-time">${new Date(m.created_at).toLocaleTimeString().slice(0, -3)}</div>
+                </div>`;
+            }).join('');
+        }
+    } catch (e) { console.error(e); }
+}
+
+// ==================== ЗАГРУЗКА ЧАТОВ ====================
+async function loadChats() {
+    if (!CURRENT_USER || !chatsList) return;
+    
+    try {
+        const { data: messages, error } = await supabaseClient
+            .from('messages')
+            .select('*')
+            .or(`sender.eq.${CURRENT_USER.phone},receiver.eq.${CURRENT_USER.phone}`)
+            .order('created_at', { ascending: false });
+            
+        if (error) throw error;
+        
+        const chats = new Map();
+        messages.forEach(m => {
+            const other = m.sender === CURRENT_USER.phone ? m.receiver : m.sender;
+            if (!chats.has(other) || new Date(m.created_at) > new Date(chats.get(other).lastMessageTime)) {
+                chats.set(other, { 
+                    phone: other, 
+                    lastMessage: m.content || '📎 Файл', 
+                    lastMessageTime: m.created_at 
+                });
+            }
+        });
+        
+        if (!chats.size) {
+            chatsList.innerHTML = '<div class="chat-item">Найдите контакт через поиск</div>';
+        } else {
+            chatsList.innerHTML = Array.from(chats.values()).map(c => `
+                <div class="chat-item" onclick="startChat('${c.phone}')">
+                    <span class="chat-name">${c.phone}</span>
+                    <span class="chat-preview">${c.lastMessage.slice(0, 30)}...</span>
+                </div>
+            `).join('');
+        }
+    } catch (e) { console.error(e); }
+}
+
+// ==================== ЗАГРУЗКА ГРУПП ====================
+async function loadGroups() {
+    if (!CURRENT_USER || !groupsList) return;
+    
+    try {
+        const { data: memberships } = await supabaseClient
+            .from('group_members')
+            .select('group_id')
+            .eq('user_phone', CURRENT_USER.phone);
+        
+        if (!memberships?.length) {
+            groupsList.innerHTML = '<div class="group-item">Нет групп</div>';
+            return;
+        }
+        
+        const groupIds = memberships.map(m => m.group_id);
+        const { data: groups } = await supabaseClient
+            .from('groups')
+            .select('*')
+            .in('id', groupIds)
+            .order('created_at', { ascending: false });
+        
+        GROUPS = groups || [];
+        groupsList.innerHTML = GROUPS.map(g => `
+            <div class="group-item" onclick="openGroup(${g.id})">
+                <span class="group-name">${g.name}</span>
+                <span class="group-preview">${g.description || 'Группа'}</span>
+            </div>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+
+// ==================== СОЗДАНИЕ ГРУППЫ ====================
+if (createGroupBtn) {
+    createGroupBtn.addEventListener('click', async () => {
+        if (!groupModal) return;
+        groupModal.style.display = 'flex';
+        await loadAvailableUsers();
+    });
+}
+
+if (closeGroupModal) {
+    closeGroupModal.addEventListener('click', () => {
+        if (!groupModal) return;
+        groupModal.style.display = 'none';
+        if (groupName) groupName.value = '';
+        if (groupDescription) groupDescription.value = '';
+        selectedMembers = [];
+    });
+}
+
+async function loadAvailableUsers() {
+    if (!availableUsers || !CURRENT_USER) return;
+    
+    try {
+        const { data: users } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .neq('phone', CURRENT_USER.phone);
+        
+        availableUsers.innerHTML = users?.map(u => `
+            <div class="group-member-item" onclick="toggleSelect('${u.phone}')">
+                <span>${u.username || u.phone}</span>
+            </div>
+        `).join('') || '<p>Нет пользователей</p>';
+    } catch (e) { console.error(e); }
+}
+
+window.toggleSelect = function(phone) {
+    const index = selectedMembers.indexOf(phone);
+    if (index === -1) selectedMembers.push(phone);
+    else selectedMembers.splice(index, 1);
+    
+    document.querySelectorAll('.group-member-item').forEach(el => {
+        if (selectedMembers.some(s => el.textContent.includes(s))) {
+            el.classList.add('selected');
+        } else {
+            el.classList.remove('selected');
+        }
+    });
+};
+
+if (createGroupFinal) {
+    createGroupFinal.addEventListener('click', async () => {
+        if (!groupName) return;
+        
+        const name = groupName.value.trim();
+        const desc = groupDescription ? groupDescription.value.trim() : '';
+        if (!name) { alert('Введите название группы'); return; }
+        if (!selectedMembers.length) { alert('Выберите участников'); return; }
+        
+        try {
+            const { data: group, error } = await supabaseClient
+                .from('groups')
+                .insert([{ name, description: desc, created_by: CURRENT_USER.phone }])
+                .select();
+            
+            if (error) throw error;
+            
+            const groupId = group[0].id;
+            
+            await supabaseClient.from('group_members').insert([
+                { group_id: groupId, user_phone: CURRENT_USER.phone, role: 'creator' }
+            ]);
+            
+            const members = selectedMembers.map(phone => ({
+                group_id: groupId,
+                user_phone: phone,
+                role: 'member'
+            }));
+            await supabaseClient.from('group_members').insert(members);
+            
+            alert('✅ Группа создана!');
+            if (groupModal) groupModal.style.display = 'none';
+            if (groupName) groupName.value = '';
+            if (groupDescription) groupDescription.value = '';
+            selectedMembers = [];
+            loadGroups();
+            if (groupsTabBtn) groupsTabBtn.click();
+        } catch (e) {
+            console.error(e);
+            alert('❌ Ошибка: ' + e.message);
+        }
+    });
+}
+
+// ==================== ОТПРАВКА СООБЩЕНИЙ ====================
+if (sendButton) {
+    sendButton.addEventListener('click', sendMessage);
+}
+if (messageInput) {
+    messageInput.addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
+}
+
+async function sendMessage() {
+    if (!messageInput) return;
+    
+    const content = messageInput.value.trim();
+    if (!content) return;
+    
+    try {
+        if (CURRENT_GROUP) {
+            await supabaseClient.from('group_messages').insert([{
+                group_id: CURRENT_GROUP.id,
+                sender: CURRENT_USER.phone,
+                content
+            }]);
+            messageInput.value = '';
+            loadGroupMessages(CURRENT_GROUP.id);
+        } else if (CURRENT_CHAT) {
+            await supabaseClient.from('messages').insert([{
+                sender: CURRENT_USER.phone,
+                receiver: CURRENT_CHAT.phone,
+                content
+            }]);
+            messageInput.value = '';
+            loadMessages(CURRENT_CHAT.phone);
+            loadChats();
+        }
+    } catch (e) {
+        console.error('Ошибка отправки:', e);
+        alert('❌ Ошибка: ' + e.message);
+    }
+}
+
+// ==================== ЭМОДЗИ ====================
+if (emojiBtn) {
+    emojiBtn.addEventListener('click', () => {
+        if (!emojiPanel) return;
+        emojiPanel.style.display = emojiPanel.style.display === 'none' ? 'grid' : 'none';
+    });
+}
+
+window.insertEmoji = function(emoji) {
+    if (!messageInput) return;
+    messageInput.value += emoji;
+    messageInput.focus();
+    if (emojiPanel) emojiPanel.style.display = 'none';
+};
+
+// ==================== ЗАКРЕПЛЁННЫЕ СООБЩЕНИЯ ====================
+async function loadPinnedMessages(type, id) {
+    if (!pinnedMessages || !CURRENT_USER) return;
+    
+    try {
+        let query;
+        if (type === 'private') {
+            query = await supabaseClient
+                .from('messages')
+                .select('*')
+                .or(`sender.eq.${CURRENT_USER.phone},receiver.eq.${CURRENT_USER.phone}`)
+                .or(`sender.eq.${id},receiver.eq.${id}`)
+                .eq('pinned', true)
+                .order('created_at', { ascending: false })
+                .limit(3);
+        } else {
+            query = await supabaseClient
+                .from('group_messages')
+                .select('*')
+                .eq('group_id', id)
+                .eq('pinned', true)
+                .order('created_at', { ascending: false })
+                .limit(3);
+        }
+        
+        const { data: messages } = query;
+        
+        if (!messages?.length) {
+            pinnedMessages.innerHTML = '';
+            return;
+        }
+        
+        pinnedMessages.innerHTML = messages.map(m => `
+            <div class="pinned-message" onclick="jumpToMessage('${m.id}')">
+                <span>📌 ${m.content?.slice(0, 30) || 'Файл'}${m.content?.length > 30 ? '...' : ''}</span>
+                <span class="pinned-close" onclick="event.stopPropagation(); unpinMessage('${m.id}', '${type}')">✕</span>
+            </div>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+
+window.jumpToMessage = function(messageId) {
+    const messageElement = document.querySelector(`[data-id="${messageId}"]`);
+    if (messageElement) {
+        messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        messageElement.style.animation = 'highlight 2s';
+        setTimeout(() => {
+            messageElement.style.animation = '';
+        }, 2000);
+    }
+};
+
+window.unpinMessage = async function(messageId, type) {
+    if (!confirm('Открепить сообщение?')) return;
+    
+    try {
+        if (type === 'private') {
+            await supabaseClient.from('messages').update({ pinned: false }).eq('id', messageId);
+            if (CURRENT_CHAT) {
+                loadMessages(CURRENT_CHAT.phone);
+                loadPinnedMessages('private', CURRENT_CHAT.phone);
+            }
+        } else {
+            await supabaseClient.from('group_messages').update({ pinned: false }).eq('id', messageId);
+            if (CURRENT_GROUP) {
+                loadGroupMessages(CURRENT_GROUP.id);
+                loadPinnedMessages('group', CURRENT_GROUP.id);
+            }
+        }
+    } catch (e) {
+        alert('❌ Ошибка: ' + e.message);
+    }
+};
+
+// ==================== ВЫБОР СООБЩЕНИЯ ====================
+window.selectMessage = function(element, id, type) {
+    document.querySelectorAll('.message').forEach(m => m.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedMessageId = id;
+    selectedMessageType = type;
+    
+    const menu = document.getElementById('messageMenu');
+    if (menu && event) {
+        menu.style.display = 'block';
+        menu.style.left = (event.pageX) + 'px';
+        menu.style.top = (event.pageY) + 'px';
+    }
+};
+
+// ==================== УДАЛЕНИЕ СООБЩЕНИЯ ====================
+if (deleteMessageBtn) {
+    deleteMessageBtn.addEventListener('click', async () => {
+        if (!selectedMessageId) return;
+        
+        if (!confirm('Удалить сообщение?')) return;
+        
+        try {
+            if (selectedMessageType === 'private') {
+                await supabaseClient.from('messages').delete().eq('id', selectedMessageId);
+                if (CURRENT_CHAT) {
+                    loadMessages(CURRENT_CHAT.phone);
+                    loadPinnedMessages('private', CURRENT_CHAT.phone);
+                }
+            } else {
+                await supabaseClient.from('group_messages').delete().eq('id', selectedMessageId);
+                if (CURRENT_GROUP) {
+                    loadGroupMessages(CURRENT_GROUP.id);
+                    loadPinnedMessages('group', CURRENT_GROUP.id);
+                }
+            }
+            if (messageMenu) messageMenu.style.display = 'none';
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    });
+}
+
+// ==================== ЗАКРЕПЛЕНИЕ СООБЩЕНИЯ ====================
+if (pinMessageBtn) {
+    pinMessageBtn.addEventListener('click', async () => {
+        if (!selectedMessageId) return;
+        
+        try {
+            if (selectedMessageType === 'private') {
+                await supabaseClient.from('messages').update({ pinned: true }).eq('id', selectedMessageId);
+                if (CURRENT_CHAT) {
+                    loadMessages(CURRENT_CHAT.phone);
+                    loadPinnedMessages('private', CURRENT_CHAT.phone);
+                }
+            } else {
+                await supabaseClient.from('group_messages').update({ pinned: true }).eq('id', selectedMessageId);
+                if (CURRENT_GROUP) {
+                    loadGroupMessages(CURRENT_GROUP.id);
+                    loadPinnedMessages('group', CURRENT_GROUP.id);
+                }
+            }
+            if (messageMenu) messageMenu.style.display = 'none';
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    });
+}
+
+// ==================== ЗВОНКИ ====================
+let peerConnection = null;
+let localStream = null;
+let remoteStream = null;
+let callTimer = null;
+let callSeconds = 0;
+let callState = {
+    isCalling: false,
+    targetUser: null,
+    callType: null
+};
+
+const iceServers = {
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+    ]
+};
+
+if (audioCallBtn) {
+    audioCallBtn.addEventListener('click', async () => {
+        if (!CURRENT_CHAT) {
+            alert('Сначала выберите чат');
+            return;
+        }
+        
+        if (CURRENT_CHAT.phone === CURRENT_USER.phone) {
+            alert('Нельзя позвонить самому себе');
+            return;
+        }
+        
+        alert('📞 Функция звонков в разработке');
+    });
+}
+
+if (videoCallBtn) {
+    videoCallBtn.addEventListener('click', async () => {
+        if (!CURRENT_CHAT) {
+            alert('Сначала выберите чат');
+            return;
+        }
+        
+        if (CURRENT_CHAT.phone === CURRENT_USER.phone) {
+            alert('Нельзя позвонить самому себе');
+            return;
+        }
+        
+        alert('📹 Функция видеозвонков в разработке');
+    });
+}
+
+// ==================== ГОЛОСОВЫЕ СООБЩЕНИЯ ====================
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingTimer = null;
+let recordingSeconds = 0;
+let recordingIndicator = null;
+
+if (voiceMsgBtn) {
+    voiceMsgBtn.addEventListener('click', toggleVoiceRecording);
+}
+
+function toggleVoiceRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        stopVoiceRecording();
+    } else {
+        startVoiceRecording();
+    }
+}
+
+async function startVoiceRecording() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+                audioChunks.push(e.data);
+            }
+        };
+        
+        mediaRecorder.onstop = async () => {
+            stream.getTracks().forEach(track => track.stop());
+            
+            if (audioChunks.length > 0) {
+                await sendVoiceMessage();
+            }
+            
+            removeRecordingIndicator();
+        };
+        
+        mediaRecorder.start();
+        
+        showRecordingIndicator('voice');
+        
+        voiceMsgBtn.style.background = '#ff4444';
+        voiceMsgBtn.style.transform = 'scale(1.2)';
+        
+        recordingSeconds = 0;
+        if (recordingTimer) clearInterval(recordingTimer);
+        recordingTimer = setInterval(() => {
+            recordingSeconds++;
+            const timer = document.querySelector('.recording-timer');
+            if (timer) {
+                timer.textContent = formatDuration(recordingSeconds);
+            }
+        }, 1000);
+        
+    } catch (error) {
+        alert('❌ Не удалось получить доступ к микрофону');
+    }
+}
+
+function stopVoiceRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        voiceMsgBtn.style.background = '';
+        voiceMsgBtn.style.transform = '';
+        if (recordingTimer) clearInterval(recordingTimer);
+    }
+}
+
+async function sendVoiceMessage() {
+    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    
+    reader.onloadend = async () => {
+        const base64data = reader.result;
+        const duration = recordingSeconds;
+        
+        try {
+            const messageData = {
+                sender: CURRENT_USER.phone,
+                content: '🎤 Голосовое сообщение',
+                voice_data: base64data,
+                voice_duration: duration,
+                created_at: new Date()
+            };
+            
+            if (CURRENT_GROUP) {
+                messageData.group_id = CURRENT_GROUP.id;
+                await supabaseClient.from('group_messages').insert([messageData]);
+                loadGroupMessages(CURRENT_GROUP.id);
+            } else if (CURRENT_CHAT) {
+                messageData.receiver = CURRENT_CHAT.phone;
+                await supabaseClient.from('messages').insert([messageData]);
+                loadMessages(CURRENT_CHAT.phone);
+                loadChats();
+            }
+            
+            removeRecordingIndicator();
+            voiceMsgBtn.style.background = '';
+            voiceMsgBtn.style.transform = '';
+            
+        } catch (e) {
+            alert('❌ Ошибка отправки: ' + e.message);
+        }
+    };
+}
+
+// ==================== КРУЖОЧКИ ====================
+let circleRecorder = null;
+let videoChunks = [];
+let circleTimerInterval = null;
+let circleSeconds = 0;
+
+if (videoCircleBtn) {
+    videoCircleBtn.addEventListener('click', toggleCircleRecording);
+}
+
+function toggleCircleRecording() {
+    if (circleRecorder && circleRecorder.state === 'recording') {
+        stopCircleRecording();
+    } else {
+        startCircleRecording();
+    }
+}
+
+async function startCircleRecording() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                width: { ideal: 300 },
+                height: { ideal: 300 },
+                aspectRatio: 1
+            }, 
+            audio: true 
+        });
+        
+        circleRecorder = new MediaRecorder(stream);
+        videoChunks = [];
+        
+        const previewVideo = document.createElement('video');
+        previewVideo.srcObject = stream;
+        previewVideo.autoplay = true;
+        previewVideo.muted = true;
+        previewVideo.style.position = 'fixed';
+        previewVideo.style.bottom = '100px';
+        previewVideo.style.right = '20px';
+        previewVideo.style.width = '100px';
+        previewVideo.style.height = '100px';
+        previewVideo.style.borderRadius = '50%';
+        previewVideo.style.border = '3px solid #e91e63';
+        previewVideo.style.zIndex = '8000';
+        previewVideo.style.objectFit = 'cover';
+        previewVideo.id = 'circlePreview';
+        document.body.appendChild(previewVideo);
+        
+        circleRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+                videoChunks.push(e.data);
+            }
+        };
+        
+        circleRecorder.onstop = async () => {
+            stream.getTracks().forEach(track => track.stop());
+            const preview = document.getElementById('circlePreview');
+            if (preview) preview.remove();
+            
+            if (videoChunks.length > 0) {
+                await sendCircleMessage();
+            }
+            
+            removeRecordingIndicator();
+        };
+        
+        circleRecorder.start();
+        
+        showRecordingIndicator('circle');
+        
+        videoCircleBtn.style.background = '#ff4444';
+        videoCircleBtn.style.transform = 'scale(1.2)';
+        
+        circleSeconds = 0;
+        if (circleTimerInterval) clearInterval(circleTimerInterval);
+        circleTimerInterval = setInterval(() => {
+            circleSeconds++;
+            const timer = document.querySelector('.recording-timer');
+            if (timer) {
+                timer.textContent = formatDuration(circleSeconds);
+            }
+        }, 1000);
+        
+    } catch (error) {
+        alert('❌ Не удалось получить доступ к камере');
+    }
+}
+
+function stopCircleRecording() {
+    if (circleRecorder && circleRecorder.state === 'recording') {
+        circleRecorder.stop();
+        videoCircleBtn.style.background = '';
+        videoCircleBtn.style.transform = '';
+        if (circleTimerInterval) clearInterval(circleTimerInterval);
+    }
+}
+
+async function sendCircleMessage() {
+    const blob = new Blob(videoChunks, { type: 'video/webm' });
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    
+    reader.onloadend = async () => {
+        const base64data = reader.result;
+        const duration = circleSeconds;
+        
+        try {
+            const messageData = {
+                sender: CURRENT_USER.phone,
+                content: '⭕ Кружочек',
+                circle_data: base64data,
+                circle_duration: duration,
+                created_at: new Date()
+            };
+            
+            if (CURRENT_GROUP) {
+                messageData.group_id = CURRENT_GROUP.id;
+                await supabaseClient.from('group_messages').insert([messageData]);
+                loadGroupMessages(CURRENT_GROUP.id);
+            } else if (CURRENT_CHAT) {
+                messageData.receiver = CURRENT_CHAT.phone;
+                await supabaseClient.from('messages').insert([messageData]);
+                loadMessages(CURRENT_CHAT.phone);
+                loadChats();
+            }
+            
+            removeRecordingIndicator();
+            videoCircleBtn.style.background = '';
+            videoCircleBtn.style.transform = '';
+            
+            const preview = document.getElementById('circlePreview');
+            if (preview) preview.remove();
+            
+        } catch (e) {
+            alert('❌ Ошибка отправки: ' + e.message);
+        }
+    };
+}
+
+// ==================== ИНДИКАТОР ЗАПИСИ ====================
+function showRecordingIndicator(type) {
+    removeRecordingIndicator();
+    
+    recordingIndicator = document.createElement('div');
+    recordingIndicator.className = `recording-indicator ${type === 'circle' ? 'circle' : ''}`;
+    
+    const icon = document.createElement('span');
+    icon.textContent = type === 'circle' ? '⭕' : '🎤';
+    
+    const timer = document.createElement('span');
+    timer.className = 'recording-timer';
+    timer.textContent = '0:00';
+    
+    const stopBtn = document.createElement('button');
+    stopBtn.className = 'recording-stop';
+    stopBtn.textContent = '⏹️';
+    stopBtn.onclick = type === 'circle' ? stopCircleRecording : stopVoiceRecording;
+    
+    recordingIndicator.appendChild(icon);
+    recordingIndicator.appendChild(timer);
+    recordingIndicator.appendChild(stopBtn);
+    
+    document.body.appendChild(recordingIndicator);
+}
+
+function removeRecordingIndicator() {
+    if (recordingIndicator) {
+        recordingIndicator.remove();
+        recordingIndicator = null;
+    }
+}
+
+// ==================== ПРИКРЕПЛЕНИЕ ФОТО ====================
+if (attachBtn) {
+    attachBtn.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                sendPhoto(file);
+            }
+        };
+        input.click();
+    });
+}
+
+async function sendPhoto(file) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    
+    reader.onloadend = async () => {
+        const base64data = reader.result;
+        
+        try {
+            const messageData = {
+                sender: CURRENT_USER.phone,
+                content: '📷 Фото',
+                file_data: base64data,
+                file_type: file.type,
+                file_name: file.name,
+                created_at: new Date()
+            };
+            
+            if (CURRENT_GROUP) {
+                messageData.group_id = CURRENT_GROUP.id;
+                await supabaseClient.from('group_messages').insert([messageData]);
+                loadGroupMessages(CURRENT_GROUP.id);
+            } else if (CURRENT_CHAT) {
+                messageData.receiver = CURRENT_CHAT.phone;
+                await supabaseClient.from('messages').insert([messageData]);
+                loadMessages(CURRENT_CHAT.phone);
+                loadChats();
+            }
+        } catch (e) {
+            alert('❌ Ошибка отправки: ' + e.message);
+        }
+    };
+}
+
+// ==================== ВОСПРОИЗВЕДЕНИЕ ====================
+window.playVoiceMessage = function(dataUrl) {
+    const audio = new Audio(dataUrl);
+    audio.play();
+};
+
+window.playCircleMessage = function(dataUrl) {
+    const video = document.createElement('video');
+    video.src = dataUrl;
+    video.controls = true;
+    video.style.width = '300px';
+    video.style.borderRadius = '50%';
+    
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.right = '0';
+    modal.style.bottom = '0';
+    modal.style.background = 'rgba(0,0,0,0.9)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '10000';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.position = 'absolute';
+    closeBtn.style.top = '20px';
+    closeBtn.style.right = '20px';
+    closeBtn.style.background = 'none';
+    closeBtn.style.border = 'none';
+    closeBtn.style.color = 'white';
+    closeBtn.style.fontSize = '30px';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.onclick = () => modal.remove();
+    
+    modal.appendChild(video);
+    modal.appendChild(closeBtn);
+    document.body.appendChild(modal);
+    
+    video.play();
+};
+
+window.viewImage = function(dataUrl) {
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.right = '0';
+    modal.style.bottom = '0';
+    modal.style.background = 'rgba(0,0,0,0.9)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '10000';
+    
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.style.maxWidth = '90%';
+    img.style.maxHeight = '90%';
+    img.style.borderRadius = '10px';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.position = 'absolute';
+    closeBtn.style.top = '20px';
+    closeBtn.style.right = '20px';
+    closeBtn.style.background = 'none';
+    closeBtn.style.border = 'none';
+    closeBtn.style.color = 'white';
+    closeBtn.style.fontSize = '30px';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.onclick = () => modal.remove();
+    
+    modal.appendChild(img);
+    modal.appendChild(closeBtn);
+    document.body.appendChild(modal);
+};
+
+// ==================== МЕНЮ ЧАТА (ТРИ ТОЧКИ) ====================
+if (chatMenuBtn) {
+    chatMenuBtn.addEventListener('click', () => {
+        if (chatMenuModal) {
+            chatMenuModal.style.display = 'flex';
+        }
+    });
+}
+
+if (closeChatMenu) {
+    closeChatMenu.addEventListener('click', () => {
+        chatMenuModal.style.display = 'none';
+    });
+}
+
+if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener('click', async () => {
+        if (!CURRENT_CHAT && !CURRENT_GROUP) {
+            alert('Сначала выберите чат');
+            return;
+        }
+        
+        if (!confirm('Очистить историю сообщений? Это действие нельзя отменить.')) return;
+        
+        try {
+            if (CURRENT_GROUP) {
+                await supabaseClient
+                    .from('group_messages')
+                    .delete()
+                    .eq('group_id', CURRENT_GROUP.id);
+                loadGroupMessages(CURRENT_GROUP.id);
+            } else if (CURRENT_CHAT) {
+                await supabaseClient
+                    .from('messages')
+                    .delete()
+                    .or(`and(sender.eq.${CURRENT_USER.phone},receiver.eq.${CURRENT_CHAT.phone})`)
+                    .or(`and(sender.eq.${CURRENT_CHAT.phone},receiver.eq.${CURRENT_USER.phone})`);
+                loadMessages(CURRENT_CHAT.phone);
+                loadChats();
+            }
+            
+            alert('✅ История очищена');
+            chatMenuModal.style.display = 'none';
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    });
+}
+
+// ==================== АДМИН-ПАНЕЛЬ ====================
+if (adminButton) {
+    adminButton.addEventListener('click', () => {
+        if (adminModal) {
+            adminModal.style.display = 'flex';
+            loadAdminUsers();
+        }
+    });
+}
+
+if (closeAdmin) {
+    closeAdmin.addEventListener('click', () => {
+        adminModal.style.display = 'none';
+    });
+}
+
+if (adminTabs) {
+    adminTabs.forEach(tab => tab.addEventListener('click', () => {
+        adminTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+        const content = document.getElementById(`admin${tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)}`);
+        if (content) content.classList.add('active');
+        
+        if (tab.dataset.tab === 'users') loadAdminUsers();
+    }));
+}
+
+async function loadAdminUsers() {
+    if (!adminUsersList || !CURRENT_USER) return;
+    
+    try {
+        const { data: users } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        const { data: admins } = await supabaseClient
+            .from('admins')
+            .select('phone, rank, can_manage_admins, can_ban_users, can_manage_groups, can_view_reports');
+        
+        const adminMap = {};
+        admins?.forEach(a => adminMap[a.phone] = a);
+        
+        adminUsersList.innerHTML = users?.map(u => {
+            const isOwner = u.phone === OWNER_PHONE;
+            const adminData = adminMap[u.phone];
+            const rank = isOwner ? 5 : (adminData?.rank || 0);
+            
+            return `
+            <div class="admin-user-item">
+                <div>
+                    <strong>${u.username || u.phone}</strong>
+                    <div style="color:#888;font-size:12px;">${u.phone}</div>
+                    ${rank > 0 ? `<div style="color:${getRankColor(rank)}">Ранг ${rank}</div>` : ''}
+                    ${isOwner ? '<span style="color:gold; margin-left:5px;">👑 Владелец</span>' : ''}
+                    ${adminData ? '<span style="color:#00bfff; margin-left:5px;">👤 Админ</span>' : ''}
+                </div>
+                <div class="admin-user-actions">
+                    ${isOwner ? '' : `
+                        ${isOwner() || adminData?.can_manage_admins ? `
+                            <button class="admin-user-btn make-admin" onclick="openRankModal('${u.phone}')">
+                                ${adminData ? '👑 Изменить ранг' : '👑 Назначить'}
+                            </button>
+                        ` : ''}
+                    `}
+                </div>
+            </div>`;
+        }).join('') || '<p class="no-data">Нет пользователей</p>';
+        
+    } catch (e) { 
+        console.error('Ошибка загрузки админ-панели:', e);
+        adminUsersList.innerHTML = '<p class="no-data">Ошибка загрузки</p>';
+    }
+}
+
+// ==================== МОДАЛКА РАНГОВ ====================
+let currentRankUser = null;
+
+window.openRankModal = function(phone) {
+    if (!isOwner()) {
+        alert('❌ Недостаточно прав');
+        return;
+    }
+    
+    currentRankUser = phone;
+    rankUserPhone.textContent = `Пользователь: ${phone}`;
+    
+    rankOptions.forEach(opt => opt.classList.remove('selected'));
+    
+    supabaseClient.from('admins').select('rank').eq('phone', phone).single().then(({ data }) => {
+        if (data) {
+            const rank = data.rank;
+            rankOptions.forEach(opt => {
+                if (opt.dataset.rank == rank) {
+                    opt.classList.add('selected');
+                }
+            });
+        }
+    });
+    
+    rankModal.style.display = 'flex';
+};
+
+window.selectRank = function(rank) {
+    rankOptions.forEach(opt => opt.classList.remove('selected'));
+    rankOptions.forEach(opt => {
+        if (opt.dataset.rank == rank) {
+            opt.classList.add('selected');
+        }
+    });
+};
+
+if (closeRankModal) {
+    closeRankModal.addEventListener('click', () => {
+        rankModal.style.display = 'none';
+        currentRankUser = null;
+    });
+}
+
+if (cancelRankBtn) {
+    cancelRankBtn.addEventListener('click', () => {
+        rankModal.style.display = 'none';
+        currentRankUser = null;
+    });
+}
+
+if (confirmRankBtn) {
+    confirmRankBtn.addEventListener('click', async () => {
+        if (!isOwner()) {
+            alert('❌ Недостаточно прав');
+            return;
+        }
+        
+        const selected = document.querySelector('.rank-option.selected');
+        if (!selected) {
+            alert('Выберите ранг');
+            return;
+        }
+        
+        const rank = parseInt(selected.dataset.rank);
+        
+        try {
+            const { data: existing } = await supabaseClient
+                .from('admins')
+                .select('*')
+                .eq('phone', currentRankUser);
+            
+            if (existing?.length) {
+                await supabaseClient
+                    .from('admins')
+                    .update({ rank })
+                    .eq('phone', currentRankUser);
+            } else {
+                await supabaseClient
+                    .from('admins')
+                    .insert([{ 
+                        phone: currentRankUser, 
+                        rank,
+                        can_manage_admins: false,
+                        can_ban_users: true,
+                        can_manage_groups: true,
+                        can_view_reports: true
+                    }]);
+            }
+            
+            alert(`✅ Ранг ${rank} назначен`);
+            rankModal.style.display = 'none';
+            loadAdminUsers();
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    });
+}
+
+// ==================== ФОРМАТИРОВАНИЕ НОМЕРОВ ====================
+[loginPhone, registerPhone].forEach(i => i?.addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g, '').slice(0, 10);
+    e.target.value = v;
+}));
+
+// ==================== СЕССИЯ ====================
+const savedUser = loadSession();
+if (savedUser) {
+    CURRENT_USER = savedUser;
+    (async () => {
+        await loadUserSettings();
+        
+        ADMIN_RIGHTS = await loadAdminRights(CURRENT_USER.phone);
+        
+        authScreen.style.display = 'none';
+        app.style.display = 'flex';
+        if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
+        
+        if (ADMIN_RIGHTS) {
+            if (adminButton) adminButton.style.display = 'block';
+            
+            if (isOwner()) {
+                const ownerStatusToggle = document.getElementById('ownerStatusToggle');
+                if (ownerStatusToggle) ownerStatusToggle.style.display = 'block';
+                await loadOwnerSettings();
+            }
+        }
+        
+        loadChats();
+        loadGroups();
+    })();
+}
+
+// ==================== ЗАКРЫТИЕ МЕНЮ ====================
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.message')) {
+        if (messageMenu) messageMenu.style.display = 'none';
+    }
+    if (!e.target.closest('.emoji-button') && !e.target.closest('.emoji-panel')) {
+        if (emojiPanel) emojiPanel.style.display = 'none';
+    }
+    if (!e.target.closest('.search-results') && !e.target.closest('.search-button') && !e.target.closest('.search-input')) {
+        if (searchResults) searchResults.style.display = 'none';
+    }
+    if (!e.target.closest('.rank-modal') && !e.target.closest('.admin-user-btn.make-admin')) {
+        if (rankModal) rankModal.style.display = 'none';
+    }
+});
+
+console.log('✅ LinkUp — ПОЛНАЯ РАБОЧАЯ ВЕРСИЯ');
