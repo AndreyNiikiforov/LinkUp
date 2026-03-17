@@ -15,12 +15,8 @@ let selectedMessageId = null;
 let selectedMessageType = null;
 let ADMIN_RIGHTS = null;
 let CURRENT_SESSION_TOKEN = null;
-let QR_POLLING_INTERVAL = null;
-let leafInterval = null;
-let rainInterval = null;
-let currentRankUser = null;
 
-// ==================== ДОМ ЭЛЕМЕНТЫ ====================
+// ==================== DOM ЭЛЕМЕНТЫ ====================
 const authScreen = document.getElementById('authScreen');
 const app = document.getElementById('app');
 const authMessage = document.getElementById('authMessage');
@@ -28,9 +24,6 @@ const welcomeScreen = document.getElementById('welcomeScreen');
 const chatWindow = document.getElementById('chatWindow');
 const loginForm = document.getElementById('loginForm');
 const registerForm = document.getElementById('registerForm');
-const qrLoginForm = document.getElementById('qrLoginForm');
-const showQrLogin = document.getElementById('showQrLogin');
-const backFromQrBtn = document.getElementById('backFromQrBtn');
 const showRegisterButton = document.getElementById('showRegisterButton');
 const backToLoginButton = document.getElementById('backToLoginButton');
 const loginPhone = document.getElementById('loginPhone');
@@ -41,16 +34,12 @@ const registerPassword = document.getElementById('registerPassword');
 const registerPasswordConfirm = document.getElementById('registerPasswordConfirm');
 const loginButton = document.getElementById('loginButton');
 const registerButton = document.getElementById('registerButton');
-const forgotPasswordLink = document.getElementById('forgotPasswordLink');
-const googleLoginBtn = document.getElementById('googleLoginBtn');
 const currentUserPhone = document.getElementById('currentUserPhone');
 const currentUserName = document.getElementById('currentUserName');
 const currentUserUsername = document.getElementById('currentUserUsername');
-const adminButton = document.getElementById('adminButton');
 const logoutBtn = document.getElementById('logoutBtn');
 const searchInput = document.getElementById('searchInput');
 const searchButton = document.getElementById('searchButton');
-const searchTypeRadios = document.querySelectorAll('input[name="searchType"]');
 const searchResults = document.getElementById('searchResults');
 const searchResultsList = document.getElementById('searchResultsList');
 const closeSearch = document.getElementById('closeSearch');
@@ -79,7 +68,6 @@ const chatMenuBtn = document.getElementById('chatMenuBtn');
 // Кнопки звонков и медиа
 const audioCallBtn = document.getElementById('audioCallBtn');
 const videoCallBtn = document.getElementById('videoCallBtn');
-const groupCallBtn = document.getElementById('groupCallBtn');
 const voiceMsgBtn = document.getElementById('voiceMsgBtn');
 const videoCircleBtn = document.getElementById('videoCircleBtn');
 const attachBtn = document.getElementById('attachBtn');
@@ -104,87 +92,10 @@ const incomingCallType = document.getElementById('incomingCallType');
 const acceptCallBtn = document.getElementById('acceptCallBtn');
 const declineCallBtn = document.getElementById('declineCallBtn');
 
-// Голосовые сообщения
-const voiceRecorderModal = document.getElementById('voiceRecorderModal');
-const closeVoiceRecorder = document.getElementById('closeVoiceRecorder');
-const voiceTimer = document.getElementById('voiceTimer');
-const startRecordingBtn = document.getElementById('startRecordingBtn');
-const stopRecordingBtn = document.getElementById('stopRecordingBtn');
-const playRecordingBtn = document.getElementById('playRecordingBtn');
-const sendRecordingBtn = document.getElementById('sendRecordingBtn');
-const cancelRecordingBtn = document.getElementById('cancelRecordingBtn');
-
-// Кружочки
-const videoCircleModal = document.getElementById('videoCircleModal');
-const closeVideoCircle = document.getElementById('closeVideoCircle');
-const circleVideo = document.getElementById('circleVideo');
-const circleTimer = document.getElementById('circleTimer');
-const startCircleBtn = document.getElementById('startCircleBtn');
-const stopCircleBtn = document.getElementById('stopCircleBtn');
-const playCircleBtn = document.getElementById('playCircleBtn');
-const sendCircleBtn = document.getElementById('sendCircleBtn');
-const cancelCircleBtn = document.getElementById('cancelCircleBtn');
-
-// QR элементы
-const qrContainer = document.getElementById('qrContainer');
-const qrPlaceholder = document.getElementById('qrPlaceholder');
-const qrCanvas = document.getElementById('qrCanvas');
-const qrScanModal = document.getElementById('qrScanModal');
-const closeQrScan = document.getElementById('closeQrScan');
-const qrVideo = document.getElementById('qrVideo');
-const stopQrScan = document.getElementById('stopQrScan');
-const qrConfirmModal = document.getElementById('qrConfirmModal');
-const qrConfirmYes = document.getElementById('qrConfirmYes');
-const qrConfirmNo = document.getElementById('qrConfirmNo');
-const qrConfirmDevice = document.getElementById('qrConfirmDevice');
-const qrConfirmLocation = document.getElementById('qrConfirmLocation');
-
-// Настройки профиля
-const profileModal = document.getElementById('profileModal');
-const closeProfileModal = document.getElementById('closeProfileModal');
-const profileDisplayName = document.getElementById('profileDisplayName');
-const profileUsername = document.getElementById('profileUsername');
-const profilePhone = document.getElementById('profilePhone');
-const saveProfileBtn = document.getElementById('saveProfileBtn');
-const userProfile = document.getElementById('userProfile');
-const profileTabs = document.querySelectorAll('.profile-tab');
-const profileTabContents = document.querySelectorAll('.profile-tab-content');
-
-// Приватность
-const showPhoneRadios = document.querySelectorAll('input[name="showPhone"]');
-const whoCanWriteRadios = document.querySelectorAll('input[name="whoCanWrite"]');
-const lastSeenRadios = document.querySelectorAll('input[name="lastSeen"]');
-const savePrivacyBtn = document.getElementById('savePrivacyBtn');
-
-// Устройства
-const devicesList = document.getElementById('devicesList');
-const terminateAllSessions = document.getElementById('terminateAllSessions');
-
-// Привязки
-const linkGoogle = document.getElementById('linkGoogle');
-
-// Админка
-const adminModal = document.getElementById('adminModal');
-const closeAdmin = document.getElementById('closeAdmin');
-const adminTabs = document.querySelectorAll('.admin-tab');
-const adminsTab = document.getElementById('adminsTab');
-const adminUsersList = document.getElementById('adminUsersList');
-const adminUserSearch = document.getElementById('adminUserSearch');
-const supportList = document.getElementById('supportList');
-const reportsList = document.getElementById('reportsList');
-const channelsList = document.getElementById('channelsList');
-const createChannelBtn = document.getElementById('createChannelBtn');
-const adminsList = document.getElementById('adminsList');
-const addAdminBtn = document.getElementById('addAdminBtn');
-const newAdminPhone = document.getElementById('newAdminPhone');
-
-// Модалка рангов
-const rankModal = document.getElementById('rankModal');
-const closeRankModal = document.getElementById('closeRankModal');
-const rankUserPhone = document.getElementById('rankUserPhone');
-const rankOptions = document.querySelectorAll('.rank-option');
-const confirmRankBtn = document.getElementById('confirmRankBtn');
-const cancelRankBtn = document.getElementById('cancelRankBtn');
+// Меню чата (три точки)
+const chatMenuModal = document.getElementById('chatMenuModal');
+const closeChatMenu = document.getElementById('closeChatMenu');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
 // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
 function formatPhone(number) {
@@ -203,10 +114,6 @@ function validateUsername(username) {
 
 function generateSessionToken() {
     return 'sess_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
-}
-
-function generateQrCode() {
-    return 'qr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
 }
 
 function saveSession(user) {
@@ -231,18 +138,6 @@ function loadSession() {
 
 function isOwner() {
     return CURRENT_USER?.phone === OWNER_PHONE;
-}
-
-function getUserRank(phone) {
-    if (phone === OWNER_PHONE) return 5;
-    if (!ADMIN_RIGHTS) return 0;
-    return ADMIN_RIGHTS.rank || 0;
-}
-
-function canUserDo(phone, action) {
-    const rank = getUserRank(phone);
-    if (rank >= 5) return true;
-    return false;
 }
 
 function formatDuration(seconds) {
@@ -290,7 +185,6 @@ function addPasswordToggle(input) {
 if (showRegisterButton) {
     showRegisterButton.addEventListener('click', () => {
         loginForm.style.display = 'none';
-        qrLoginForm.style.display = 'none';
         showRegisterButton.style.display = 'none';
         registerForm.style.display = 'block';
         authMessage.textContent = '';
@@ -300,272 +194,9 @@ if (showRegisterButton) {
 if (backToLoginButton) {
     backToLoginButton.addEventListener('click', () => {
         loginForm.style.display = 'block';
-        qrLoginForm.style.display = 'none';
         showRegisterButton.style.display = 'block';
         registerForm.style.display = 'none';
         authMessage.textContent = '';
-    });
-}
-
-if (showQrLogin) {
-    showQrLogin.addEventListener('click', () => {
-        loginForm.style.display = 'none';
-        registerForm.style.display = 'none';
-        showRegisterButton.style.display = 'none';
-        qrLoginForm.style.display = 'block';
-        authMessage.textContent = '';
-        startQrLogin();
-    });
-}
-
-if (backFromQrBtn) {
-    backFromQrBtn.addEventListener('click', () => {
-        loginForm.style.display = 'block';
-        registerForm.style.display = 'none';
-        qrLoginForm.style.display = 'none';
-        showRegisterButton.style.display = 'block';
-        stopQrLogin();
-    });
-}
-
-// ==================== QR-ВХОД ====================
-let currentQrCode = null;
-let currentQrToken = null;
-let qrCheckInterval = null;
-
-async function startQrLogin() {
-    if (!qrPlaceholder || !qrCanvas) return;
-    
-    qrPlaceholder.style.display = 'flex';
-    qrCanvas.style.display = 'none';
-    
-    currentQrToken = generateQrCode();
-    currentQrCode = currentQrToken;
-    
-    await supabaseClient
-        .from('qr_codes')
-        .insert([{
-            code: currentQrToken,
-            expires_at: new Date(Date.now() + 2 * 60 * 1000),
-            used: false
-        }]);
-    
-    QRCode.toCanvas(qrCanvas, currentQrToken, {
-        width: 250,
-        margin: 2,
-        color: {
-            dark: '#ffffff',
-            light: '#00000000'
-        }
-    }, function(error) {
-        if (error) {
-            console.error('Ошибка генерации QR:', error);
-            return;
-        }
-        qrPlaceholder.style.display = 'none';
-        qrCanvas.style.display = 'block';
-    });
-    
-    if (qrCheckInterval) clearInterval(qrCheckInterval);
-    if (QR_POLLING_INTERVAL) clearInterval(QR_POLLING_INTERVAL);
-    
-    QR_POLLING_INTERVAL = setInterval(async () => {
-        const { data } = await supabaseClient
-            .from('qr_codes')
-            .select('*')
-            .eq('code', currentQrToken)
-            .eq('used', true)
-            .single();
-        
-        if (data) {
-            const { data: session } = await supabaseClient
-                .from('sessions')
-                .select('*')
-                .eq('qr_code', currentQrToken)
-                .single();
-            
-            if (session) {
-                const { data: user } = await supabaseClient
-                    .from('profiles')
-                    .select('*')
-                    .eq('phone', session.user_phone)
-                    .single();
-                
-                if (user) {
-                    CURRENT_USER = user;
-                    CURRENT_SESSION_TOKEN = generateSessionToken();
-                    saveSession(CURRENT_USER);
-                    await saveSessionToDB();
-                    await loadUserSettings();
-                    await loadUserTheme();
-                    
-                    authScreen.style.display = 'none';
-                    app.style.display = 'flex';
-                    if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
-                    
-                    ADMIN_RIGHTS = await loadAdminRights(CURRENT_USER.phone);
-                    if (ADMIN_RIGHTS || isOwner()) {
-                        if (adminButton) adminButton.style.display = 'block';
-                    }
-                    
-                    stopQrLogin();
-                    loadChats();
-                    loadGroups();
-                }
-            }
-        }
-    }, 2000);
-    
-    qrCheckInterval = setInterval(() => {
-        if (qrLoginForm.style.display === 'block') {
-            stopQrLogin();
-            startQrLogin();
-        }
-    }, 2 * 60 * 1000);
-}
-
-function stopQrLogin() {
-    if (QR_POLLING_INTERVAL) {
-        clearInterval(QR_POLLING_INTERVAL);
-        QR_POLLING_INTERVAL = null;
-    }
-    if (qrCheckInterval) {
-        clearInterval(qrCheckInterval);
-        qrCheckInterval = null;
-    }
-}
-
-// ==================== СКАНИРОВАНИЕ QR ====================
-let scanning = false;
-let videoStream = null;
-
-window.startQrScanning = async function() {
-    if (!qrScanModal || !qrVideo) return;
-    
-    qrScanModal.style.display = 'flex';
-    
-    try {
-        videoStream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: 'environment' } 
-        });
-        qrVideo.srcObject = videoStream;
-        qrVideo.setAttribute('playsinline', true);
-        qrVideo.play();
-        
-        scanning = true;
-        requestAnimationFrame(scanQrFrame);
-    } catch (e) {
-        alert('❌ Не удалось получить доступ к камере');
-        qrScanModal.style.display = 'none';
-    }
-};
-
-function scanQrFrame() {
-    if (!scanning || !qrVideo) return;
-    
-    if (qrVideo.readyState === qrVideo.HAVE_ENOUGH_DATA) {
-        const canvas = document.createElement('canvas');
-        canvas.width = qrVideo.videoWidth;
-        canvas.height = qrVideo.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(qrVideo, 0, 0, canvas.width, canvas.height);
-        
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, canvas.width, canvas.height);
-        
-        if (code) {
-            processScannedQr(code.data);
-        }
-    }
-    
-    requestAnimationFrame(scanQrFrame);
-}
-
-async function processScannedQr(qrData) {
-    if (!qrData.startsWith('qr_')) return;
-    
-    scanning = false;
-    if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-    }
-    qrScanModal.style.display = 'none';
-    
-    const { data: qr } = await supabaseClient
-        .from('qr_codes')
-        .select('*')
-        .eq('code', qrData)
-        .eq('used', false)
-        .single();
-    
-    if (!qr) {
-        alert('❌ Недействительный или просроченный QR-код');
-        return;
-    }
-    
-    if (new Date(qr.expires_at) < new Date()) {
-        alert('❌ QR-код истёк');
-        return;
-    }
-    
-    const deviceInfo = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? '📱 Мобильное' : '💻 Компьютер';
-    qrConfirmDevice.textContent = `Устройство: ${deviceInfo}`;
-    qrConfirmLocation.textContent = `IP: 0.0.0.0 • ${new Date().toLocaleString()}`;
-    
-    qrConfirmModal.style.display = 'flex';
-    
-    qrConfirmYes.onclick = async () => {
-        const newToken = generateSessionToken();
-        await supabaseClient
-            .from('sessions')
-            .insert([{
-                user_phone: CURRENT_USER.phone,
-                device_name: deviceInfo,
-                device_type: /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-                ip: '0.0.0.0',
-                session_token: newToken,
-                is_current: true,
-                qr_code: qrData
-            }]);
-        
-        await supabaseClient
-            .from('qr_codes')
-            .update({ used: true, user_phone: CURRENT_USER.phone })
-            .eq('code', qrData);
-        
-        qrConfirmModal.style.display = 'none';
-        alert('✅ Вход подтверждён!');
-    };
-    
-    qrConfirmNo.onclick = () => {
-        qrConfirmModal.style.display = 'none';
-        alert('❌ Вход отклонён');
-    };
-}
-
-if (closeQrScan) {
-    closeQrScan.addEventListener('click', () => {
-        scanning = false;
-        if (videoStream) {
-            videoStream.getTracks().forEach(track => track.stop());
-        }
-        qrScanModal.style.display = 'none';
-    });
-}
-
-if (stopQrScan) {
-    stopQrScan.addEventListener('click', () => {
-        scanning = false;
-        if (videoStream) {
-            videoStream.getTracks().forEach(track => track.stop());
-        }
-        qrScanModal.style.display = 'none';
-    });
-}
-
-// ==================== ВХОД ЧЕРЕЗ GOOGLE ====================
-if (googleLoginBtn) {
-    googleLoginBtn.addEventListener('click', () => {
-        alert('🔐 Вход через Google будет доступен в ближайшее время!');
     });
 }
 
@@ -581,121 +212,9 @@ async function loadUserSettings() {
     
     if (data) {
         CURRENT_USER.username = data.username;
-        CURRENT_USER.privacy_settings = data.privacy_settings || {
-            show_phone: 'everyone',
-            who_can_write: 'everyone',
-            last_seen: 'everyone'
-        };
-        
         if (currentUserName) currentUserName.textContent = data.username || CURRENT_USER.phone;
         if (currentUserUsername) currentUserUsername.textContent = data.username ? '@' + data.username : '';
     }
-}
-
-// ==================== ЗАГРУЗКА ПРАВ АДМИНА ====================
-async function loadAdminRights(phone) {
-    const { data } = await supabaseClient
-        .from('admins')
-        .select('*')
-        .eq('phone', phone)
-        .single();
-    return data;
-}
-
-// ==================== СОХРАНЕНИЕ СЕССИИ ====================
-async function saveSessionToDB() {
-    if (!CURRENT_USER || !CURRENT_SESSION_TOKEN) return;
-    
-    const deviceInfo = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? '📱 Мобильное' : '💻 Компьютер';
-    
-    try {
-        await supabaseClient
-            .from('sessions')
-            .update({ is_current: false })
-            .eq('user_phone', CURRENT_USER.phone);
-        
-        await supabaseClient
-            .from('sessions')
-            .insert([{
-                user_phone: CURRENT_USER.phone,
-                device_name: deviceInfo,
-                device_type: /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-                ip: '0.0.0.0',
-                session_token: CURRENT_SESSION_TOKEN,
-                is_current: true
-            }]);
-    } catch (e) {
-        console.error('Ошибка сохранения сессии:', e);
-    }
-}
-
-// ==================== ЗАГРУЗКА УСТРОЙСТВ ====================
-async function loadSessions() {
-    if (!devicesList || !CURRENT_USER) return;
-    
-    try {
-        const { data: sessions, error } = await supabaseClient
-            .from('sessions')
-            .select('*')
-            .eq('user_phone', CURRENT_USER.phone)
-            .order('last_active', { ascending: false });
-        
-        if (error) throw error;
-        
-        if (!sessions?.length) {
-            devicesList.innerHTML = '<p class="no-data">Нет активных сессий</p>';
-            return;
-        }
-        
-        devicesList.innerHTML = sessions.map(s => `
-            <div class="device-item">
-                <div class="device-info">
-                    <span class="device-name">${s.device_name || 'Неизвестное устройство'}</span>
-                    <span class="device-details">IP: ${s.ip || '0.0.0.0'} • Последняя активность: ${new Date(s.last_active).toLocaleString()}</span>
-                    ${s.qr_code ? '<span class="device-qr">🔓 Вход по QR</span>' : ''}
-                </div>
-                ${s.is_current ? '<span class="device-current">Текущее устройство</span>' : 
-                  `<button class="terminate-btn" onclick="terminateSession('${s.session_token}')">Завершить</button>`}
-            </div>
-        `).join('');
-    } catch (e) {
-        console.error('Ошибка загрузки сессий:', e);
-    }
-}
-
-window.terminateSession = async function(token) {
-    if (!confirm('Завершить эту сессию?')) return;
-    
-    try {
-        await supabaseClient
-            .from('sessions')
-            .delete()
-            .eq('session_token', token);
-        
-        loadSessions();
-    } catch (e) {
-        alert('❌ Ошибка: ' + e.message);
-    }
-};
-
-if (terminateAllSessions) {
-    terminateAllSessions.addEventListener('click', async () => {
-        if (!CURRENT_USER) return;
-        if (!confirm('Вы уверены? Это завершит все сессии, кроме текущей.')) return;
-        
-        try {
-            await supabaseClient
-                .from('sessions')
-                .delete()
-                .eq('user_phone', CURRENT_USER.phone)
-                .neq('session_token', CURRENT_SESSION_TOKEN);
-            
-            loadSessions();
-            alert('✅ Все остальные сессии завершены');
-        } catch (e) {
-            alert('❌ Ошибка: ' + e.message);
-        }
-    });
 }
 
 // ==================== ВХОД ====================
@@ -727,19 +246,11 @@ if (loginButton) {
             CURRENT_SESSION_TOKEN = generateSessionToken();
             saveSession(CURRENT_USER);
             
-            await saveSessionToDB();
             await loadUserSettings();
-            await loadUserTheme();
-            
-            ADMIN_RIGHTS = await loadAdminRights(CURRENT_USER.phone);
             
             authScreen.style.display = 'none';
             app.style.display = 'flex';
             if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
-            
-            if (ADMIN_RIGHTS || isOwner()) {
-                if (adminButton) adminButton.style.display = 'block';
-            }
             
             loadChats();
             loadGroups();
@@ -808,13 +319,7 @@ if (registerButton) {
             await supabaseClient.from('profiles').insert([{ 
                 phone, 
                 username,
-                password: pass,
-                theme: 'dark',
-                privacy_settings: {
-                    show_phone: 'everyone',
-                    who_can_write: 'everyone',
-                    last_seen: 'everyone'
-                }
+                password: pass
             }]);
             
             authMessage.textContent = '✅ Регистрация успешна! Войдите.';
@@ -845,40 +350,18 @@ if (searchInput) {
     searchInput.addEventListener('keypress', e => e.key === 'Enter' && searchUsers());
 }
 
-function getSelectedSearchType() {
-    for (const radio of searchTypeRadios) {
-        if (radio.checked) return radio.value;
-    }
-    return 'all';
-}
-
 async function searchUsers() {
     if (!searchInput || !searchResultsList || !CURRENT_USER) return;
     
     const query = searchInput.value.trim();
     if (!query) return;
     
-    const searchType = getSelectedSearchType();
-    
     try {
-        let dbQuery = supabaseClient
+        const { data: users, error } = await supabaseClient
             .from('profiles')
             .select('*')
-            .neq('phone', CURRENT_USER.phone);
-        
-        if (searchType === 'phone') {
-            const formattedQuery = formatPhone(query);
-            dbQuery = dbQuery.ilike('phone', `%${formattedQuery.slice(-10)}%`);
-        } else if (searchType === 'username') {
-            dbQuery = dbQuery.ilike('username', `%${query}%`);
-        } else {
-            const formattedQuery = formatPhone(query);
-            dbQuery = dbQuery.or(
-                `phone.ilike.%${formattedQuery.slice(-10)}%,username.ilike.%${query}%`
-            );
-        }
-        
-        const { data: users, error } = await dbQuery;
+            .neq('phone', CURRENT_USER.phone)
+            .or(`phone.ilike.%${query}%,username.ilike.%${query}%`);
         
         if (error) throw error;
         
@@ -975,7 +458,6 @@ async function loadMessages(chatPhone) {
             messagesArea.innerHTML = messages.map(m => {
                 const isSent = m.sender === CURRENT_USER.phone;
                 
-                // Голосовое сообщение
                 if (m.voice_data) {
                     return `
                     <div class="message ${isSent ? 'sent' : 'received'} voice-message" 
@@ -990,7 +472,6 @@ async function loadMessages(chatPhone) {
                     </div>`;
                 }
                 
-                // Кружочек
                 if (m.circle_data) {
                     return `
                     <div class="message ${isSent ? 'sent' : 'received'} video-circle-message" 
@@ -1003,13 +484,35 @@ async function loadMessages(chatPhone) {
                     </div>`;
                 }
                 
-                // Обычное сообщение с закреплением
+                if (m.file_data) {
+                    if (m.file_type?.startsWith('image/')) {
+                        return `
+                        <div class="message ${isSent ? 'sent' : 'received'}" 
+                             data-id="${m.id}" 
+                             data-type="private">
+                            <img src="${m.file_data}" class="message-image" onclick="viewImage('${m.file_data}')">
+                            <div class="message-time">${new Date(m.created_at).toLocaleTimeString().slice(0, -3)}</div>
+                        </div>`;
+                    } else {
+                        return `
+                        <div class="message ${isSent ? 'sent' : 'received'}" 
+                             data-id="${m.id}" 
+                             data-type="private"
+                             onclick="downloadFile('${m.file_data}', '${m.file_name || 'file'}')">
+                            <div class="message-file">
+                                <span class="file-icon">📎</span>
+                                <span>${m.file_name || 'Файл'}</span>
+                            </div>
+                            <div class="message-time">${new Date(m.created_at).toLocaleTimeString().slice(0, -3)}</div>
+                        </div>`;
+                    }
+                }
+                
                 return `
                 <div class="message ${isSent ? 'sent' : 'received'} ${m.pinned ? 'pinned' : ''}" 
                      data-id="${m.id}" 
                      data-type="private"
                      onclick="selectMessage(this, '${m.id}', 'private')">
-                    ${m.pinned ? '<span class="pinned-badge">📌</span>' : ''}
                     <div class="message-content">${m.content}</div>
                     <div class="message-time">${new Date(m.created_at).toLocaleTimeString().slice(0, -3)}</div>
                 </div>`;
@@ -1068,7 +571,6 @@ async function loadGroupMessages(groupId) {
                 const isSent = m.sender === CURRENT_USER.phone;
                 const senderName = isSent ? 'Вы' : (senderNames[m.sender] || m.sender);
                 
-                // Голосовое сообщение
                 if (m.voice_data) {
                     return `
                     <div class="message ${isSent ? 'sent' : 'received'} voice-message" 
@@ -1083,7 +585,6 @@ async function loadGroupMessages(groupId) {
                     </div>`;
                 }
                 
-                // Кружочек
                 if (m.circle_data) {
                     return `
                     <div class="message ${isSent ? 'sent' : 'received'} video-circle-message" 
@@ -1096,163 +597,18 @@ async function loadGroupMessages(groupId) {
                     </div>`;
                 }
                 
-                // Обычное сообщение с закреплением
                 return `
                 <div class="message ${isSent ? 'sent' : 'received'} ${m.pinned ? 'pinned' : ''}"
                      data-id="${m.id}"
                      data-type="group"
                      onclick="selectMessage(this, '${m.id}', 'group')">
                     ${!isSent ? `<div class="message-sender">${senderName}</div>` : ''}
-                    ${m.pinned ? '<span class="pinned-badge">📌</span>' : ''}
                     <div class="message-content">${m.content}</div>
                     <div class="message-time">${new Date(m.created_at).toLocaleTimeString().slice(0, -3)}</div>
                 </div>`;
             }).join('');
         }
     } catch (e) { console.error(e); }
-}
-
-// ==================== ЗАКРЕПЛЁННЫЕ СООБЩЕНИЯ ====================
-async function loadPinnedMessages(type, id) {
-    if (!pinnedMessages || !CURRENT_USER) return;
-    
-    try {
-        let query;
-        if (type === 'private') {
-            query = await supabaseClient
-                .from('messages')
-                .select('*')
-                .or(`sender.eq.${CURRENT_USER.phone},receiver.eq.${CURRENT_USER.phone}`)
-                .or(`sender.eq.${id},receiver.eq.${id}`)
-                .eq('pinned', true)
-                .order('created_at', { ascending: false })
-                .limit(3);
-        } else {
-            query = await supabaseClient
-                .from('group_messages')
-                .select('*')
-                .eq('group_id', id)
-                .eq('pinned', true)
-                .order('created_at', { ascending: false })
-                .limit(3);
-        }
-        
-        const { data: messages } = query;
-        
-        if (!messages?.length) {
-            pinnedMessages.innerHTML = '';
-            return;
-        }
-        
-        pinnedMessages.innerHTML = messages.map(m => `
-            <div class="pinned-message" onclick="jumpToMessage('${m.id}')">
-                <span>📌 ${m.content.slice(0, 30)}${m.content.length > 30 ? '...' : ''}</span>
-                <span class="pinned-close" onclick="event.stopPropagation(); unpinMessage('${m.id}', '${type}')">✕</span>
-            </div>
-        `).join('');
-    } catch (e) { console.error(e); }
-}
-
-window.jumpToMessage = function(messageId) {
-    const messageElement = document.querySelector(`[data-id="${messageId}"]`);
-    if (messageElement) {
-        messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        messageElement.style.animation = 'highlight 2s';
-        setTimeout(() => {
-            messageElement.style.animation = '';
-        }, 2000);
-    }
-};
-
-window.unpinMessage = async function(messageId, type) {
-    if (!confirm('Открепить сообщение?')) return;
-    
-    try {
-        if (type === 'private') {
-            await supabaseClient.from('messages').update({ pinned: false }).eq('id', messageId);
-            if (CURRENT_CHAT) {
-                loadMessages(CURRENT_CHAT.phone);
-                loadPinnedMessages('private', CURRENT_CHAT.phone);
-            }
-        } else {
-            await supabaseClient.from('group_messages').update({ pinned: false }).eq('id', messageId);
-            if (CURRENT_GROUP) {
-                loadGroupMessages(CURRENT_GROUP.id);
-                loadPinnedMessages('group', CURRENT_GROUP.id);
-            }
-        }
-    } catch (e) {
-        alert('❌ Ошибка: ' + e.message);
-    }
-};
-
-// ==================== ВЫБОР СООБЩЕНИЯ ====================
-window.selectMessage = function(element, id, type) {
-    document.querySelectorAll('.message').forEach(m => m.classList.remove('selected'));
-    element.classList.add('selected');
-    selectedMessageId = id;
-    selectedMessageType = type;
-    
-    const menu = document.getElementById('messageMenu');
-    if (menu && event) {
-        menu.style.display = 'block';
-        menu.style.left = (event.pageX) + 'px';
-        menu.style.top = (event.pageY) + 'px';
-    }
-};
-
-// ==================== УДАЛЕНИЕ СООБЩЕНИЯ ====================
-if (deleteMessageBtn) {
-    deleteMessageBtn.addEventListener('click', async () => {
-        if (!selectedMessageId) return;
-        
-        if (!confirm('Удалить сообщение?')) return;
-        
-        try {
-            if (selectedMessageType === 'private') {
-                await supabaseClient.from('messages').delete().eq('id', selectedMessageId);
-                if (CURRENT_CHAT) {
-                    loadMessages(CURRENT_CHAT.phone);
-                    loadPinnedMessages('private', CURRENT_CHAT.phone);
-                }
-            } else {
-                await supabaseClient.from('group_messages').delete().eq('id', selectedMessageId);
-                if (CURRENT_GROUP) {
-                    loadGroupMessages(CURRENT_GROUP.id);
-                    loadPinnedMessages('group', CURRENT_GROUP.id);
-                }
-            }
-            if (messageMenu) messageMenu.style.display = 'none';
-        } catch (e) {
-            alert('❌ Ошибка: ' + e.message);
-        }
-    });
-}
-
-// ==================== ЗАКРЕПЛЕНИЕ СООБЩЕНИЯ ====================
-if (pinMessageBtn) {
-    pinMessageBtn.addEventListener('click', async () => {
-        if (!selectedMessageId) return;
-        
-        try {
-            if (selectedMessageType === 'private') {
-                await supabaseClient.from('messages').update({ pinned: true }).eq('id', selectedMessageId);
-                if (CURRENT_CHAT) {
-                    loadMessages(CURRENT_CHAT.phone);
-                    loadPinnedMessages('private', CURRENT_CHAT.phone);
-                }
-            } else {
-                await supabaseClient.from('group_messages').update({ pinned: true }).eq('id', selectedMessageId);
-                if (CURRENT_GROUP) {
-                    loadGroupMessages(CURRENT_GROUP.id);
-                    loadPinnedMessages('group', CURRENT_GROUP.id);
-                }
-            }
-            if (messageMenu) messageMenu.style.display = 'none';
-        } catch (e) {
-            alert('❌ Ошибка: ' + e.message);
-        }
-    });
 }
 
 // ==================== ЗАГРУЗКА ЧАТОВ ====================
@@ -1269,32 +625,12 @@ async function loadChats() {
         if (error) throw error;
         
         const chats = new Map();
-        
-        const otherPhones = [...new Set(messages.map(m => 
-            m.sender === CURRENT_USER.phone ? m.receiver : m.sender
-        ))];
-        
-        const { data: profiles } = await supabaseClient
-            .from('profiles')
-            .select('phone, username')
-            .in('phone', otherPhones);
-        
-        const chatNames = {};
-        profiles?.forEach(p => {
-            chatNames[p.phone] = {
-                name: p.username || p.phone,
-                username: p.username
-            };
-        });
-        
         messages.forEach(m => {
             const other = m.sender === CURRENT_USER.phone ? m.receiver : m.sender;
             if (!chats.has(other) || new Date(m.created_at) > new Date(chats.get(other).lastMessageTime)) {
                 chats.set(other, { 
                     phone: other, 
-                    name: chatNames[other]?.name || other,
-                    username: chatNames[other]?.username,
-                    lastMessage: m.content, 
+                    lastMessage: m.content || '📎 Файл', 
                     lastMessageTime: m.created_at 
                 });
             }
@@ -1305,8 +641,7 @@ async function loadChats() {
         } else {
             chatsList.innerHTML = Array.from(chats.values()).map(c => `
                 <div class="chat-item" onclick="startChat('${c.phone}')">
-                    <span class="chat-name">${c.name}</span>
-                    ${c.username ? `<span class="chat-username">@${c.username}</span>` : ''}
+                    <span class="chat-name">${c.phone}</span>
                     <span class="chat-preview">${c.lastMessage.slice(0, 30)}...</span>
                 </div>
             `).join('');
@@ -1494,235 +829,170 @@ window.insertEmoji = function(emoji) {
     if (emojiPanel) emojiPanel.style.display = 'none';
 };
 
-// ==================== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК В ПРОФИЛЕ ====================
-if (profileTabs && profileTabContents) {
-    profileTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            profileTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            profileTabContents.forEach(c => c.classList.remove('active'));
-            const tabName = tab.dataset.profileTab;
-            const content = document.getElementById(`profile${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab`);
-            if (content) content.classList.add('active');
-            
-            if (tabName === 'devices') {
-                loadSessions();
-            } else if (tabName === 'privacy') {
-                loadPrivacySettings();
-            } else if (tabName === 'themes') {
-                const currentTheme = CURRENT_USER?.theme || 'dark';
-                document.querySelectorAll('.theme-check').forEach(check => check.style.opacity = '0');
-                const checkEl = document.getElementById(`check-${currentTheme}`);
-                if (checkEl) checkEl.style.opacity = '1';
-            }
-        });
-    });
-}
-
-// ==================== ЗАГРУЗКА НАСТРОЕК ПРИВАТНОСТИ ====================
-function loadPrivacySettings() {
-    if (!CURRENT_USER) return;
+// ==================== ЗАКРЕПЛЁННЫЕ СООБЩЕНИЯ ====================
+async function loadPinnedMessages(type, id) {
+    if (!pinnedMessages || !CURRENT_USER) return;
     
-    const settings = CURRENT_USER.privacy_settings || {
-        show_phone: 'everyone',
-        who_can_write: 'everyone',
-        last_seen: 'everyone'
-    };
-    
-    showPhoneRadios.forEach(r => {
-        if (r.value === settings.show_phone) r.checked = true;
-    });
-    
-    whoCanWriteRadios.forEach(r => {
-        if (r.value === settings.who_can_write) r.checked = true;
-    });
-    
-    lastSeenRadios.forEach(r => {
-        if (r.value === settings.last_seen) r.checked = true;
-    });
-}
-
-// ==================== СОХРАНЕНИЕ НАСТРОЕК ПРИВАТНОСТИ ====================
-if (savePrivacyBtn) {
-    savePrivacyBtn.addEventListener('click', async () => {
-        if (!CURRENT_USER) return;
-        
-        let showPhone = 'everyone';
-        let whoCanWrite = 'everyone';
-        let lastSeen = 'everyone';
-        
-        for (const r of showPhoneRadios) if (r.checked) showPhone = r.value;
-        for (const r of whoCanWriteRadios) if (r.checked) whoCanWrite = r.value;
-        for (const r of lastSeenRadios) if (r.checked) lastSeen = r.value;
-        
-        const privacySettings = {
-            show_phone: showPhone,
-            who_can_write: whoCanWrite,
-            last_seen: lastSeen
-        };
-        
-        try {
-            await supabaseClient
-                .from('profiles')
-                .update({ privacy_settings: privacySettings })
-                .eq('phone', CURRENT_USER.phone);
-            
-            CURRENT_USER.privacy_settings = privacySettings;
-            alert('✅ Настройки приватности сохранены');
-        } catch (e) {
-            alert('❌ Ошибка: ' + e.message);
+    try {
+        let query;
+        if (type === 'private') {
+            query = await supabaseClient
+                .from('messages')
+                .select('*')
+                .or(`sender.eq.${CURRENT_USER.phone},receiver.eq.${CURRENT_USER.phone}`)
+                .or(`sender.eq.${id},receiver.eq.${id}`)
+                .eq('pinned', true)
+                .order('created_at', { ascending: false })
+                .limit(3);
+        } else {
+            query = await supabaseClient
+                .from('group_messages')
+                .select('*')
+                .eq('group_id', id)
+                .eq('pinned', true)
+                .order('created_at', { ascending: false })
+                .limit(3);
         }
-    });
-}
-
-// ==================== НАСТРОЙКИ ПРОФИЛЯ ====================
-if (userProfile) {
-    userProfile.addEventListener('click', () => {
-        if (!profileModal || !CURRENT_USER) return;
         
-        profileModal.style.display = 'flex';
-        if (profileDisplayName) profileDisplayName.value = CURRENT_USER.username || '';
-        if (profileUsername) profileUsername.value = CURRENT_USER.username || '';
-        if (profilePhone) profilePhone.value = CURRENT_USER.phone;
-        loadPrivacySettings();
-    });
-}
-
-if (closeProfileModal) {
-    closeProfileModal.addEventListener('click', () => {
-        if (profileModal) profileModal.style.display = 'none';
-    });
-}
-
-if (saveProfileBtn) {
-    saveProfileBtn.addEventListener('click', async () => {
-        if (!CURRENT_USER || !profileUsername) return;
+        const { data: messages } = query;
         
-        const newUsername = profileUsername.value.trim().toLowerCase();
-        
-        if (!validateUsername(newUsername)) {
-            alert('❌ Username может содержать только a-z, 0-9 и _');
+        if (!messages?.length) {
+            pinnedMessages.innerHTML = '';
             return;
         }
         
-        try {
-            const { data: existing } = await supabaseClient
-                .from('profiles')
-                .select('*')
-                .eq('username', newUsername)
-                .neq('phone', CURRENT_USER.phone);
-            
-            if (existing?.length) {
-                alert('❌ Username уже занят');
-                return;
+        pinnedMessages.innerHTML = messages.map(m => `
+            <div class="pinned-message" onclick="jumpToMessage('${m.id}')">
+                <span>📌 ${m.content?.slice(0, 30) || 'Файл'}${m.content?.length > 30 ? '...' : ''}</span>
+                <span class="pinned-close" onclick="event.stopPropagation(); unpinMessage('${m.id}', '${type}')">✕</span>
+            </div>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+
+window.jumpToMessage = function(messageId) {
+    const messageElement = document.querySelector(`[data-id="${messageId}"]`);
+    if (messageElement) {
+        messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        messageElement.style.animation = 'highlight 2s';
+        setTimeout(() => {
+            messageElement.style.animation = '';
+        }, 2000);
+    }
+};
+
+window.unpinMessage = async function(messageId, type) {
+    if (!confirm('Открепить сообщение?')) return;
+    
+    try {
+        if (type === 'private') {
+            await supabaseClient.from('messages').update({ pinned: false }).eq('id', messageId);
+            if (CURRENT_CHAT) {
+                loadMessages(CURRENT_CHAT.phone);
+                loadPinnedMessages('private', CURRENT_CHAT.phone);
             }
-            
-            await supabaseClient
-                .from('profiles')
-                .update({ username: newUsername })
-                .eq('phone', CURRENT_USER.phone);
-            
-            CURRENT_USER.username = newUsername;
-            if (currentUserName) currentUserName.textContent = newUsername || CURRENT_USER.phone;
-            if (currentUserUsername) currentUserUsername.textContent = newUsername ? '@' + newUsername : '';
-            
-            if (profileModal) profileModal.style.display = 'none';
-            alert('✅ Профиль обновлён');
+        } else {
+            await supabaseClient.from('group_messages').update({ pinned: false }).eq('id', messageId);
+            if (CURRENT_GROUP) {
+                loadGroupMessages(CURRENT_GROUP.id);
+                loadPinnedMessages('group', CURRENT_GROUP.id);
+            }
+        }
+    } catch (e) {
+        alert('❌ Ошибка: ' + e.message);
+    }
+};
+
+// ==================== ВЫБОР СООБЩЕНИЯ ====================
+window.selectMessage = function(element, id, type) {
+    document.querySelectorAll('.message').forEach(m => m.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedMessageId = id;
+    selectedMessageType = type;
+    
+    const menu = document.getElementById('messageMenu');
+    if (menu && event) {
+        menu.style.display = 'block';
+        menu.style.left = (event.pageX) + 'px';
+        menu.style.top = (event.pageY) + 'px';
+    }
+};
+
+// ==================== УДАЛЕНИЕ СООБЩЕНИЯ ====================
+if (deleteMessageBtn) {
+    deleteMessageBtn.addEventListener('click', async () => {
+        if (!selectedMessageId) return;
+        
+        if (!confirm('Удалить сообщение?')) return;
+        
+        try {
+            if (selectedMessageType === 'private') {
+                await supabaseClient.from('messages').delete().eq('id', selectedMessageId);
+                if (CURRENT_CHAT) {
+                    loadMessages(CURRENT_CHAT.phone);
+                    loadPinnedMessages('private', CURRENT_CHAT.phone);
+                }
+            } else {
+                await supabaseClient.from('group_messages').delete().eq('id', selectedMessageId);
+                if (CURRENT_GROUP) {
+                    loadGroupMessages(CURRENT_GROUP.id);
+                    loadPinnedMessages('group', CURRENT_GROUP.id);
+                }
+            }
+            if (messageMenu) messageMenu.style.display = 'none';
         } catch (e) {
             alert('❌ Ошибка: ' + e.message);
         }
     });
 }
 
-// ==================== ТЕМЫ ====================
-async function loadUserTheme() {
-    if (!CURRENT_USER) return;
-    
-    const { data } = await supabaseClient
-        .from('profiles')
-        .select('theme')
-        .eq('phone', CURRENT_USER.phone)
-        .single();
-    
-    if (data?.theme) {
-        applyTheme(data.theme);
-    } else {
-        applyTheme('dark');
-    }
+// ==================== ЗАКРЕПЛЕНИЕ СООБЩЕНИЯ ====================
+if (pinMessageBtn) {
+    pinMessageBtn.addEventListener('click', async () => {
+        if (!selectedMessageId) return;
+        
+        try {
+            if (selectedMessageType === 'private') {
+                await supabaseClient.from('messages').update({ pinned: true }).eq('id', selectedMessageId);
+                if (CURRENT_CHAT) {
+                    loadMessages(CURRENT_CHAT.phone);
+                    loadPinnedMessages('private', CURRENT_CHAT.phone);
+                }
+            } else {
+                await supabaseClient.from('group_messages').update({ pinned: true }).eq('id', selectedMessageId);
+                if (CURRENT_GROUP) {
+                    loadGroupMessages(CURRENT_GROUP.id);
+                    loadPinnedMessages('group', CURRENT_GROUP.id);
+                }
+            }
+            if (messageMenu) messageMenu.style.display = 'none';
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    });
 }
 
-function applyTheme(theme) {
-    document.body.classList.remove('light-theme', 'dark-theme', 'forest-theme');
-    document.body.classList.add(`${theme}-theme`);
-    
-    document.querySelectorAll('.theme-check').forEach(check => check.style.opacity = '0');
-    const checkEl = document.getElementById(`check-${theme}`);
-    if (checkEl) checkEl.style.opacity = '1';
-    
-    if (theme === 'forest') {
-        startForestAnimations();
-    } else {
-        stopForestAnimations();
-    }
-    
-    if (CURRENT_USER) {
-        CURRENT_USER.theme = theme;
-    }
-}
-
-window.setTheme = async function(theme) {
-    applyTheme(theme);
-    
-    if (CURRENT_USER) {
-        await supabaseClient
-            .from('profiles')
-            .update({ theme })
-            .eq('phone', CURRENT_USER.phone);
-    }
+// ==================== ЗВОНКИ ====================
+let peerConnection = null;
+let localStream = null;
+let remoteStream = null;
+let callTimer = null;
+let callSeconds = 0;
+let callState = {
+    isCalling: false,
+    targetUser: null,
+    callType: null
 };
 
-function startForestAnimations() {
-    stopForestAnimations();
-    
-    leafInterval = setInterval(() => {
-        const leaf = document.createElement('div');
-        leaf.className = 'leaf';
-        leaf.textContent = ['🍃', '🍂', '🌿'][Math.floor(Math.random() * 3)];
-        leaf.style.left = Math.random() * 100 + '%';
-        leaf.style.fontSize = (15 + Math.random() * 15) + 'px';
-        leaf.style.animationDuration = (3 + Math.random() * 4) + 's';
-        leaf.style.animationDelay = Math.random() * 2 + 's';
-        document.body.appendChild(leaf);
-        
-        setTimeout(() => leaf.remove(), 10000);
-    }, 300);
-    
-    rainInterval = setInterval(() => {
-        for (let i = 0; i < 5; i++) {
-            const drop = document.createElement('div');
-            drop.className = 'raindrop';
-            drop.style.left = Math.random() * 100 + '%';
-            drop.style.animationDuration = (0.5 + Math.random()) + 's';
-            drop.style.animationDelay = Math.random() + 's';
-            drop.style.opacity = 0.3 + Math.random() * 0.3;
-            document.body.appendChild(drop);
-            
-            setTimeout(() => drop.remove(), 2000);
-        }
-    }, 100);
-}
+const iceServers = {
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+    ]
+};
 
-function stopForestAnimations() {
-    if (leafInterval) clearInterval(leafInterval);
-    if (rainInterval) clearInterval(rainInterval);
-    
-    document.querySelectorAll('.leaf, .raindrop').forEach(el => el.remove());
-}
-
-// ==================== ЗВОНКИ (УПРОЩЁННЫЕ) ====================
 if (audioCallBtn) {
-    audioCallBtn.addEventListener('click', () => {
+    audioCallBtn.addEventListener('click', async () => {
         if (!CURRENT_CHAT) {
             alert('Сначала выберите чат');
             return;
@@ -1738,7 +1008,7 @@ if (audioCallBtn) {
 }
 
 if (videoCallBtn) {
-    videoCallBtn.addEventListener('click', () => {
+    videoCallBtn.addEventListener('click', async () => {
         if (!CURRENT_CHAT) {
             alert('Сначала выберите чат');
             return;
@@ -1807,9 +1077,7 @@ async function startVoiceRecording() {
             recordingSeconds++;
             const timer = document.querySelector('.recording-timer');
             if (timer) {
-                const minutes = Math.floor(recordingSeconds / 60);
-                const seconds = recordingSeconds % 60;
-                timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                timer.textContent = formatDuration(recordingSeconds);
             }
         }, 1000);
         
@@ -1945,9 +1213,7 @@ async function startCircleRecording() {
             circleSeconds++;
             const timer = document.querySelector('.recording-timer');
             if (timer) {
-                const minutes = Math.floor(circleSeconds / 60);
-                const seconds = circleSeconds % 60;
-                timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                timer.textContent = formatDuration(circleSeconds);
             }
         }, 1000);
         
@@ -2019,7 +1285,7 @@ function showRecordingIndicator(type) {
     
     const timer = document.createElement('span');
     timer.className = 'recording-timer';
-    timer.textContent = '00:00';
+    timer.textContent = '0:00';
     
     const stopBtn = document.createElement('button');
     stopBtn.className = 'recording-stop';
@@ -2038,6 +1304,55 @@ function removeRecordingIndicator() {
         recordingIndicator.remove();
         recordingIndicator = null;
     }
+}
+
+// ==================== ПРИКРЕПЛЕНИЕ ФОТО ====================
+if (attachBtn) {
+    attachBtn.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                sendPhoto(file);
+            }
+        };
+        input.click();
+    });
+}
+
+async function sendPhoto(file) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    
+    reader.onloadend = async () => {
+        const base64data = reader.result;
+        
+        try {
+            const messageData = {
+                sender: CURRENT_USER.phone,
+                content: '📷 Фото',
+                file_data: base64data,
+                file_type: file.type,
+                file_name: file.name,
+                created_at: new Date()
+            };
+            
+            if (CURRENT_GROUP) {
+                messageData.group_id = CURRENT_GROUP.id;
+                await supabaseClient.from('group_messages').insert([messageData]);
+                loadGroupMessages(CURRENT_GROUP.id);
+            } else if (CURRENT_CHAT) {
+                messageData.receiver = CURRENT_CHAT.phone;
+                await supabaseClient.from('messages').insert([messageData]);
+                loadMessages(CURRENT_CHAT.phone);
+                loadChats();
+            }
+        } catch (e) {
+            alert('❌ Ошибка отправки: ' + e.message);
+        }
+    };
 }
 
 // ==================== ВОСПРОИЗВЕДЕНИЕ ====================
@@ -2084,64 +1399,89 @@ window.playCircleMessage = function(dataUrl) {
     video.play();
 };
 
-// ==================== АДМИН-ПАНЕЛЬ ====================
-if (adminButton) {
-    adminButton.addEventListener('click', () => {
-        if (adminModal) adminModal.style.display = 'flex';
-        loadAdminUsers();
-        if (isOwner()) loadAdminsList();
-    });
-}
-
-if (closeAdmin) {
-    closeAdmin.addEventListener('click', () => {
-        if (adminModal) adminModal.style.display = 'none';
-    });
-}
-
-if (adminTabs) {
-    adminTabs.forEach(tab => tab.addEventListener('click', () => {
-        adminTabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
-        const content = document.getElementById(`admin${tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)}`);
-        if (content) content.classList.add('active');
-        
-        if (tab.dataset.tab === 'users') loadAdminUsers();
-        if (tab.dataset.tab === 'admins' && isOwner()) loadAdminsList();
-    }));
-}
-
-async function loadAdminUsers() {
-    if (!adminUsersList || !CURRENT_USER) return;
+window.viewImage = function(dataUrl) {
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.right = '0';
+    modal.style.bottom = '0';
+    modal.style.background = 'rgba(0,0,0,0.9)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '10000';
     
-    try {
-        const { data: users } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.style.maxWidth = '90%';
+    img.style.maxHeight = '90%';
+    img.style.borderRadius = '10px';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.position = 'absolute';
+    closeBtn.style.top = '20px';
+    closeBtn.style.right = '20px';
+    closeBtn.style.background = 'none';
+    closeBtn.style.border = 'none';
+    closeBtn.style.color = 'white';
+    closeBtn.style.fontSize = '30px';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.onclick = () => modal.remove();
+    
+    modal.appendChild(img);
+    modal.appendChild(closeBtn);
+    document.body.appendChild(modal);
+};
+
+// ==================== МЕНЮ ЧАТА (ТРИ ТОЧКИ) ====================
+if (chatMenuBtn) {
+    chatMenuBtn.addEventListener('click', () => {
+        if (chatMenuModal) {
+            chatMenuModal.style.display = 'flex';
+        }
+    });
+}
+
+if (closeChatMenu) {
+    closeChatMenu.addEventListener('click', () => {
+        chatMenuModal.style.display = 'none';
+    });
+}
+
+if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener('click', async () => {
+        if (!CURRENT_CHAT && !CURRENT_GROUP) {
+            alert('Сначала выберите чат');
+            return;
+        }
         
-        const { data: admins } = await supabaseClient.from('admins').select('phone, rank');
-        const adminMap = {};
-        admins?.forEach(a => adminMap[a.phone] = a.rank || 1);
+        if (!confirm('Очистить историю сообщений? Это действие нельзя отменить.')) return;
         
-        adminUsersList.innerHTML = users?.map(u => {
-            const rank = u.phone === OWNER_PHONE ? 5 : (adminMap[u.phone] || 0);
-            return `
-            <div class="admin-user-item">
-                <div>
-                    <strong>${u.username || u.phone}</strong>
-                    <div style="color:#888;font-size:12px;">${u.phone}</div>
-                    ${rank > 0 ? `<div style="color:${RANGS[rank]?.color}">Ранг ${rank}: ${RANGS[rank]?.name}</div>` : ''}
-                </div>
-                <div class="admin-user-actions">
-                    ${isOwner() && u.phone !== OWNER_PHONE ? `
-                        <button class="admin-user-btn make-admin" onclick="openRankModal('${u.phone}')">
-                            ${rank > 0 ? '👑 Изменить ранг' : '👑 Назначить'}
-                        </button>
-                    ` : ''}
-                    ${u.phone === OWNER_PHONE ? '<span style="color:gold;">👑 Владелец</span>' : ''}
-                </div>
-            </div>`;
-        }).join('') || '<p class="no-data">Нет пользователей</p>';
-    } catch (e) { console.error(e); }
+        try {
+            if (CURRENT_GROUP) {
+                await supabaseClient
+                    .from('group_messages')
+                    .delete()
+                    .eq('group_id', CURRENT_GROUP.id);
+                loadGroupMessages(CURRENT_GROUP.id);
+            } else if (CURRENT_CHAT) {
+                await supabaseClient
+                    .from('messages')
+                    .delete()
+                    .or(`and(sender.eq.${CURRENT_USER.phone},receiver.eq.${CURRENT_CHAT.phone})`)
+                    .or(`and(sender.eq.${CURRENT_CHAT.phone},receiver.eq.${CURRENT_USER.phone})`);
+                loadMessages(CURRENT_CHAT.phone);
+                loadChats();
+            }
+            
+            alert('✅ История очищена');
+            chatMenuModal.style.display = 'none';
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    });
 }
 
 // ==================== ФОРМАТИРОВАНИЕ НОМЕРОВ ====================
@@ -2156,24 +1496,10 @@ if (savedUser) {
     CURRENT_USER = savedUser;
     (async () => {
         await loadUserSettings();
-        await loadUserTheme();
         
         authScreen.style.display = 'none';
         app.style.display = 'flex';
         if (currentUserPhone) currentUserPhone.textContent = CURRENT_USER.phone;
-        
-        if (CURRENT_SESSION_TOKEN) {
-            await supabaseClient
-                .from('sessions')
-                .update({ last_active: new Date() })
-                .eq('session_token', CURRENT_SESSION_TOKEN);
-        }
-        
-        ADMIN_RIGHTS = await loadAdminRights(CURRENT_USER.phone);
-        
-        if (ADMIN_RIGHTS || isOwner()) {
-            if (adminButton) adminButton.style.display = 'block';
-        }
         
         loadChats();
         loadGroups();
@@ -2193,4 +1519,4 @@ document.addEventListener('click', function(e) {
     }
 });
 
-console.log('✅ LinkUp — ФИНАЛЬНАЯ ВЕРСИЯ (закрепление, удаление, голосовые, кружочки)');
+console.log('✅ LinkUp — ПОЛНАЯ РАБОЧАЯ ВЕРСИЯ');

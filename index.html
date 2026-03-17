@@ -26,30 +26,7 @@
                     <a href="privacy.html" target="_blank">Политика конфиденциальности</a>
                     <span class="auth-separator">|</span>
                     <a href="terms.html" target="_blank">Пользовательское соглашение</a>
-                    <span class="auth-separator">|</span>
-                    <a href="#" id="showQrLogin">Вход по QR</a>
                 </div>
-                <div class="auth-google">
-                    <button class="google-login-btn" id="googleLoginBtn">
-                        <img src="https://www.google.com/favicon.ico" alt="Google"> Войти через Google
-                    </button>
-                </div>
-            </div>
-
-            <!-- QR-вход -->
-            <div id="qrLoginForm" style="display: none;">
-                <p class="auth-subtitle">Вход по QR-коду</p>
-                <div class="qr-container" id="qrContainer">
-                    <div class="qr-placeholder" id="qrPlaceholder">
-                        <div class="qr-spinner"></div>
-                        <p>Загрузка QR-кода...</p>
-                    </div>
-                    <canvas id="qrCanvas" style="display: none;"></canvas>
-                </div>
-                <p class="qr-hint">1. Открой LinkUp на телефоне</p>
-                <p class="qr-hint">2. Нажми ⋮ → Сканировать QR</p>
-                <p class="qr-hint">3. Наведи камеру на этот код</p>
-                <button class="auth-button secondary" id="backFromQrBtn">← Назад</button>
             </div>
 
             <div class="auth-divider">или</div>
@@ -111,18 +88,6 @@
                 <button class="search-button" id="searchButton">🔍</button>
             </div>
 
-            <div class="search-filters">
-                <label class="filter-option">
-                    <input type="radio" name="searchType" value="all" checked> Все
-                </label>
-                <label class="filter-option">
-                    <input type="radio" name="searchType" value="phone"> По номеру
-                </label>
-                <label class="filter-option">
-                    <input type="radio" name="searchType" value="username"> По username
-                </label>
-            </div>
-
             <div class="search-results" id="searchResults" style="display: none;">
                 <div class="search-results-header">
                     <span>Результаты поиска</span>
@@ -145,9 +110,6 @@
 
             <!-- Кнопка создания группы -->
             <button class="create-group-btn" id="createGroupBtn">➕ Создать группу</button>
-
-            <!-- Кнопка админ-панели -->
-            <button class="admin-button" id="adminButton" style="display: none;">👑 Админ-панель</button>
         </div>
 
         <!-- Правая панель -->
@@ -161,7 +123,6 @@
                 <div class="chat-header-actions">
                     <button class="call-btn audio-call" id="audioCallBtn" title="Аудиозвонок">📞</button>
                     <button class="call-btn video-call" id="videoCallBtn" title="Видеозвонок">📹</button>
-                    <button class="call-btn group-call" id="groupCallBtn" title="Групповой звонок">👥</button>
                     <div class="chat-header-menu" id="chatMenuBtn">⋮</div>
                 </div>
             </div>
@@ -189,136 +150,31 @@
         </div>
     </div>
 
-    <!-- МОДАЛКА НАСТРОЕК ПРОФИЛЯ -->
-    <div class="profile-modal" id="profileModal" style="display: none;">
-        <div class="profile-modal-content">
-            <div class="profile-modal-header">
-                <h2>⚙️ Настройки профиля</h2>
-                <button class="close-profile" id="closeProfileModal">✕</button>
-            </div>
-            
-            <div class="profile-tabs">
-                <button class="profile-tab active" data-profile-tab="general">👤 Основное</button>
-                <button class="profile-tab" data-profile-tab="privacy">🔒 Приватность</button>
-                <button class="profile-tab" data-profile-tab="devices">📱 Устройства</button>
-                <button class="profile-tab" data-profile-tab="linked">🔗 Привязки</button>
-                <button class="profile-tab" data-profile-tab="themes">🎨 Темы</button>
-            </div>
-            
-            <!-- Вкладка Основное -->
-            <div class="profile-tab-content active" id="profileGeneralTab">
-                <div class="avatar-upload">
-                    <div class="current-avatar" id="profileAvatar">👤</div>
-                    <button class="change-avatar-btn" id="changeAvatarBtn">🖼️ Изменить аватар</button>
-                </div>
-                <div class="profile-field">
-                    <label>📝 Отображаемое имя:</label>
-                    <input type="text" id="profileDisplayName" placeholder="Как вас видят">
-                </div>
-                <div class="profile-field">
-                    <label>🔤 Username:</label>
-                    <input type="text" id="profileUsername" placeholder="a-z, 0-9, _" maxlength="20">
-                    <div class="field-hint">Только англ. буквы, цифры и _</div>
-                </div>
-                <div class="profile-field">
-                    <label>📱 Номер телефона:</label>
-                    <input type="text" id="profilePhone" readonly disabled>
-                </div>
-                <button class="save-profile-btn" id="saveProfileBtn">💾 Сохранить</button>
-            </div>
-            
-            <!-- Вкладка Приватность -->
-            <div class="profile-tab-content" id="profilePrivacyTab">
-                <h3>Кто видит мой номер</h3>
-                <div class="privacy-option">
-                    <label>
-                        <input type="radio" name="showPhone" value="everyone"> Все
-                    </label>
-                    <label>
-                        <input type="radio" name="showPhone" value="contacts"> Мои контакты
-                    </label>
-                    <label>
-                        <input type="radio" name="showPhone" value="nobody"> Никто
-                    </label>
-                </div>
-                
-                <h3>Кто может писать мне</h3>
-                <div class="privacy-option">
-                    <label>
-                        <input type="radio" name="whoCanWrite" value="everyone"> Все
-                    </label>
-                    <label>
-                        <input type="radio" name="whoCanWrite" value="contacts"> Только контакты
-                    </label>
-                </div>
-                
-                <h3>Кто видит мой последний визит</h3>
-                <div class="privacy-option">
-                    <label>
-                        <input type="radio" name="lastSeen" value="everyone"> Все
-                    </label>
-                    <label>
-                        <input type="radio" name="lastSeen" value="contacts"> Мои контакты
-                    </label>
-                    <label>
-                        <input type="radio" name="lastSeen" value="nobody"> Никто
-                    </label>
-                </div>
-                
-                <button class="save-privacy-btn" id="savePrivacyBtn">💾 Сохранить настройки</button>
-            </div>
-            
-            <!-- Вкладка Устройства -->
-            <div class="profile-tab-content" id="profileDevicesTab">
-                <div class="devices-list" id="devicesList">
-                    <p class="no-data">Загрузка устройств...</p>
-                </div>
-                <button class="danger-btn" id="terminateAllSessions">🚪 Выйти со всех устройств</button>
-            </div>
-            
-            <!-- Вкладка Привязки -->
-            <div class="profile-tab-content" id="profileLinkedTab">
-                <div class="linked-accounts">
-                    <div class="linked-item">
-                        <span>🔐 Google</span>
-                        <button class="link-btn" id="linkGoogle">Привязать</button>
-                    </div>
-                </div>
-                <p class="linked-hint">Привяжите Google для восстановления пароля</p>
-            </div>
+    <!-- МЕНЮ СООБЩЕНИЯ -->
+    <div class="message-menu" id="messageMenu" style="display: none;">
+        <button id="deleteMessageBtn">🗑️ Удалить</button>
+        <button id="pinMessageBtn">📌 Закрепить</button>
+    </div>
 
-            <!-- Вкладка Темы -->
-            <div class="profile-tab-content" id="profileThemesTab">
-                <h3>Выберите тему оформления</h3>
-                
-                <div class="theme-option" onclick="setTheme('dark')">
-                    <div class="theme-preview dark-preview"></div>
-                    <div class="theme-info">
-                        <span class="theme-name">🌑 Тёмная</span>
-                        <span class="theme-desc">Классическая тёмная тема</span>
-                    </div>
-                    <span class="theme-check" id="check-dark">✓</span>
-                </div>
-                
-                <div class="theme-option" onclick="setTheme('light')">
-                    <div class="theme-preview light-preview"></div>
-                    <div class="theme-info">
-                        <span class="theme-name">☀️ Светлая</span>
-                        <span class="theme-desc">Светлая тема для дня</span>
-                    </div>
-                    <span class="theme-check" id="check-light">✓</span>
-                </div>
-                
-                <div class="theme-option" onclick="setTheme('forest')">
-                    <div class="theme-preview forest-preview"></div>
-                    <div class="theme-info">
-                        <span class="theme-name">🌳 Живой лес</span>
-                        <span class="theme-desc">Деревья, ветер, листья и дождь</span>
-                    </div>
-                    <span class="theme-check" id="check-forest">✓</span>
-                </div>
-                
-                <p class="theme-hint">Живая тема может немного влиять на производительность</p>
+    <!-- ПАНЕЛЬ ЭМОДЗИ -->
+    <div class="emoji-panel" id="emojiPanel" style="display: none;">
+        <button onclick="insertEmoji('😊')">😊</button>
+        <button onclick="insertEmoji('😂')">😂</button>
+        <button onclick="insertEmoji('❤️')">❤️</button>
+        <button onclick="insertEmoji('👍')">👍</button>
+        <button onclick="insertEmoji('🔥')">🔥</button>
+        <button onclick="insertEmoji('🎉')">🎉</button>
+    </div>
+
+    <!-- МЕНЮ ЧАТА (ТРИ ТОЧКИ) -->
+    <div class="chat-menu-modal" id="chatMenuModal" style="display: none;">
+        <div class="chat-menu-content">
+            <div class="chat-menu-header">
+                <h2>⋮ Действия с чатом</h2>
+                <button class="close-chat-menu" id="closeChatMenu">✕</button>
+            </div>
+            <div class="chat-menu-body">
+                <button class="chat-menu-item" id="clearHistoryBtn">🗑️ Очистить историю</button>
             </div>
         </div>
     </div>
@@ -333,20 +189,17 @@
                     <div class="call-status" id="callStatus">Вызов...</div>
                 </div>
             </div>
-            
             <div class="call-video" id="callVideoContainer" style="display: none;">
                 <video id="remoteVideo" autoplay playsinline></video>
                 <video id="localVideo" autoplay playsinline muted></video>
             </div>
-            
             <div class="call-controls">
-                <button class="call-control-btn mute" id="muteAudioBtn" title="Выключить микрофон">🎤</button>
-                <button class="call-control-btn video" id="toggleVideoBtn" title="Выключить камеру">📹</button>
-                <button class="call-control-btn end-call" id="endCallBtn" title="Завершить звонок">🔴</button>
-                <button class="call-control-btn speaker" id="speakerBtn" title="Динамик">🔊</button>
+                <button class="call-control-btn mute" id="muteAudioBtn">🎤</button>
+                <button class="call-control-btn video" id="toggleVideoBtn">📹</button>
+                <button class="call-control-btn end-call" id="endCallBtn">🔴</button>
+                <button class="call-control-btn speaker" id="speakerBtn">🔊</button>
             </div>
-            
-            <div class="call-timer" id="callTimer">00:00</div>
+            <div class="call-timer" id="callTimer">0:00</div>
         </div>
     </div>
 
@@ -357,10 +210,9 @@
                 <div class="incoming-call-avatar" id="incomingCallAvatar">👤</div>
                 <div class="incoming-call-info">
                     <div class="incoming-call-name" id="incomingCallName">Неизвестный</div>
-                    <div class="incoming-call-type" id="incomingCallType">Входящий видеозвонок</div>
+                    <div class="incoming-call-type" id="incomingCallType">Входящий звонок</div>
                 </div>
             </div>
-            
             <div class="incoming-call-controls">
                 <button class="incoming-call-btn accept" id="acceptCallBtn">✅ Принять</button>
                 <button class="incoming-call-btn decline" id="declineCallBtn">❌ Отклонить</button>
@@ -368,190 +220,7 @@
         </div>
     </div>
 
-    <!-- МОДАЛКА ЗАПИСИ ГОЛОСА -->
-    <div class="voice-recorder-modal" id="voiceRecorderModal" style="display: none;">
-        <div class="voice-recorder-content">
-            <div class="voice-recorder-header">
-                <h2>🎤 Запись голосового сообщения</h2>
-                <button class="close-voice-recorder" id="closeVoiceRecorder">✕</button>
-            </div>
-            <div class="voice-recorder-body">
-                <div class="voice-wave" id="voiceWave">🎤</div>
-                <div class="voice-timer" id="voiceTimer">00:00</div>
-                <div class="voice-controls">
-                    <button class="voice-control-btn" id="startRecordingBtn">⏺️ Начать запись</button>
-                    <button class="voice-control-btn" id="stopRecordingBtn" style="display: none;">⏹️ Остановить</button>
-                    <button class="voice-control-btn" id="playRecordingBtn" style="display: none;">▶️ Прослушать</button>
-                    <button class="voice-control-btn" id="sendRecordingBtn" style="display: none;">📤 Отправить</button>
-                    <button class="voice-control-btn" id="cancelRecordingBtn">❌ Отмена</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- МОДАЛКА ЗАПИСИ КРУЖОЧКА -->
-    <div class="video-circle-modal" id="videoCircleModal" style="display: none;">
-        <div class="video-circle-content">
-            <div class="video-circle-header">
-                <h2>⭕ Запись кружочка</h2>
-                <button class="close-video-circle" id="closeVideoCircle">✕</button>
-            </div>
-            <div class="video-circle-body">
-                <video id="circleVideo" autoplay playsinline muted></video>
-                <div class="circle-timer" id="circleTimer">00:00</div>
-                <div class="circle-controls">
-                    <button class="circle-control-btn" id="startCircleBtn">⏺️ Начать запись</button>
-                    <button class="circle-control-btn" id="stopCircleBtn" style="display: none;">⏹️ Остановить</button>
-                    <button class="circle-control-btn" id="playCircleBtn" style="display: none;">▶️ Просмотреть</button>
-                    <button class="circle-control-btn" id="sendCircleBtn" style="display: none;">📤 Отправить</button>
-                    <button class="circle-control-btn" id="cancelCircleBtn">❌ Отмена</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- МОДАЛКА НАЗНАЧЕНИЯ РАНГА -->
-    <div class="rank-modal" id="rankModal" style="display: none;">
-        <div class="rank-modal-content">
-            <div class="rank-modal-header">
-                <h2>👑 Выберите ранг</h2>
-                <button class="close-rank" id="closeRankModal">✕</button>
-            </div>
-            <div class="rank-modal-body">
-                <p id="rankUserPhone" class="rank-user-phone"></p>
-                <div class="rank-options">
-                    <div class="rank-option" data-rank="1" onclick="selectRank(1)">
-                        <div class="rank-badge rank-1">1</div>
-                        <div class="rank-info">
-                            <span class="rank-name">Младший модератор</span>
-                            <span class="rank-desc">Мут, варны, предупреждения</span>
-                        </div>
-                    </div>
-                    <div class="rank-option" data-rank="2" onclick="selectRank(2)">
-                        <div class="rank-badge rank-2">2</div>
-                        <div class="rank-info">
-                            <span class="rank-name">Старший модератор</span>
-                            <span class="rank-desc">Кик, чистка чата, мут</span>
-                        </div>
-                    </div>
-                    <div class="rank-option" data-rank="3" onclick="selectRank(3)">
-                        <div class="rank-badge rank-3">3</div>
-                        <div class="rank-info">
-                            <span class="rank-name">Младший администратор</span>
-                            <span class="rank-desc">Настройки чата, фильтры, безопасность</span>
-                        </div>
-                    </div>
-                    <div class="rank-option" data-rank="4" onclick="selectRank(4)">
-                        <div class="rank-badge rank-4">4</div>
-                        <div class="rank-info">
-                            <span class="rank-name">Старший администратор</span>
-                            <span class="rank-desc">Назначение модераторов, правила, приветствия</span>
-                        </div>
-                    </div>
-                    <div class="rank-option" data-rank="5" onclick="selectRank(5)">
-                        <div class="rank-badge rank-5">5</div>
-                        <div class="rank-info">
-                            <span class="rank-name">Заместитель владельца</span>
-                            <span class="rank-desc">Все функции, кроме удаления владельца</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="rank-modal-actions">
-                    <button class="auth-button" id="confirmRankBtn">✅ Назначить</button>
-                    <button class="auth-button secondary" id="cancelRankBtn">❌ Отмена</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- МОДАЛКА ПРОСМОТРА ЧАТА ДЛЯ АДМИНА -->
-    <div class="admin-chat-view-modal" id="adminChatViewModal" style="display: none;">
-        <div class="admin-chat-view-content">
-            <div class="admin-chat-view-header">
-                <h2 id="adminChatViewTitle">Просмотр чата</h2>
-                <button class="close-admin-chat-view" id="closeAdminChatView">✕</button>
-            </div>
-            <div class="admin-chat-view-body">
-                <div class="admin-chat-info" id="adminChatInfo"></div>
-                <div class="admin-chat-messages" id="adminChatMessages"></div>
-            </div>
-            <div class="admin-chat-view-actions">
-                <button class="admin-chat-btn warn" id="adminChatWarnBtn">⚠️ Варн</button>
-                <button class="admin-chat-btn mute" id="adminChatMuteBtn">🔇 Мут</button>
-                <button class="admin-chat-btn kick" id="adminChatKickBtn">👢 Кик</button>
-                <button class="admin-chat-btn ban" id="adminChatBanBtn">🚫 Бан</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- АДМИН-ПАНЕЛЬ -->
-    <div class="admin-modal" id="adminModal" style="display: none;">
-        <div class="admin-modal-content">
-            <div class="admin-modal-header">
-                <h2>👑 Админ-панель</h2>
-                <button class="close-admin" id="closeAdmin">✕</button>
-            </div>
-            
-            <div class="admin-tabs">
-                <button class="admin-tab active" data-tab="users">👥 Пользователи</button>
-                <button class="admin-tab" data-tab="chats">💬 Чаты</button>
-                <button class="admin-tab" data-tab="support">❓ Поддержка</button>
-                <button class="admin-tab" data-tab="reports">⚠️ Жалобы</button>
-                <button class="admin-tab" data-tab="channels">📢 Каналы</button>
-                <button class="admin-tab" data-tab="admins" id="adminsTab">👑 Админы</button>
-            </div>
-            
-            <!-- Вкладка Пользователи -->
-            <div class="admin-tab-content active" id="adminUsers">
-                <div class="admin-search">
-                    <input type="text" id="adminUserSearch" placeholder="🔍 Поиск пользователя...">
-                </div>
-                <div class="admin-users-list" id="adminUsersList"></div>
-            </div>
-
-            <!-- Вкладка Чаты -->
-            <div class="admin-tab-content" id="adminChats">
-                <div class="admin-chats-controls">
-                    <button class="admin-action" id="refreshChatsBtn">🔄 Обновить чаты</button>
-                    <div class="admin-search">
-                        <input type="text" id="adminChatSearch" placeholder="🔍 Поиск по номеру или названию...">
-                    </div>
-                </div>
-                <div class="admin-chats-list" id="adminChatsList">
-                    <p class="no-data">Загрузка чатов...</p>
-                </div>
-            </div>
-            
-            <!-- Вкладка Поддержка -->
-            <div class="admin-tab-content" id="adminSupport">
-                <div class="support-list" id="supportList"></div>
-            </div>
-            
-            <!-- Вкладка Жалобы -->
-            <div class="admin-tab-content" id="adminReports">
-                <div class="reports-list" id="reportsList"></div>
-            </div>
-            
-            <!-- Вкладка Каналы -->
-            <div class="admin-tab-content" id="adminChannels">
-                <div class="channels-list" id="channelsList"></div>
-                <button class="admin-action" id="createChannelBtn">➕ Создать канал</button>
-            </div>
-            
-            <!-- Вкладка Админы -->
-            <div class="admin-tab-content" id="adminAdmins">
-                <div class="admins-list" id="adminsList"></div>
-                <div class="add-admin">
-                    <input type="text" id="newAdminPhone" placeholder="📱 Номер нового админа">
-                    <button class="admin-action" id="addAdminBtn">👑 Назначить</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
