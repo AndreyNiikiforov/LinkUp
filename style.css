@@ -2482,3 +2482,83 @@ input:checked + .slider:before {
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
 }
+/* ==================== АДМИН-ПАНЕЛЬ (ИСПРАВЛЕННЫЕ КНОПКИ) ==================== */
+.admin-user-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-user-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: white !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.admin-user-btn i {
+    font-size: 12px;
+}
+
+.admin-user-btn.make-admin {
+    background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
+}
+
+.admin-user-btn.make-admin:hover {
+    background: linear-gradient(135deg, #8b5cf6, #b96ff7) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.6);
+}
+
+.admin-user-btn.warn {
+    background: linear-gradient(135deg, #f59e0b, #fbbf24) !important;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+
+.admin-user-btn.warn:hover {
+    background: linear-gradient(135deg, #fbbf24, #fcd34d) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.6);
+}
+
+.admin-user-btn.mute {
+    background: linear-gradient(135deg, #f97316, #fb923c) !important;
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.4);
+}
+
+.admin-user-btn.mute:hover {
+    background: linear-gradient(135deg, #fb923c, #f97316) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.6);
+}
+
+.admin-user-btn.kick {
+    background: linear-gradient(135deg, #ef4444, #f87171) !important;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
+.admin-user-btn.kick:hover {
+    background: linear-gradient(135deg, #f87171, #ef4444) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
+}
+
+.admin-user-btn.ban {
+    background: linear-gradient(135deg, #b91c1c, #dc2626) !important;
+    box-shadow: 0 2px 8px rgba(185, 28, 28, 0.4);
+}
+
+.admin-user-btn.ban:hover {
+    background: linear-gradient(135deg, #dc2626, #ef4444) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.6);
+}
