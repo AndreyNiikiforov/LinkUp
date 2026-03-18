@@ -2,505 +2,181 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LinkUp — мессенджер будущего</title>
-    
-    <!-- Font Awesome для иконок -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Наши стили -->
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="css/animations.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkUp</title>
+    <link rel="stylesheet" href="стиль.css">
 </head>
 <body>
     <!-- Экран авторизации -->
     <div id="authScreen" class="auth-screen">
         <div class="auth-container">
-            <div class="auth-logo">
-                <i class="fab fa-telegram-plane"></i>
-                <h1>LinkUp</h1>
-            </div>
+            <h1>LinkUp</h1>
             
             <!-- Форма входа -->
-            <div id="loginForm" class="auth-form">
-                <h2>Вход</h2>
-                <div class="input-group">
-                    <i class="fas fa-phone"></i>
-                    <input type="tel" id="loginPhone" placeholder="Номер телефона" value="+7">
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="loginPassword" placeholder="Пароль">
-                </div>
-                <button id="loginButton" class="auth-button">
-                    <span>Войти</span>
-                    <i class="fas fa-arrow-right"></i>
-                </button>
-                <button id="showRegisterButton" class="auth-link">
-                    Нет аккаунта? Зарегистрироваться
-                </button>
+            <div id="loginForm">
+                <input type="text" id="loginPhone" placeholder="+7" value="+7">
+                <input type="password" id="loginPassword" placeholder="Пароль">
+                <button id="loginButton">Войти</button>
+                <button id="showRegisterButton">Нет аккаунта? Зарегистрироваться</button>
             </div>
             
             <!-- Форма регистрации -->
-            <div id="registerForm" class="auth-form" style="display: none;">
-                <h2>Регистрация</h2>
-                <div class="input-group">
-                    <i class="fas fa-phone"></i>
-                    <input type="tel" id="registerPhone" placeholder="Номер телефона" value="+7">
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="registerUsername" placeholder="Username (только латиница)">
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="registerPassword" placeholder="Пароль">
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="registerPasswordConfirm" placeholder="Подтвердите пароль">
-                </div>
-                <div class="terms-checkbox">
+            <div id="registerForm" style="display:none;">
+                <input type="text" id="registerPhone" placeholder="+7" value="+7">
+                <input type="text" id="registerUsername" placeholder="Username">
+                <input type="password" id="registerPassword" placeholder="Пароль">
+                <input type="password" id="registerPasswordConfirm" placeholder="Подтвердите пароль">
+                <div>
                     <input type="checkbox" id="termsCheckbox">
-                    <label for="termsCheckbox">Я принимаю <a href="terms.html" target="_blank">условия использования</a> и <a href="privacy.html" target="_blank">политику конфиденциальности</a></label>
+                    <label>Я принимаю <a href="terms.html" target="_blank">условия</a></label>
                 </div>
-                <button id="registerButton" class="auth-button">
-                    <span>Зарегистрироваться</span>
-                    <i class="fas fa-user-plus"></i>
-                </button>
-                <button id="backToLoginButton" class="auth-link">
-                    Уже есть аккаунт? Войти
-                </button>
+                <button id="registerButton">Зарегистрироваться</button>
+                <button id="backToLoginButton">Уже есть аккаунт? Войти</button>
             </div>
             
-            <div id="authMessage" class="auth-message"></div>
+            <div id="authMessage"></div>
         </div>
     </div>
 
     <!-- Основное приложение -->
-    <div id="app" class="app" style="display: none;">
+    <div id="app" style="display:none;">
         <!-- Боковая панель -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <div class="user-info" id="userProfile">
-                    <div class="user-avatar">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div class="user-details">
-                        <div class="user-name" id="currentUserName">Загрузка...</div>
-                        <div class="user-username" id="currentUserUsername"></div>
-                    </div>
+                <div>
+                    <span id="currentUserName"></span>
+                    <span id="currentUserUsername"></span>
                 </div>
-                <div class="header-actions">
-                    <button class="icon-btn" id="adminButton" style="display: none;" title="Админ панель">
-                        <i class="fas fa-crown"></i>
-                    </button>
-                    <button class="icon-btn" id="profileBtn" title="Профиль">
-                        <i class="fas fa-cog"></i>
-                    </button>
-                    <button class="icon-btn" id="logoutBtn" title="Выйти">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>
-                </div>
+                <button id="logoutBtn">Выйти</button>
             </div>
             
             <!-- Поиск -->
-            <div class="search-container">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" id="searchInput" placeholder="Поиск по номеру или username">
-                <button id="searchButton" class="search-btn">
-                    <i class="fas fa-arrow-right"></i>
-                </button>
-            </div>
+            <input type="text" id="searchInput" placeholder="Поиск...">
+            <button id="searchButton">Найти</button>
             
             <!-- Результаты поиска -->
-            <div id="searchResults" class="search-results" style="display: none;">
-                <div class="search-results-header">
-                    <span>Результаты поиска</span>
-                    <button id="closeSearch" class="close-btn"><i class="fas fa-times"></i></button>
-                </div>
-                <div id="searchResultsList" class="search-results-list"></div>
+            <div id="searchResults" style="display:none;">
+                <div id="searchResultsList"></div>
+                <button id="closeSearch">Закрыть</button>
             </div>
             
-            <!-- Вкладки Чаты / Группы -->
-            <div class="tabs">
-                <button id="chatsTabBtn" class="tab active">
-                    <i class="fas fa-comment"></i>
-                    <span>Чаты</span>
-                </button>
-                <button id="groupsTabBtn" class="tab">
-                    <i class="fas fa-users"></i>
-                    <span>Группы</span>
-                </button>
-                <button id="createGroupBtn" class="create-group-btn" title="Создать группу">
-                    <i class="fas fa-plus"></i>
-                </button>
+            <!-- Вкладки -->
+            <div>
+                <button id="chatsTabBtn" class="active">Чаты</button>
+                <button id="groupsTabBtn">Группы</button>
+                <button id="createGroupBtn">+</button>
             </div>
             
-            <!-- Список чатов -->
-            <div id="chatsList" class="chats-list"></div>
-            
-            <!-- Список групп -->
-            <div id="groupsList" class="chats-list" style="display: none;"></div>
+            <!-- Списки -->
+            <div id="chatsList"></div>
+            <div id="groupsList" style="display:none;"></div>
         </div>
-        
-        <!-- Основной контент (чат) -->
+
+        <!-- Основной контент -->
         <div class="main-content">
-            <!-- Приветственный экран -->
-            <div id="welcomeScreen" class="welcome-screen">
-                <i class="fas fa-comment-dots"></i>
+            <!-- Приветствие -->
+            <div id="welcomeScreen">
                 <h2>Выберите чат</h2>
-                <p>Начните общение с друзьями</p>
             </div>
-            
+
             <!-- Окно чата -->
-            <div id="chatWindow" class="chat-window" style="display: none;">
+            <div id="chatWindow" style="display:none;">
                 <!-- Шапка чата -->
                 <div class="chat-header">
-                    <div class="chat-user-info">
-                        <div class="chat-avatar">
-                            <i class="fas fa-user-circle"></i>
-                        </div>
-                        <div class="chat-user-details">
-                            <div class="chat-user-name" id="currentChatName">Загрузка...</div>
-                            <div class="chat-user-username" id="currentChatUsername"></div>
-                            <div class="chat-user-phone" id="currentChatPhone"></div>
-                        </div>
-                        <span id="chatOwnerBadge" class="owner-badge" style="display: none;">👑</span>
+                    <div>
+                        <span id="currentChatName"></span>
+                        <span id="currentChatUsername"></span>
+                        <span id="currentChatPhone"></span>
+                        <span id="chatOwnerBadge" style="display:none;">👑</span>
                     </div>
-                    <div class="chat-actions">
-                        <button class="icon-btn" id="audioCallBtn" title="Аудиозвонок" disabled>
-                            <i class="fas fa-phone"></i>
-                        </button>
-                        <button class="icon-btn" id="videoCallBtn" title="Видеозвонок" disabled>
-                            <i class="fas fa-video"></i>
-                        </button>
-                        <button class="icon-btn" id="chatMenuBtn" title="Меню чата">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </button>
+                    <div>
+                        <button id="audioCallBtn" title="Аудиозвонок">📞</button>
+                        <button id="videoCallBtn" title="Видеозвонок">📹</button>
+                        <button id="voiceMsgBtn" title="Голосовое">🎤</button>
+                        <button id="videoCircleBtn" title="Кружочек">⭕</button>
+                        <button id="chatMenuBtn">⋮</button>
                     </div>
                 </div>
-                
+
                 <!-- Закрепленные сообщения -->
-                <div id="pinnedMessages" class="pinned-messages" style="display: none;">
-                    <i class="fas fa-thumbtack"></i>
-                    <span>1 закрепленное сообщение</span>
-                </div>
+                <div id="pinnedMessages" style="display:none;"></div>
                 
                 <!-- Область сообщений -->
-                <div id="messagesArea" class="messages-area"></div>
-                
+                <div id="messagesArea"></div>
+
                 <!-- Панель ввода -->
-                <div class="input-panel">
-                    <div class="input-actions">
-                        <button class="icon-btn" id="attachBtn" title="Прикрепить файл">
-                            <i class="fas fa-paperclip"></i>
-                        </button>
-                        <button class="icon-btn" id="emojiBtn" title="Эмодзи">
-                            <i class="fas fa-smile"></i>
-                        </button>
-                        <button class="icon-btn" id="voiceMsgBtn" title="Голосовое сообщение" disabled>
-                            <i class="fas fa-microphone"></i>
-                        </button>
-                        <button class="icon-btn" id="videoCircleBtn" title="Кружочек" disabled>
-                            <i class="fas fa-circle"></i>
-                        </button>
-                    </div>
-                    <div class="input-wrapper">
-                        <input type="text" id="messageInput" placeholder="Сообщение...">
-                        <button id="sendButton" class="send-btn">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
+                <div>
+                    <input type="text" id="messageInput" placeholder="Сообщение...">
+                    <button id="sendButton">→</button>
+                    <button id="emojiBtn">😊</button>
                 </div>
                 
                 <!-- Панель эмодзи -->
-                <div id="emojiPanel" class="emoji-panel" style="display: none;">
-                    <div class="emoji-grid">
-                        <span>😊</span><span>😂</span><span>❤️</span><span>👍</span><span>😢</span>
-                        <span>😡</span><span>🎉</span><span>🔥</span><span>✨</span><span>⭐</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модалка профиля -->
-    <div id="profileModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Настройки профиля</h2>
-                <button class="close-btn" id="closeProfileModal"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="profile-tabs">
-                <button class="profile-tab active" data-tab="main">Основное</button>
-                <button class="profile-tab" data-tab="privacy">Приватность</button>
-                <button class="profile-tab" data-tab="devices">Устройства</button>
-                <button class="profile-tab" id="ownerTab" data-tab="owner" style="display: none;">Владелец</button>
-            </div>
-            <div class="profile-tab-content active" id="mainTab">
-                <div class="avatar-upload">
-                    <img id="profileAvatar" src="https://via.placeholder.com/100" alt="Avatar">
-                    <button class="upload-btn"><i class="fas fa-camera"></i></button>
-                </div>
-                <div class="input-group">
-                    <label>Отображаемое имя</label>
-                    <input type="text" id="profileDisplayName" placeholder="Как вас зовут?">
-                </div>
-                <div class="input-group">
-                    <label>Username</label>
-                    <input type="text" id="profileUsername" placeholder="@username">
-                </div>
-                <div class="input-group">
-                    <label>Телефон</label>
-                    <input type="text" id="profilePhone" readonly>
-                </div>
-                <div class="premium-settings">
-                    <h3>Премиум</h3>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="animatedNick"> Анимированный никнейм
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="animatedReactions"> Анимированные реакции
-                    </label>
-                </div>
-                <button id="saveProfileBtn" class="save-btn">Сохранить</button>
-            </div>
-            <div class="profile-tab-content" id="privacyTab">
-                <h3>Кто видит мой номер</h3>
-                <div class="radio-group">
-                    <label><input type="radio" name="showPhone" value="everyone" checked> Все</label>
-                    <label><input type="radio" name="showPhone" value="contacts"> Мои контакты</label>
-                    <label><input type="radio" name="showPhone" value="nobody"> Никто</label>
-                </div>
-                <h3>Кто может писать</h3>
-                <div class="radio-group">
-                    <label><input type="radio" name="whoCanWrite" value="everyone" checked> Все</label>
-                    <label><input type="radio" name="whoCanWrite" value="contacts"> Мои контакты</label>
-                    <label><input type="radio" name="whoCanWrite" value="nobody"> Никто</label>
-                </div>
-                <h3>Последняя активность</h3>
-                <div class="radio-group">
-                    <label><input type="radio" name="lastSeen" value="everyone" checked> Все</label>
-                    <label><input type="radio" name="lastSeen" value="contacts"> Мои контакты</label>
-                    <label><input type="radio" name="lastSeen" value="nobody"> Никто</label>
-                </div>
-                <button id="savePrivacyBtn" class="save-btn">Сохранить</button>
-            </div>
-            <div class="profile-tab-content" id="devicesTab">
-                <div id="devicesList" class="devices-list"></div>
-                <button id="terminateAllSessions" class="danger-btn">Завершить все сессии</button>
-            </div>
-            <div class="profile-tab-content" id="ownerTab">
-                <h3>Настройки владельца</h3>
-                <label class="checkbox-label">
-                    <input type="checkbox" id="showOwnerBadge" checked> Показывать статус владельца
-                </label>
-                <div class="input-group">
-                    <label>Анимированный статус</label>
-                    <input type="text" id="animatedStatus" placeholder="👑 CREATOR">
-                </div>
-                <div id="statusPreview" class="status-preview"></div>
+                <div id="emojiPanel" style="display:none;"></div>
             </div>
         </div>
     </div>
 
     <!-- Модалка звонка -->
-    <div id="callModal" class="modal" style="display: none;">
-        <div class="modal-content call-modal">
-            <div class="call-header">
-                <img id="callAvatar" src="https://via.placeholder.com/80" alt="Avatar">
-                <h2 id="callName">Загрузка...</h2>
-                <p id="callStatus">Вызов...</p>
-                <div id="callTimer" class="call-timer">00:00</div>
+    <div id="callModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:1000;">
+        <div style="padding:20px; color:white;">
+            <h2 id="callName"></h2>
+            <p id="callStatus"></p>
+            <p id="callTimer">00:00</p>
+            <div id="callVideoContainer" style="display:none;">
+                <video id="remoteVideo" autoplay style="width:100%;"></video>
+                <video id="localVideo" autoplay muted style="width:100px; position:absolute; bottom:10px; right:10px;"></video>
             </div>
-            <div id="callVideoContainer" class="video-container" style="display: none;">
-                <video id="remoteVideo" autoplay playsinline></video>
-                <video id="localVideo" autoplay playsinline muted></video>
-            </div>
-            <div class="call-controls">
-                <button id="muteAudioBtn" class="call-btn"><i class="fas fa-microphone"></i></button>
-                <button id="toggleVideoBtn" class="call-btn"><i class="fas fa-video"></i></button>
-                <button id="speakerBtn" class="call-btn"><i class="fas fa-volume-up"></i></button>
-                <button id="endCallBtn" class="call-btn end-call"><i class="fas fa-phone-slash"></i></button>
+            <div>
+                <button id="muteAudioBtn">🔊</button>
+                <button id="toggleVideoBtn">📹</button>
+                <button id="endCallBtn">❌ Завершить</button>
             </div>
         </div>
     </div>
 
     <!-- Модалка входящего звонка -->
-    <div id="incomingCallModal" class="modal" style="display: none;">
-        <div class="modal-content incoming-call">
-            <div class="incoming-call-header">
-                <img id="incomingCallAvatar" src="https://via.placeholder.com/100" alt="Avatar">
-                <h2 id="incomingCallName">Загрузка...</h2>
-                <p id="incomingCallType">Аудиозвонок</p>
-            </div>
-            <div class="incoming-call-actions">
-                <button id="declineCallBtn" class="call-btn decline-call">
-                    <i class="fas fa-phone-slash"></i>
-                    <span>Отклонить</span>
-                </button>
-                <button id="acceptCallBtn" class="call-btn accept-call">
-                    <i class="fas fa-phone"></i>
-                    <span>Принять</span>
-                </button>
-            </div>
+    <div id="incomingCallModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:1000;">
+        <div style="padding:20px; color:white;">
+            <h2 id="incomingCallName"></h2>
+            <p id="incomingCallType"></p>
+            <button id="acceptCallBtn">✅ Принять</button>
+            <button id="declineCallBtn">❌ Отклонить</button>
         </div>
     </div>
 
-    <!-- Модалка голосового сообщения -->
-    <div id="voiceRecorderModal" class="modal" style="display: none;">
-        <div class="modal-content recorder-modal">
-            <div class="modal-header">
-                <h2>Голосовое сообщение</h2>
-                <button class="close-btn" id="closeVoiceRecorder"><i class="fas fa-times"></i></button>
-            </div>
-            <div id="voiceRecorderContent" class="recorder-content">
-                <div class="recorder-timer" id="voiceTimer">0:00</div>
-                <div class="recorder-controls">
-                    <button id="playRecordingBtn" class="recorder-btn"><i class="fas fa-play"></i></button>
-                    <button id="stopRecordingBtn" class="recorder-btn"><i class="fas fa-stop"></i></button>
-                    <button id="sendRecordingBtn" class="recorder-btn send"><i class="fas fa-paper-plane"></i></button>
-                    <button id="cancelRecordingBtn" class="recorder-btn cancel"><i class="fas fa-times"></i></button>
-                </div>
-            </div>
+    <!-- Голосовые сообщения -->
+    <div id="voiceRecorderModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:1000;">
+        <div style="padding:20px; color:white;">
+            <h3>Голосовое сообщение</h3>
+            <div id="voiceTimer">0:00</div>
+            <button id="sendRecordingBtn">📤 Отправить</button>
+            <button id="cancelRecordingBtn">❌ Отмена</button>
         </div>
     </div>
 
-    <!-- Модалка кружочка -->
-    <div id="videoCircleModal" class="modal" style="display: none;">
-        <div class="modal-content circle-modal">
-            <div class="modal-header">
-                <h2>Кружочек</h2>
-                <button class="close-btn" id="closeVideoCircle"><i class="fas fa-times"></i></button>
-            </div>
-            <div id="videoCircleContent" class="circle-content">
-                <video id="circleVideo" autoplay playsinline muted></video>
-                <div class="circle-timer" id="circleTimer">0:00</div>
-                <div class="circle-controls">
-                    <button id="startCircleBtn" class="circle-btn record"><i class="fas fa-circle"></i></button>
-                    <button id="stopCircleBtn" class="circle-btn stop" style="display: none;"><i class="fas fa-stop"></i></button>
-                    <button id="playCircleBtn" class="circle-btn"><i class="fas fa-play"></i></button>
-                    <button id="sendCircleBtn" class="circle-btn send"><i class="fas fa-paper-plane"></i></button>
-                    <button id="cancelCircleBtn" class="circle-btn cancel"><i class="fas fa-times"></i></button>
-                </div>
-            </div>
+    <!-- Кружочки -->
+    <div id="videoCircleModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:1000;">
+        <div style="padding:20px; color:white;">
+            <h3>Кружочек</h3>
+            <video id="circleVideo" autoplay muted style="width:100%; border-radius:50%;"></video>
+            <div id="circleTimer">0:00</div>
+            <button id="sendCircleBtn">📤 Отправить</button>
+            <button id="cancelCircleBtn">❌ Отмена</button>
         </div>
     </div>
 
     <!-- Индикатор записи -->
-    <div id="recordingIndicator" class="recording-indicator" style="display: none;">
+    <div id="recordingIndicator" style="display:none; position:fixed; top:10px; left:50%; transform:translateX(-50%); background:red; color:white; padding:10px; border-radius:20px; z-index:2000;">
         <span id="recordingIcon">🎤</span>
         <span id="recordingTimer">0:00</span>
-        <button id="stopRecordingBtn2" class="stop-recording-btn">
-            <i class="fas fa-stop"></i>
-        </button>
+        <button id="stopRecordingBtn2">⏹️</button>
     </div>
 
-    <!-- Меню сообщения -->
-    <div id="messageMenu" class="context-menu" style="display: none;">
-        <button id="deleteMessageBtn"><i class="fas fa-trash"></i> Удалить</button>
-        <button id="pinMessageBtn"><i class="fas fa-thumbtack"></i> Закрепить</button>
-    </div>
-
-    <!-- Меню чата -->
-    <div id="chatMenuModal" class="modal" style="display: none;">
-        <div class="modal-content menu-modal">
-            <button id="clearHistoryBtn"><i class="fas fa-trash-alt"></i> Очистить историю</button>
-        </div>
-    </div>
-
-    <!-- Админ панель -->
-    <div id="adminModal" class="modal" style="display: none;">
-        <div class="modal-content admin-modal">
-            <div class="modal-header">
-                <h2>Админ панель</h2>
-                <button class="close-btn" id="closeAdmin"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="admin-tabs">
-                <button class="admin-tab active" data-tab="users">Пользователи</button>
-                <button class="admin-tab" data-tab="admins">Администраторы</button>
-                <button class="admin-tab" data-tab="reports">Жалобы</button>
-            </div>
-            <div class="admin-tab-content active" id="usersTab">
-                <input type="text" id="adminUserSearch" placeholder="Поиск пользователя...">
-                <div id="adminUsersList" class="admin-list"></div>
-            </div>
-            <div class="admin-tab-content" id="adminsTab">
-                <div class="add-admin">
-                    <input type="text" id="newAdminPhone" placeholder="+7...">
-                    <button id="addAdminBtn">Добавить</button>
-                </div>
-                <div id="adminsList" class="admin-list"></div>
-            </div>
-            <div class="admin-tab-content" id="reportsTab">
-                <div id="reportsList" class="admin-list"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модалка рангов -->
-    <div id="rankModal" class="modal" style="display: none;">
-        <div class="modal-content rank-modal">
-            <div class="modal-header">
-                <h2>Назначить ранг</h2>
-                <button class="close-btn" id="closeRankModal"><i class="fas fa-times"></i></button>
-            </div>
-            <p id="rankUserPhone"></p>
-            <div class="rank-options">
-                <div class="rank-option" data-rank="1">
-                    <span class="rank-color" style="background: #cd7f32;"></span>
-                    <div class="rank-info">
-                        <strong>Младший модератор</strong>
-                        <small>Мут, варны, предупреждения</small>
-                    </div>
-                </div>
-                <div class="rank-option" data-rank="2">
-                    <span class="rank-color" style="background: #c0c0c0;"></span>
-                    <div class="rank-info">
-                        <strong>Старший модератор</strong>
-                        <small>Кик, чистка чата, мут</small>
-                    </div>
-                </div>
-                <div class="rank-option" data-rank="3">
-                    <span class="rank-color" style="background: #ffd700;"></span>
-                    <div class="rank-info">
-                        <strong>Младший администратор</strong>
-                        <small>Настройки чата, фильтры</small>
-                    </div>
-                </div>
-                <div class="rank-option" data-rank="4">
-                    <span class="rank-color" style="background: #00bfff;"></span>
-                    <div class="rank-info">
-                        <strong>Старший администратор</strong>
-                        <small>Назначение модераторов</small>
-                    </div>
-                </div>
-                <div class="rank-option" data-rank="5">
-                    <span class="rank-color" style="background: #ff1493;"></span>
-                    <div class="rank-info">
-                        <strong>Заместитель владельца</strong>
-                        <small>Все функции, кроме удаления владельца</small>
-                    </div>
-                </div>
-            </div>
-            <div class="rank-actions">
-                <button id="confirmRankBtn" class="save-btn">Назначить</button>
-                <button id="cancelRankBtn" class="cancel-btn">Отмена</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Подключение Supabase -->
+    <!-- Подключение скриптов -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Наши скрипты -->
-    <script src="js/calls.js"></script>
-    <script src="js/voice.js"></script>
-    <script src="js/premium.js"></script>
-    <script src="js/script.js"></script>
+    <script src="script.js"></script>
+    <script src="calls.js"></script>
+    <script src="voice.js"></script>
 </body>
 </html>
