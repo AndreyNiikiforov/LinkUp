@@ -882,12 +882,6 @@ async function loadMessages(chatPhone) {
         messagesArea.scrollTop = messagesArea.scrollHeight;
         
     } catch (e) {
-        console.error('Ошибка загрузки сообщений:', e);
-    }
-}
-
-// Заглушки для функций
-function loadGroups() {}
 function loadPinnedMessages() {}
 // ==================== ДОПОЛНЕНИЕ ДЛЯ ЗВОНКОВ ====================
 
