@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LinkUp | Мессенджер</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="dark-theme">
     <!-- ЭКРАН ВХОДА -->
@@ -71,35 +72,41 @@
         <!-- Левая панель -->
         <div class="sidebar">
             <div class="user-profile" id="userProfile" style="cursor: pointer;">
-                <div class="avatar" id="currentUserAvatar">👤</div>
+                <div class="avatar" id="currentUserAvatar">
+                    <img src="" alt="" id="avatarImg" style="display: none;">
+                    <span id="avatarEmoji">👤</span>
+                </div>
                 <div class="user-info">
-                    <span class="user-name" id="currentUserName">Загрузка...</span>
+                    <div class="user-name-container">
+                        <span class="user-name" id="currentUserName">Загрузка...</span>
+                        <span class="owner-badge" id="ownerBadge" style="display: none;">👑</span>
+                    </div>
                     <span class="user-phone" id="currentUserPhone"></span>
                     <span class="user-username" id="currentUserUsername"></span>
                 </div>
-                <div class="profile-edit-icon">⚙️</div>
+                <div class="profile-edit-icon"><i class="fas fa-cog"></i></div>
             </div>
 
             <!-- КНОПКА ВЫХОДА -->
-            <button class="logout-btn" id="logoutBtn">🚪 Выйти</button>
+            <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
 
             <div class="search-container">
                 <input type="text" class="search-input" id="searchInput" placeholder="Поиск по номеру или username...">
-                <button class="search-button" id="searchButton">🔍</button>
+                <button class="search-button" id="searchButton"><i class="fas fa-search"></i></button>
             </div>
 
             <div class="search-results" id="searchResults" style="display: none;">
                 <div class="search-results-header">
                     <span>Результаты поиска</span>
-                    <button class="close-search" id="closeSearch">✕</button>
+                    <button class="close-search" id="closeSearch"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="search-results-list" id="searchResultsList"></div>
             </div>
 
             <!-- Вкладки: Чаты / Группы -->
             <div class="chat-tabs">
-                <button class="chat-tab active" id="chatsTabBtn">💬 Чаты</button>
-                <button class="chat-tab" id="groupsTabBtn">👥 Группы</button>
+                <button class="chat-tab active" id="chatsTabBtn"><i class="fas fa-comment"></i> Чаты</button>
+                <button class="chat-tab" id="groupsTabBtn"><i class="fas fa-users"></i> Группы</button>
             </div>
 
             <!-- Список чатов -->
@@ -109,21 +116,27 @@
             <div class="groups-list" id="groupsList" style="display: none;"></div>
 
             <!-- Кнопка создания группы -->
-            <button class="create-group-btn" id="createGroupBtn">➕ Создать группу</button>
+            <button class="create-group-btn" id="createGroupBtn"><i class="fas fa-plus-circle"></i> Создать группу</button>
+
+            <!-- Кнопка админ-панели -->
+            <button class="admin-button" id="adminButton" style="display: none;"><i class="fas fa-crown"></i> Админ-панель</button>
         </div>
 
         <!-- Правая панель -->
         <div class="chat-window" id="chatWindow" style="display: none;">
             <div class="chat-header" id="currentChat">
                 <div class="chat-header-info">
-                    <span class="chat-header-name" id="currentChatName">Выберите чат</span>
+                    <div class="chat-name-container">
+                        <span class="chat-header-name" id="currentChatName">Выберите чат</span>
+                        <span class="owner-badge-small" id="chatOwnerBadge" style="display: none;">👑</span>
+                    </div>
                     <span class="chat-header-phone" id="currentChatPhone"></span>
                     <span class="chat-header-username" id="currentChatUsername"></span>
                 </div>
                 <div class="chat-header-actions">
-                    <button class="call-btn audio-call" id="audioCallBtn" title="Аудиозвонок">📞</button>
-                    <button class="call-btn video-call" id="videoCallBtn" title="Видеозвонок">📹</button>
-                    <div class="chat-header-menu" id="chatMenuBtn">⋮</div>
+                    <button class="call-btn audio-call" id="audioCallBtn" title="Аудиозвонок"><i class="fas fa-phone"></i></button>
+                    <button class="call-btn video-call" id="videoCallBtn" title="Видеозвонок"><i class="fas fa-video"></i></button>
+                    <div class="chat-header-menu" id="chatMenuBtn"><i class="fas fa-ellipsis-v"></i></div>
                 </div>
             </div>
             
@@ -133,12 +146,12 @@
             <div class="messages-area" id="messagesArea"></div>
             
             <div class="message-input-area">
-                <button class="attach-btn" id="attachBtn">📎</button>
+                <button class="attach-btn" id="attachBtn"><i class="fas fa-paperclip"></i></button>
                 <input type="text" class="message-input" placeholder="Написать сообщение..." id="messageInput">
-                <button class="emoji-button" id="emojiBtn">😊</button>
-                <button class="voice-msg-btn" id="voiceMsgBtn" title="Голосовое сообщение">🎤</button>
-                <button class="video-circle-btn" id="videoCircleBtn" title="Кружочек">⭕</button>
-                <button class="send-button" id="sendButton">➤</button>
+                <button class="emoji-button" id="emojiBtn"><i class="far fa-smile"></i></button>
+                <button class="voice-msg-btn" id="voiceMsgBtn" title="Голосовое сообщение"><i class="fas fa-microphone"></i></button>
+                <button class="video-circle-btn" id="videoCircleBtn" title="Кружочек"><i class="fas fa-circle"></i></button>
+                <button class="send-button" id="sendButton"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
 
@@ -150,10 +163,208 @@
         </div>
     </div>
 
+    <!-- МОДАЛКА НАСТРОЕК ПРОФИЛЯ -->
+    <div class="profile-modal" id="profileModal" style="display: none;">
+        <div class="profile-modal-content">
+            <div class="profile-modal-header">
+                <h2><i class="fas fa-cog"></i> Настройки профиля</h2>
+                <button class="close-profile" id="closeProfileModal"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="profile-tabs">
+                <button class="profile-tab active" data-profile-tab="general"><i class="fas fa-user"></i> Основное</button>
+                <button class="profile-tab" data-profile-tab="privacy"><i class="fas fa-lock"></i> Приватность</button>
+                <button class="profile-tab" data-profile-tab="devices"><i class="fas fa-mobile-alt"></i> Устройства</button>
+                <button class="profile-tab" data-profile-tab="owner" id="ownerTab" style="display: none;"><i class="fas fa-crown"></i> Владелец</button>
+            </div>
+            
+            <!-- Вкладка Основное -->
+            <div class="profile-tab-content active" id="profileGeneralTab">
+                <div class="avatar-upload">
+                    <div class="current-avatar" id="profileAvatar">
+                        <img src="" alt="" id="profileAvatarImg" style="display: none;">
+                        <span id="profileAvatarEmoji">👤</span>
+                    </div>
+                    <button class="change-avatar-btn" id="changeAvatarBtn"><i class="fas fa-camera"></i> Изменить аватар</button>
+                </div>
+                <div class="profile-field">
+                    <label><i class="fas fa-tag"></i> Отображаемое имя:</label>
+                    <input type="text" id="profileDisplayName" placeholder="Как вас видят">
+                </div>
+                <div class="profile-field">
+                    <label><i class="fas fa-at"></i> Username:</label>
+                    <input type="text" id="profileUsername" placeholder="a-z, 0-9, _" maxlength="20">
+                    <div class="field-hint">Только англ. буквы, цифры и _</div>
+                </div>
+                <div class="profile-field">
+                    <label><i class="fas fa-phone"></i> Номер телефона:</label>
+                    <input type="text" id="profilePhone" readonly disabled>
+                </div>
+                <button class="save-profile-btn" id="saveProfileBtn"><i class="fas fa-save"></i> Сохранить</button>
+            </div>
+            
+            <!-- Вкладка Приватность -->
+            <div class="profile-tab-content" id="profilePrivacyTab">
+                <h3>Кто видит мой номер</h3>
+                <div class="privacy-option">
+                    <label>
+                        <input type="radio" name="showPhone" value="everyone"> Все
+                    </label>
+                    <label>
+                        <input type="radio" name="showPhone" value="contacts"> Мои контакты
+                    </label>
+                    <label>
+                        <input type="radio" name="showPhone" value="nobody"> Никто
+                    </label>
+                </div>
+                
+                <h3>Кто может писать мне</h3>
+                <div class="privacy-option">
+                    <label>
+                        <input type="radio" name="whoCanWrite" value="everyone"> Все
+                    </label>
+                    <label>
+                        <input type="radio" name="whoCanWrite" value="contacts"> Только контакты
+                    </label>
+                </div>
+                
+                <h3>Кто видит мой последний визит</h3>
+                <div class="privacy-option">
+                    <label>
+                        <input type="radio" name="lastSeen" value="everyone"> Все
+                    </label>
+                    <label>
+                        <input type="radio" name="lastSeen" value="contacts"> Мои контакты
+                    </label>
+                    <label>
+                        <input type="radio" name="lastSeen" value="nobody"> Никто
+                    </label>
+                </div>
+                
+                <button class="save-privacy-btn" id="savePrivacyBtn"><i class="fas fa-save"></i> Сохранить настройки</button>
+            </div>
+            
+            <!-- Вкладка Устройства -->
+            <div class="profile-tab-content" id="profileDevicesTab">
+                <div class="devices-list" id="devicesList">
+                    <p class="no-data">Загрузка устройств...</p>
+                </div>
+                <button class="danger-btn" id="terminateAllSessions"><i class="fas fa-sign-out-alt"></i> Выйти со всех устройств</button>
+            </div>
+
+            <!-- Вкладка Владелец -->
+            <div class="profile-tab-content" id="profileOwnerTab">
+                <h3><i class="fas fa-crown"></i> Статус владельца</h3>
+                <div class="owner-option">
+                    <label class="switch">
+                        <input type="checkbox" id="showOwnerBadge" checked>
+                        <span class="slider"></span>
+                    </label>
+                    <span>Показывать значок 👑 рядом с ником</span>
+                </div>
+                <p class="owner-hint">Когда значок включён, все видят, что ты владелец LinkUp</p>
+                
+                <h3 style="margin-top: 30px;"><i class="fas fa-gem"></i> Купленные эффекты</h3>
+                <div class="effects-list" id="ownerEffectsList">
+                    <div class="effect-item">
+                        <span class="effect-name">👑 Корона владельца</span>
+                        <span class="effect-status active">Активно</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА АДМИН-ПАНЕЛИ -->
+    <div class="admin-modal" id="adminModal" style="display: none;">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h2><i class="fas fa-crown"></i> Админ-панель</h2>
+                <button class="close-admin" id="closeAdmin"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="admin-tabs">
+                <button class="admin-tab active" data-tab="users"><i class="fas fa-users"></i> Пользователи</button>
+                <button class="admin-tab" data-tab="admins" id="adminsTab"><i class="fas fa-crown"></i> Админы</button>
+            </div>
+            
+            <!-- Вкладка Пользователи -->
+            <div class="admin-tab-content active" id="adminUsers">
+                <div class="admin-search">
+                    <input type="text" id="adminUserSearch" placeholder="🔍 Поиск пользователя...">
+                </div>
+                <div class="admin-users-list" id="adminUsersList"></div>
+            </div>
+            
+            <!-- Вкладка Админы -->
+            <div class="admin-tab-content" id="adminAdmins">
+                <div class="admins-list" id="adminsList"></div>
+                <div class="add-admin">
+                    <input type="text" id="newAdminPhone" placeholder="📱 Номер нового админа">
+                    <button class="admin-action" id="addAdminBtn"><i class="fas fa-plus"></i> Назначить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА РАНГОВ -->
+    <div class="rank-modal" id="rankModal" style="display: none;">
+        <div class="rank-modal-content">
+            <div class="rank-modal-header">
+                <h2><i class="fas fa-crown"></i> Выберите ранг</h2>
+                <button class="close-rank" id="closeRankModal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="rank-modal-body">
+                <p id="rankUserPhone" class="rank-user-phone"></p>
+                <div class="rank-options">
+                    <div class="rank-option" data-rank="1">
+                        <div class="rank-badge rank-1">1</div>
+                        <div class="rank-info">
+                            <span class="rank-name">Младший модератор</span>
+                            <span class="rank-desc">Мут, варны, предупреждения</span>
+                        </div>
+                    </div>
+                    <div class="rank-option" data-rank="2">
+                        <div class="rank-badge rank-2">2</div>
+                        <div class="rank-info">
+                            <span class="rank-name">Старший модератор</span>
+                            <span class="rank-desc">Кик, чистка чата</span>
+                        </div>
+                    </div>
+                    <div class="rank-option" data-rank="3">
+                        <div class="rank-badge rank-3">3</div>
+                        <div class="rank-info">
+                            <span class="rank-name">Младший администратор</span>
+                            <span class="rank-desc">Настройки чата, фильтры</span>
+                        </div>
+                    </div>
+                    <div class="rank-option" data-rank="4">
+                        <div class="rank-badge rank-4">4</div>
+                        <div class="rank-info">
+                            <span class="rank-name">Старший администратор</span>
+                            <span class="rank-desc">Назначение модераторов</span>
+                        </div>
+                    </div>
+                    <div class="rank-option" data-rank="5">
+                        <div class="rank-badge rank-5">5</div>
+                        <div class="rank-info">
+                            <span class="rank-name">Заместитель владельца</span>
+                            <span class="rank-desc">Все функции, кроме удаления владельца</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="rank-modal-actions">
+                    <button class="auth-button" id="confirmRankBtn"><i class="fas fa-check"></i> Назначить</button>
+                    <button class="auth-button secondary" id="cancelRankBtn"><i class="fas fa-times"></i> Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- МЕНЮ СООБЩЕНИЯ -->
     <div class="message-menu" id="messageMenu" style="display: none;">
-        <button id="deleteMessageBtn">🗑️ Удалить</button>
-        <button id="pinMessageBtn">📌 Закрепить</button>
+        <button id="deleteMessageBtn"><i class="fas fa-trash"></i> Удалить</button>
+        <button id="pinMessageBtn"><i class="fas fa-thumbtack"></i> Закрепить</button>
     </div>
 
     <!-- ПАНЕЛЬ ЭМОДЗИ -->
@@ -164,17 +375,23 @@
         <button onclick="insertEmoji('👍')">👍</button>
         <button onclick="insertEmoji('🔥')">🔥</button>
         <button onclick="insertEmoji('🎉')">🎉</button>
+        <button onclick="insertEmoji('😢')">😢</button>
+        <button onclick="insertEmoji('😎')">😎</button>
+        <button onclick="insertEmoji('🤔')">🤔</button>
+        <button onclick="insertEmoji('👋')">👋</button>
+        <button onclick="insertEmoji('✅')">✅</button>
+        <button onclick="insertEmoji('❌')">❌</button>
     </div>
 
     <!-- МЕНЮ ЧАТА (ТРИ ТОЧКИ) -->
     <div class="chat-menu-modal" id="chatMenuModal" style="display: none;">
         <div class="chat-menu-content">
             <div class="chat-menu-header">
-                <h2>⋮ Действия с чатом</h2>
-                <button class="close-chat-menu" id="closeChatMenu">✕</button>
+                <h2><i class="fas fa-ellipsis-h"></i> Действия с чатом</h2>
+                <button class="close-chat-menu" id="closeChatMenu"><i class="fas fa-times"></i></button>
             </div>
             <div class="chat-menu-body">
-                <button class="chat-menu-item" id="clearHistoryBtn">🗑️ Очистить историю</button>
+                <button class="chat-menu-item" id="clearHistoryBtn"><i class="fas fa-trash-alt"></i> Очистить историю</button>
             </div>
         </div>
     </div>
@@ -194,10 +411,10 @@
                 <video id="localVideo" autoplay playsinline muted></video>
             </div>
             <div class="call-controls">
-                <button class="call-control-btn mute" id="muteAudioBtn">🎤</button>
-                <button class="call-control-btn video" id="toggleVideoBtn">📹</button>
-                <button class="call-control-btn end-call" id="endCallBtn">🔴</button>
-                <button class="call-control-btn speaker" id="speakerBtn">🔊</button>
+                <button class="call-control-btn mute" id="muteAudioBtn"><i class="fas fa-microphone"></i></button>
+                <button class="call-control-btn video" id="toggleVideoBtn"><i class="fas fa-video"></i></button>
+                <button class="call-control-btn end-call" id="endCallBtn"><i class="fas fa-phone-slash"></i></button>
+                <button class="call-control-btn speaker" id="speakerBtn"><i class="fas fa-volume-up"></i></button>
             </div>
             <div class="call-timer" id="callTimer">0:00</div>
         </div>
@@ -214,10 +431,61 @@
                 </div>
             </div>
             <div class="incoming-call-controls">
-                <button class="incoming-call-btn accept" id="acceptCallBtn">✅ Принять</button>
-                <button class="incoming-call-btn decline" id="declineCallBtn">❌ Отклонить</button>
+                <button class="incoming-call-btn accept" id="acceptCallBtn"><i class="fas fa-phone"></i> Принять</button>
+                <button class="incoming-call-btn decline" id="declineCallBtn"><i class="fas fa-phone-slash"></i> Отклонить</button>
             </div>
         </div>
+    </div>
+
+    <!-- МОДАЛКА ЗАПИСИ ГОЛОСА -->
+    <div class="voice-recorder-modal" id="voiceRecorderModal" style="display: none;">
+        <div class="voice-recorder-content">
+            <div class="voice-recorder-header">
+                <h2><i class="fas fa-microphone"></i> Запись голосового сообщения</h2>
+                <button class="close-voice-recorder" id="closeVoiceRecorder"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="voice-recorder-body">
+                <div class="voice-wave" id="voiceWave">
+                    <span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <div class="voice-timer" id="voiceTimer">0:00</div>
+                <div class="voice-controls">
+                    <button class="voice-control-btn" id="startRecordingBtn"><i class="fas fa-circle"></i> Начать запись</button>
+                    <button class="voice-control-btn" id="stopRecordingBtn" style="display: none;"><i class="fas fa-stop"></i> Остановить</button>
+                    <button class="voice-control-btn" id="playRecordingBtn" style="display: none;"><i class="fas fa-play"></i> Прослушать</button>
+                    <button class="voice-control-btn" id="sendRecordingBtn" style="display: none;"><i class="fas fa-paper-plane"></i> Отправить</button>
+                    <button class="voice-control-btn" id="cancelRecordingBtn"><i class="fas fa-times"></i> Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ЗАПИСИ КРУЖОЧКА -->
+    <div class="video-circle-modal" id="videoCircleModal" style="display: none;">
+        <div class="video-circle-content">
+            <div class="video-circle-header">
+                <h2><i class="fas fa-circle"></i> Запись кружочка</h2>
+                <button class="close-video-circle" id="closeVideoCircle"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="video-circle-body">
+                <video id="circleVideo" autoplay playsinline muted></video>
+                <div class="circle-timer" id="circleTimer">0:00</div>
+                <div class="circle-controls">
+                    <button class="circle-control-btn" id="startCircleBtn"><i class="fas fa-circle"></i> Начать запись</button>
+                    <button class="circle-control-btn" id="stopCircleBtn" style="display: none;"><i class="fas fa-stop"></i> Остановить</button>
+                    <button class="circle-control-btn" id="playCircleBtn" style="display: none;"><i class="fas fa-play"></i> Просмотреть</button>
+                    <button class="circle-control-btn" id="sendCircleBtn" style="display: none;"><i class="fas fa-paper-plane"></i> Отправить</button>
+                    <button class="circle-control-btn" id="cancelCircleBtn"><i class="fas fa-times"></i> Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ИНДИКАТОР ЗАПИСИ -->
+    <div class="recording-indicator" id="recordingIndicator" style="display: none;">
+        <span id="recordingIcon">🎤</span>
+        <span class="recording-timer" id="recordingTimer">0:00</span>
+        <button class="recording-stop" id="stopRecordingBtn2"><i class="fas fa-stop"></i></button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
