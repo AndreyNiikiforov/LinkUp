@@ -17,22 +17,39 @@ let ADMIN_RIGHTS = null;
 let CURRENT_SESSION_TOKEN = null;
 let currentRankUser = null;
 let OWNER_SETTINGS = { showBadge: true };
-let callState = {
-    isCalling: false,
-    targetUser: null,
-    callType: null,
-    callId: null
-};
 
-// STUN серверы для звонков
-const iceServers = {
-    iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' },
-        { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'stun:stun4.l.google.com:19302' }
-    ]
+// Расширенные описания рангов
+const RANGS = {
+    1: { 
+        name: 'Младший модератор', 
+        desc: 'Мут, варны, предупреждения', 
+        color: '#cd7f32',
+        permissions: ['warn', 'mute', 'view']
+    },
+    2: { 
+        name: 'Старший модератор', 
+        desc: 'Кик, чистка чата, мут', 
+        color: '#c0c0c0',
+        permissions: ['warn', 'mute', 'kick', 'clean', 'view']
+    },
+    3: { 
+        name: 'Младший администратор', 
+        desc: 'Настройки чата, фильтры, безопасность', 
+        color: '#ffd700',
+        permissions: ['warn', 'mute', 'kick', 'clean', 'settings', 'filters', 'view']
+    },
+    4: { 
+        name: 'Старший администратор', 
+        desc: 'Назначение модераторов, правила, приветствия', 
+        color: '#00bfff',
+        permissions: ['warn', 'mute', 'kick', 'clean', 'settings', 'filters', 'assign_mods', 'rules', 'view']
+    },
+    5: { 
+        name: 'Заместитель владельца', 
+        desc: 'Все функции, кроме удаления владельца', 
+        color: '#ff1493',
+        permissions: ['warn', 'mute', 'kick', 'clean', 'settings', 'filters', 'assign_mods', 'rules', 'full', 'manage_admins', 'view']
+    }
 };
 
 // ==================== DOM ЭЛЕМЕНТЫ ====================
@@ -146,6 +163,7 @@ const profileTabContents = document.querySelectorAll('.profile-tab-content');
 const ownerTab = document.getElementById('ownerTab');
 const showOwnerBadge = document.getElementById('showOwnerBadge');
 const ownerBadge = document.getElementById('ownerBadge');
+const chatOwnerBadge = document.getElementById('chatOwnerBadge');
 
 // Приватность
 const showPhoneRadios = document.querySelectorAll('input[name="showPhone"]');
@@ -164,6 +182,10 @@ const adminTabs = document.querySelectorAll('.admin-tab');
 const adminsTab = document.getElementById('adminsTab');
 const adminUsersList = document.getElementById('adminUsersList');
 const adminUserSearch = document.getElementById('adminUserSearch');
+const supportList = document.getElementById('supportList');
+const reportsList = document.getElementById('reportsList');
+const channelsList = document.getElementById('channelsList');
+const createChannelBtn = document.getElementById('createChannelBtn');
 const adminsList = document.getElementById('adminsList');
 const addAdminBtn = document.getElementById('addAdminBtn');
 const newAdminPhone = document.getElementById('newAdminPhone');
@@ -228,6 +250,19 @@ function loadSession() {
 
 function isOwner() {
     return CURRENT_USER?.phone === OWNER_PHONE;
+}
+
+function getUserRank(phone) {
+    if (phone === OWNER_PHONE) return 5;
+    if (!ADMIN_RIGHTS) return 0;
+    return ADMIN_RIGHTS.rank || 0;
+}
+
+function canUserDo(phone, action) {
+    const rank = getUserRank(phone);
+    if (rank >= 5) return true;
+    if (rank === 0) return false;
+    return RANGS[rank]?.permissions?.includes(action) || false;
 }
 
 function formatDuration(seconds) {
@@ -310,7 +345,8 @@ async function loadUserSettings() {
         CURRENT_USER.privacy_settings = data.privacy_settings || {
             show_phone: 'everyone',
             who_can_write: 'everyone',
-            last_seen: 'everyone'
+            last_seen: 'everyone',
+            show_owner_badge: true
         };
         
         if (currentUserName) currentUserName.textContent = data.username || CURRENT_USER.phone;
@@ -692,17 +728,13 @@ window.startChat = async function(phone) {
         const chatName = document.getElementById('currentChatName');
         const chatPhone = document.getElementById('currentChatPhone');
         const chatUsername = document.getElementById('currentChatUsername');
-        const chatOwnerBadge = document.getElementById('chatOwnerBadge');
         
         if (chatName) chatName.textContent = CURRENT_CHAT.username || CURRENT_CHAT.phone;
         if (chatPhone) chatPhone.textContent = CURRENT_CHAT.phone;
         if (chatUsername) chatUsername.textContent = CURRENT_CHAT.username ? '@' + CURRENT_CHAT.username : '';
         
-        // Проверяем, владелец ли это
-        if (CURRENT_CHAT.phone === OWNER_PHONE && chatOwnerBadge) {
-            chatOwnerBadge.style.display = 'inline-block';
-        } else if (chatOwnerBadge) {
-            chatOwnerBadge.style.display = 'none';
+        if (chatOwnerBadge) {
+            chatOwnerBadge.style.display = (CURRENT_CHAT.phone === OWNER_PHONE && OWNER_SETTINGS.showBadge) ? 'inline-block' : 'none';
         }
         
         welcomeScreen.style.display = 'none';
@@ -802,7 +834,6 @@ window.openGroup = async function(groupId) {
     const chatName = document.getElementById('currentChatName');
     const chatPhone = document.getElementById('currentChatPhone');
     const chatUsername = document.getElementById('currentChatUsername');
-    const chatOwnerBadge = document.getElementById('chatOwnerBadge');
     
     if (chatName) chatName.textContent = CURRENT_GROUP.name;
     if (chatPhone) chatPhone.textContent = 'Группа';
@@ -1267,7 +1298,20 @@ let localStream = null;
 let remoteStream = null;
 let callTimer = null;
 let callSeconds = 0;
+let callState = {
+    isCalling: false,
+    targetUser: null,
+    callType: null,
+    callId: null
+};
 let incomingCallTimeout = null;
+
+const iceServers = {
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+    ]
+};
 
 if (audioCallBtn) {
     audioCallBtn.addEventListener('click', async () => {
@@ -1424,6 +1468,7 @@ let circleRecorder = null;
 let videoChunks = [];
 let circleTimerInterval = null;
 let circleSeconds = 0;
+let circlePreviewStream = null;
 
 if (videoCircleBtn) {
     videoCircleBtn.addEventListener('click', toggleCircleRecording);
@@ -1439,21 +1484,33 @@ function toggleCircleRecording() {
 
 async function startCircleRecording() {
     try {
+        // Показываем модалку с превью
+        if (videoCircleModal) {
+            videoCircleModal.style.display = 'flex';
+        }
+        
+        // Запрашиваем доступ к камере
         const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
                 width: { ideal: 300 },
                 height: { ideal: 300 },
-                aspectRatio: 1
+                aspectRatio: 1,
+                facingMode: 'user' // фронтальная камера
             }, 
             audio: true 
         });
         
-        circleRecorder = new MediaRecorder(stream);
-        videoChunks = [];
+        circlePreviewStream = stream;
         
+        // Показываем превью в модалке
         if (circleVideo) {
             circleVideo.srcObject = stream;
+            circleVideo.style.display = 'block';
         }
+        
+        // Создаём рекордер
+        circleRecorder = new MediaRecorder(stream);
+        videoChunks = [];
         
         circleRecorder.ondataavailable = (e) => {
             if (e.data.size > 0) {
@@ -1462,10 +1519,17 @@ async function startCircleRecording() {
         };
         
         circleRecorder.onstop = async () => {
-            stream.getTracks().forEach(track => track.stop());
+            if (circlePreviewStream) {
+                circlePreviewStream.getTracks().forEach(track => track.stop());
+                circlePreviewStream = null;
+            }
             
             if (videoChunks.length > 0) {
                 await sendCircleMessage();
+            }
+            
+            if (circleVideo) {
+                circleVideo.srcObject = null;
             }
             
             hideRecordingIndicator();
@@ -1473,12 +1537,21 @@ async function startCircleRecording() {
         
         circleRecorder.start();
         
+        // Обновляем интерфейс
+        if (startCircleBtn) startCircleBtn.style.display = 'none';
+        if (stopCircleBtn) stopCircleBtn.style.display = 'inline-flex';
+        if (cancelCircleBtn) cancelCircleBtn.style.display = 'inline-flex';
+        
         showRecordingIndicator('circle');
         
         videoCircleBtn.style.background = '#ff4444';
         videoCircleBtn.style.transform = 'scale(1.2)';
         
         circleSeconds = 0;
+        if (circleTimer) {
+            circleTimer.textContent = formatDuration(0);
+        }
+        
         if (circleTimerInterval) clearInterval(circleTimerInterval);
         circleTimerInterval = setInterval(() => {
             circleSeconds++;
@@ -1491,17 +1564,27 @@ async function startCircleRecording() {
         }, 1000);
         
     } catch (error) {
+        console.error('Ошибка доступа к камере:', error);
         alert('❌ Не удалось получить доступ к камере');
+        if (videoCircleModal) {
+            videoCircleModal.style.display = 'none';
+        }
     }
 }
 
 function stopCircleRecording() {
     if (circleRecorder && circleRecorder.state === 'recording') {
         circleRecorder.stop();
+        
+        if (startCircleBtn) startCircleBtn.style.display = 'inline-flex';
+        if (stopCircleBtn) stopCircleBtn.style.display = 'none';
+        if (playCircleBtn) playCircleBtn.style.display = 'inline-flex';
+        if (sendCircleBtn) sendCircleBtn.style.display = 'inline-flex';
+        
         videoCircleBtn.style.background = '';
         videoCircleBtn.style.transform = '';
+        
         if (circleTimerInterval) clearInterval(circleTimerInterval);
-        if (circleVideo) circleVideo.srcObject = null;
     }
 }
 
@@ -1534,6 +1617,17 @@ async function sendCircleMessage() {
                 loadChats();
             }
             
+            // Закрываем модалку
+            if (videoCircleModal) {
+                videoCircleModal.style.display = 'none';
+            }
+            
+            // Сбрасываем кнопки
+            if (startCircleBtn) startCircleBtn.style.display = 'inline-flex';
+            if (stopCircleBtn) stopCircleBtn.style.display = 'none';
+            if (playCircleBtn) playCircleBtn.style.display = 'none';
+            if (sendCircleBtn) sendCircleBtn.style.display = 'none';
+            
             videoCircleBtn.style.background = '';
             videoCircleBtn.style.transform = '';
             
@@ -1541,6 +1635,49 @@ async function sendCircleMessage() {
             alert('❌ Ошибка отправки: ' + e.message);
         }
     };
+}
+
+// Закрытие модалки кружочка
+if (closeVideoCircle) {
+    closeVideoCircle.addEventListener('click', () => {
+        if (circleRecorder && circleRecorder.state === 'recording') {
+            circleRecorder.stop();
+        }
+        if (circlePreviewStream) {
+            circlePreviewStream.getTracks().forEach(track => track.stop());
+            circlePreviewStream = null;
+        }
+        videoCircleModal.style.display = 'none';
+        
+        // Сбрасываем кнопки
+        if (startCircleBtn) startCircleBtn.style.display = 'inline-flex';
+        if (stopCircleBtn) stopCircleBtn.style.display = 'none';
+        if (playCircleBtn) playCircleBtn.style.display = 'none';
+        if (sendCircleBtn) sendCircleBtn.style.display = 'none';
+        
+        if (circleTimerInterval) clearInterval(circleTimerInterval);
+    });
+}
+
+if (cancelCircleBtn) {
+    cancelCircleBtn.addEventListener('click', () => {
+        if (circleRecorder && circleRecorder.state === 'recording') {
+            circleRecorder.stop();
+        }
+        if (circlePreviewStream) {
+            circlePreviewStream.getTracks().forEach(track => track.stop());
+            circlePreviewStream = null;
+        }
+        videoCircleModal.style.display = 'none';
+        
+        // Сбрасываем кнопки
+        if (startCircleBtn) startCircleBtn.style.display = 'inline-flex';
+        if (stopCircleBtn) stopCircleBtn.style.display = 'none';
+        if (playCircleBtn) playCircleBtn.style.display = 'none';
+        if (sendCircleBtn) sendCircleBtn.style.display = 'none';
+        
+        if (circleTimerInterval) clearInterval(circleTimerInterval);
+    });
 }
 
 // ==================== ИНДИКАТОР ЗАПИСИ ====================
@@ -1869,7 +2006,8 @@ if (savePrivacyBtn) {
         const privacySettings = {
             show_phone: showPhone,
             who_can_write: whoCanWrite,
-            last_seen: lastSeen
+            last_seen: lastSeen,
+            show_owner_badge: OWNER_SETTINGS.showBadge
         };
         
         try {
@@ -1891,6 +2029,7 @@ if (adminButton) {
     adminButton.addEventListener('click', () => {
         if (adminModal) adminModal.style.display = 'flex';
         loadAdminUsers();
+        loadAdminsList();
     });
 }
 
@@ -1909,6 +2048,10 @@ if (adminTabs) {
         if (content) content.classList.add('active');
         
         if (tab.dataset.tab === 'users') loadAdminUsers();
+        if (tab.dataset.tab === 'support') loadSupportRequests();
+        if (tab.dataset.tab === 'reports') loadReports();
+        if (tab.dataset.tab === 'channels') loadChannels();
+        if (tab.dataset.tab === 'admins' && (isOwner() || canUserDo(CURRENT_USER.phone, 'manage_admins'))) loadAdminsList();
     }));
 }
 
@@ -1918,27 +2061,59 @@ async function loadAdminUsers() {
     try {
         const { data: users } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
         
-        const { data: admins } = await supabaseClient.from('admins').select('phone, rank');
+        const { data: admins } = await supabaseClient.from('admins').select('phone, rank, can_manage_admins, can_ban_users, can_manage_groups, can_view_reports');
         const adminMap = {};
-        admins?.forEach(a => adminMap[a.phone] = a.rank);
+        admins?.forEach(a => adminMap[a.phone] = a);
         
         adminUsersList.innerHTML = users?.map(u => {
-            const isOwner = u.phone === OWNER_PHONE;
-            const rank = isOwner ? 5 : (adminMap[u.phone] || 0);
-            const canManage = isOwner || (ADMIN_RIGHTS?.can_manage_admins);
+            const isOwnerUser = u.phone === OWNER_PHONE;
+            const adminData = adminMap[u.phone];
+            const rank = isOwnerUser ? 5 : (adminData?.rank || 0);
+            const canManage = isOwner() || (ADMIN_RIGHTS?.can_manage_admins);
+            
+            // Определяем какие кнопки показывать в зависимости от прав текущего админа
+            const canWarn = canUserDo(CURRENT_USER.phone, 'warn');
+            const canMute = canUserDo(CURRENT_USER.phone, 'mute');
+            const canKick = canUserDo(CURRENT_USER.phone, 'kick');
+            const canBan = canUserDo(CURRENT_USER.phone, 'full');
             
             return `
             <div class="admin-user-item">
                 <div>
                     <strong>${u.username || u.phone}</strong>
                     <div style="color:#888;font-size:12px;">${u.phone}</div>
-                    ${rank > 0 ? `<div style="color:${getRankColor(rank)}">Ранг ${rank}</div>` : ''}
-                    ${isOwner ? '<span style="color:gold; margin-left:5px;"><i class="fas fa-crown"></i> Владелец</span>' : ''}
+                    ${rank > 0 ? `<div style="color:${getRankColor(rank)}">Ранг ${rank}: ${RANGS[rank]?.name}</div>` : ''}
+                    ${isOwnerUser ? '<span style="color:gold;"><i class="fas fa-crown"></i> Владелец</span>' : ''}
+                    ${adminData && !isOwnerUser ? '<span style="color:#00bfff;"><i class="fas fa-user-tie"></i> Админ</span>' : ''}
                 </div>
                 <div class="admin-user-actions">
-                    ${!isOwner && isOwner() ? `
+                    ${!isOwnerUser && canManage ? `
                         <button class="admin-user-btn make-admin" onclick="openRankModal('${u.phone}')">
-                            <i class="fas fa-crown"></i> ${rank > 0 ? 'Изменить ранг' : 'Назначить'}
+                            <i class="fas fa-crown"></i> ${adminData ? 'Изменить ранг' : 'Назначить'}
+                        </button>
+                    ` : ''}
+                    
+                    ${!isOwnerUser && canWarn ? `
+                        <button class="admin-user-btn warn" onclick="moderateUser('${u.phone}', 'warn')">
+                            <i class="fas fa-exclamation-triangle"></i> Варн
+                        </button>
+                    ` : ''}
+                    
+                    ${!isOwnerUser && canMute ? `
+                        <button class="admin-user-btn mute" onclick="moderateUser('${u.phone}', 'mute')">
+                            <i class="fas fa-microphone-slash"></i> Мут
+                        </button>
+                    ` : ''}
+                    
+                    ${!isOwnerUser && canKick ? `
+                        <button class="admin-user-btn kick" onclick="moderateUser('${u.phone}', 'kick')">
+                            <i class="fas fa-user-slash"></i> Кик
+                        </button>
+                    ` : ''}
+                    
+                    ${!isOwnerUser && canBan ? `
+                        <button class="admin-user-btn ban" onclick="moderateUser('${u.phone}', 'ban')">
+                            <i class="fas fa-ban"></i> Бан
                         </button>
                     ` : ''}
                 </div>
@@ -1951,9 +2126,92 @@ async function loadAdminUsers() {
     }
 }
 
+window.moderateUser = function(phone, action) {
+    const actionNames = {
+        warn: 'выдать предупреждение',
+        mute: 'замутить',
+        kick: 'кикнуть',
+        ban: 'забанить'
+    };
+    
+    if (phone === OWNER_PHONE) {
+        alert('❌ Нельзя модерировать владельца');
+        return;
+    }
+    
+    if (!confirm(`Вы уверены, что хотите ${actionNames[action]} пользователя ${phone}?`)) return;
+    
+    alert(`✅ Действие "${actionNames[action]}" выполнено`);
+};
+
+// Загрузка списка админов
+async function loadAdminsList() {
+    if (!adminsList) return;
+    
+    try {
+        const { data: admins } = await supabaseClient.from('admins').select('*').order('rank', { ascending: false });
+        
+        adminsList.innerHTML = admins?.map(a => `
+            <div class="admin-user-item">
+                <div>
+                    <strong>${a.phone}</strong>
+                    <div style="color:${getRankColor(a.rank)}">Ранг ${a.rank}: ${RANGS[a.rank]?.name}</div>
+                </div>
+                ${a.phone === OWNER_PHONE ? '<span style="color:gold;"><i class="fas fa-crown"></i> Владелец</span>' : ''}
+            </div>
+        `).join('') || '<p class="no-data">Нет админов</p>';
+        
+    } catch (e) {
+        console.error('Ошибка загрузки админов:', e);
+    }
+}
+
+// Добавление нового админа
+if (addAdminBtn) {
+    addAdminBtn.addEventListener('click', async () => {
+        if (!newAdminPhone) return;
+        
+        const phone = formatPhone(newAdminPhone.value);
+        if (!phone) return;
+        
+        try {
+            // Проверяем существование пользователя
+            const { data: user } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('phone', phone)
+                .single();
+            
+            if (!user) {
+                alert('❌ Пользователь не найден');
+                return;
+            }
+            
+            openRankModal(phone);
+            newAdminPhone.value = '';
+            
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    });
+}
+
+// Заглушки для других вкладок
+async function loadSupportRequests() {
+    if (supportList) supportList.innerHTML = '<p class="no-data">Функция поддержки в разработке</p>';
+}
+
+async function loadReports() {
+    if (reportsList) reportsList.innerHTML = '<p class="no-data">Функция жалоб в разработке</p>';
+}
+
+async function loadChannels() {
+    if (channelsList) channelsList.innerHTML = '<p class="no-data">Функция каналов в разработке</p>';
+}
+
 // ==================== МОДАЛКА РАНГОВ ====================
 window.openRankModal = function(phone) {
-    if (!isOwner()) {
+    if (!isOwner() && !canUserDo(CURRENT_USER.phone, 'manage_admins')) {
         alert('❌ Недостаточно прав');
         return;
     }
@@ -2002,7 +2260,7 @@ if (cancelRankBtn) {
 
 if (confirmRankBtn) {
     confirmRankBtn.addEventListener('click', async () => {
-        if (!isOwner()) {
+        if (!isOwner() && !canUserDo(CURRENT_USER.phone, 'manage_admins')) {
             alert('❌ Недостаточно прав');
             return;
         }
@@ -2027,21 +2285,28 @@ if (confirmRankBtn) {
                     .update({ rank })
                     .eq('phone', currentRankUser);
             } else {
+                // Определяем права в зависимости от ранга
+                const canManageAdmins = rank >= 4;
+                const canBanUsers = rank >= 1;
+                const canManageGroups = rank >= 3;
+                const canViewReports = rank >= 1;
+                
                 await supabaseClient
                     .from('admins')
                     .insert([{ 
                         phone: currentRankUser, 
                         rank,
-                        can_manage_admins: false,
-                        can_ban_users: true,
-                        can_manage_groups: true,
-                        can_view_reports: true
+                        can_manage_admins: canManageAdmins,
+                        can_ban_users: canBanUsers,
+                        can_manage_groups: canManageGroups,
+                        can_view_reports: canViewReports
                     }]);
             }
             
             alert(`✅ Ранг ${rank} назначен`);
             rankModal.style.display = 'none';
             loadAdminUsers();
+            loadAdminsList();
         } catch (e) {
             alert('❌ Ошибка: ' + e.message);
         }
