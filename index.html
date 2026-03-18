@@ -8,39 +8,25 @@
 </head>
 <body>
     <!-- Экран авторизации -->
-    <div id="authScreen" class="auth-screen">
-        <div class="auth-container">
-            <h1>LinkUp</h1>
-            
-            <!-- Форма входа -->
-            <div id="loginForm">
-                <input type="text" id="loginPhone" placeholder="+7" value="+7">
-                <input type="password" id="loginPassword" placeholder="Пароль">
-                <button id="loginButton">Войти</button>
-                <button id="showRegisterButton">Нет аккаунта? Зарегистрироваться</button>
-            </div>
-            
-            <!-- Форма регистрации -->
-            <div id="registerForm" style="display:none;">
-                <input type="text" id="registerPhone" placeholder="+7" value="+7">
-                <input type="text" id="registerUsername" placeholder="Username">
-                <input type="password" id="registerPassword" placeholder="Пароль">
-                <input type="password" id="registerPasswordConfirm" placeholder="Подтвердите пароль">
-                <div>
-                    <input type="checkbox" id="termsCheckbox">
-                    <label>Я принимаю <a href="terms.html" target="_blank">условия</a></label>
-                </div>
-                <button id="registerButton">Зарегистрироваться</button>
-                <button id="backToLoginButton">Уже есть аккаунт? Войти</button>
-            </div>
-            
-            <div id="authMessage"></div>
-        </div>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LinkUp</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>LinkUp</h1>
+        <input type="text" placeholder="+7" class="phone-input">
+        <input type="password" placeholder="Пароль" class="password-input">
+        <button class="login-btn">Войти</button>
+        <p>Нет аккаунта? <a href="#">Зарегистрироваться</a></p>
     </div>
+</body>
+</html>
 
     <!-- Основное приложение -->
     <div id="app" style="display:none;">
-        <!-- Боковая панель -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <div>
@@ -50,75 +36,56 @@
                 <button id="logoutBtn">Выйти</button>
             </div>
             
-            <!-- Поиск -->
             <input type="text" id="searchInput" placeholder="Поиск...">
             <button id="searchButton">Найти</button>
             
-            <!-- Результаты поиска -->
             <div id="searchResults" style="display:none;">
                 <div id="searchResultsList"></div>
                 <button id="closeSearch">Закрыть</button>
             </div>
             
-            <!-- Вкладки -->
-            <div>
-                <button id="chatsTabBtn" class="active">Чаты</button>
-                <button id="groupsTabBtn">Группы</button>
+            <div class="tabs">
+                <button id="chatsTabBtn" class="tab active">Чаты</button>
+                <button id="groupsTabBtn" class="tab">Группы</button>
                 <button id="createGroupBtn">+</button>
             </div>
             
-            <!-- Списки -->
             <div id="chatsList"></div>
             <div id="groupsList" style="display:none;"></div>
         </div>
 
-        <!-- Основной контент -->
         <div class="main-content">
-            <!-- Приветствие -->
-            <div id="welcomeScreen">
+            <div id="welcomeScreen" class="welcome-screen">
                 <h2>Выберите чат</h2>
             </div>
 
-            <!-- Окно чата -->
             <div id="chatWindow" style="display:none;">
-                <!-- Шапка чата -->
                 <div class="chat-header">
                     <div>
                         <span id="currentChatName"></span>
                         <span id="currentChatUsername"></span>
-                        <span id="currentChatPhone"></span>
                         <span id="chatOwnerBadge" style="display:none;">👑</span>
                     </div>
                     <div>
-                        <button id="audioCallBtn" title="Аудиозвонок">📞</button>
-                        <button id="videoCallBtn" title="Видеозвонок">📹</button>
-                        <button id="voiceMsgBtn" title="Голосовое">🎤</button>
-                        <button id="videoCircleBtn" title="Кружочек">⭕</button>
-                        <button id="chatMenuBtn">⋮</button>
+                        <button id="audioCallBtn">📞</button>
+                        <button id="videoCallBtn">📹</button>
+                        <button id="voiceMsgBtn">🎤</button>
+                        <button id="videoCircleBtn">⭕</button>
                     </div>
                 </div>
 
-                <!-- Закрепленные сообщения -->
-                <div id="pinnedMessages" style="display:none;"></div>
-                
-                <!-- Область сообщений -->
-                <div id="messagesArea"></div>
+                <div id="messagesArea" class="messages-area"></div>
 
-                <!-- Панель ввода -->
-                <div>
+                <div class="input-panel">
                     <input type="text" id="messageInput" placeholder="Сообщение...">
                     <button id="sendButton">→</button>
-                    <button id="emojiBtn">😊</button>
                 </div>
-                
-                <!-- Панель эмодзи -->
-                <div id="emojiPanel" style="display:none;"></div>
             </div>
         </div>
     </div>
 
     <!-- Модалка звонка -->
-    <div id="callModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:1000;">
+    <div id="callModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9);">
         <div style="padding:20px; color:white;">
             <h2 id="callName"></h2>
             <p id="callStatus"></p>
@@ -127,53 +94,27 @@
                 <video id="remoteVideo" autoplay style="width:100%;"></video>
                 <video id="localVideo" autoplay muted style="width:100px; position:absolute; bottom:10px; right:10px;"></video>
             </div>
-            <div>
-                <button id="muteAudioBtn">🔊</button>
-                <button id="toggleVideoBtn">📹</button>
-                <button id="endCallBtn">❌ Завершить</button>
-            </div>
+            <button id="endCallBtn">Завершить</button>
         </div>
     </div>
 
     <!-- Модалка входящего звонка -->
-    <div id="incomingCallModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:1000;">
+    <div id="incomingCallModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9);">
         <div style="padding:20px; color:white;">
             <h2 id="incomingCallName"></h2>
             <p id="incomingCallType"></p>
-            <button id="acceptCallBtn">✅ Принять</button>
-            <button id="declineCallBtn">❌ Отклонить</button>
-        </div>
-    </div>
-
-    <!-- Голосовые сообщения -->
-    <div id="voiceRecorderModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:1000;">
-        <div style="padding:20px; color:white;">
-            <h3>Голосовое сообщение</h3>
-            <div id="voiceTimer">0:00</div>
-            <button id="sendRecordingBtn">📤 Отправить</button>
-            <button id="cancelRecordingBtn">❌ Отмена</button>
-        </div>
-    </div>
-
-    <!-- Кружочки -->
-    <div id="videoCircleModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:1000;">
-        <div style="padding:20px; color:white;">
-            <h3>Кружочек</h3>
-            <video id="circleVideo" autoplay muted style="width:100%; border-radius:50%;"></video>
-            <div id="circleTimer">0:00</div>
-            <button id="sendCircleBtn">📤 Отправить</button>
-            <button id="cancelCircleBtn">❌ Отмена</button>
+            <button id="acceptCallBtn">Принять</button>
+            <button id="declineCallBtn">Отклонить</button>
         </div>
     </div>
 
     <!-- Индикатор записи -->
-    <div id="recordingIndicator" style="display:none; position:fixed; top:10px; left:50%; transform:translateX(-50%); background:red; color:white; padding:10px; border-radius:20px; z-index:2000;">
+    <div id="recordingIndicator" style="display:none; position:fixed; top:10px; left:50%; transform:translateX(-50%); background:red; color:white; padding:10px; border-radius:20px;">
         <span id="recordingIcon">🎤</span>
         <span id="recordingTimer">0:00</span>
         <button id="stopRecordingBtn2">⏹️</button>
     </div>
 
-    <!-- Подключение скриптов -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
     <script src="calls.js"></script>
