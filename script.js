@@ -922,10 +922,34 @@ window.startChat = async function(phone) {
     const circleBtn = document.getElementById('videoCircleBtn');
     
     if (audioBtn) audioBtn.disabled = false;
-    if (videoBtn) audioBtn.disabled = false;
+    if (videoBtn) videoBtn.disabled = false;
     if (voiceBtn) voiceBtn.disabled = false;
     if (circleBtn) circleBtn.disabled = false;
 };
+
+// Убираем автоматическое открытие профиля!!!
+document.addEventListener('DOMContentLoaded', function() {
+    // НИЧЕГО НЕ ОТКРЫВАЕМ АВТОМАТИЧЕСКИ
+    
+    // Кнопка профиля (если есть)
+    const profileBtn = document.getElementById('profileBtn');
+    if (profileBtn) {
+        profileBtn.addEventListener('click', function() {
+            document.getElementById('profileModal').style.display = 'flex';
+        });
+    }
+    
+    // Закрытие модалок
+    const closeButtons = document.querySelectorAll('.close-btn, #closeProfileModal');
+    closeButtons.forEach(btn => {
+        if (btn) {
+            btn.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                if (modal) modal.style.display = 'none';
+            });
+        }
+    });
+});
 
 // Загрузка сообщений (если не определена)
 if (typeof window.loadMessages !== 'function') {
